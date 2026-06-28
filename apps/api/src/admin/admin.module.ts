@@ -1,0 +1,11 @@
+import { Module } from "@nestjs/common";
+import { AdminService } from "./admin.service";
+import { AdminController } from "./admin.controller";
+import { MarketplaceModule } from "../marketplace/marketplace.module";
+
+@Module({
+  imports: [MarketplaceModule],
+  controllers: [AdminController],
+  providers: [AdminService],
+})
+export class AdminModule {}

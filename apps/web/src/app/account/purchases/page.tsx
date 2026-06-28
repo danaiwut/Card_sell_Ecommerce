@@ -1,0 +1,100 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "@/lib/session";
+import { api } from "@/lib/api";
+import { DevLogin } from "@/components/dev-login";
+import { AccountSidebar } from "@/components/account-sidebar";
+import { formatBaht, formatDate } from "@/lib/format";
+
+interface MpOrder {
+  id: string;
+  status: string;
+  amount: number;
+  createdAt: string;
+  listing: { catalogItem: { name: string; setName: string | null }; seller: { displayName: string } };
+  shipment: {
+    carrier: string | null;
+    trackingNumber: string | null;
+    status: string;
+    events: { status: string; note?: string; at: string }[];
+  } | null;
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  PAID_HELD: "รอผู้ขายจัดส่ง (เงินอยู่ใน escrow)",
+  SHIPPED: "กำลังจัดส่ง",
+  DELIVERED: "จัดส่งสำเร็จ",
+  COMPLETED: "เสร็จสมบูรณ์",
+  DISPUTED: "มีข้อพิพาท",
+  REFUNDED: "คืนเงินแล้ว",
+};
+
+export default function PurchasesPage() {
+  const { session } = useSession();
+  const qc = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["purchases", session?.userId],
+    queryFn: () => api.get<MpOrder[]>("/marketplace/purchases", true),
+    enabled: Boolean(session),
+  });
+
+  const confirm = useMutation({
+    mutationFn: (id: string) => api.post(`/marketplace/orders/${id}/confirm`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["purchases"] }),
+  });
+
+  if (!session) return <DevLogin />;
+
+  return (
+    <div className="container-page py-8">
+      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
+        <AccountSidebar />
+        <div>
+          <h1 className="font-display text-3xl font-semibold">Marketplace Purchases</h1>
+          <div className="mt-5 space-y-4">
+            {(data ?? []).map((o) => (
+              <div key={o.id} className="card p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold">{o.listing.catalogItem.name}</p>
+                    <p className="text-xs text-ink/50">
+                      {o.listing.catalogItem.setName} • ผู้ขาย {o.listing.seller.displayName} •{" "}
+                      {formatDate(o.createdAt)}
+                    </p>
+                  </div>
+                  <p className="price">{formatBaht(o.amount)}</p>
+                </div>
+                <p className="mt-2 text-sm text-ink/60">
+                  สถานะ: {STATUS_LABEL[o.status] ?? o.status}
+                </p>
+                {o.shipment?.trackingNumber && (
+                  <div className="mt-3 rounded-md bg-ink/[0.03] p-3 text-sm">
+                    📦 {o.shipment.carrier} • {o.shipment.trackingNumber}
+                    <ol className="mt-2 space-y-1 text-xs text-ink/60">
+                      {o.shipment.events.map((e, i) => (
+                        <li key={i}>
+                          {formatDate(e.at)} — {e.status}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                {["SHIPPED", "DELIVERED"].includes(o.status) && (
+                  <button
+                    className="btn-primary mt-3"
+                    disabled={confirm.isPending}
+                    onClick={() => confirm.mutate(o.id)}
+                  >
+                    ยืนยันรับสินค้า (ปล่อยเงินให้ผู้ขาย)
+                  </button>
+                )}
+              </div>
+            ))}
+            {(data?.length ?? 0) === 0 && <p className="text-sm text-ink/40">ยังไม่มีรายการซื้อ</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

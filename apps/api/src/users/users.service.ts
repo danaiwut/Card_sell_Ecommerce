@@ -1,0 +1,65 @@
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { toBaht } from "../common/serializers";
+
+@Injectable()
+export class UsersService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async me(userId: string) {
+    const [user, ordersCount, wishlistCount, cardsCount, recentOrders] =
+      await Promise.all([
+        this.prisma.user.findUnique({ where: { id: userId } }),
+        this.prisma.order.count({ where: { userId } }),
+        this.prisma.wishlistItem.count({ where: { userId } }),
+        this.prisma.collectionItem.count({ where: { userId } }),
+        this.prisma.order.findMany({
+          where: { userId },
+          orderBy: { createdAt: "desc" },
+          take: 4,
+        }),
+      ]);
+
+    return {
+      id: user!.id,
+      email: user!.email,
+      displayName: user!.displayName,
+      avatarUrl: user!.avatarUrl,
+      role: user!.role,
+      level: user!.level,
+      sellerOnboarded: user!.stripeConnectOnboarded,
+      sellerRating: user!.sellerRating,
+      stats: {
+        orders: ordersCount,
+        wishlist: wishlistCount,
+        myCards: cardsCount,
+        coupons: 0,
+      },
+      recentOrders: recentOrders.map((o) => ({
+        orderNumber: o.orderNumber,
+        date: o.createdAt.toISOString(),
+        total: toBaht(o.total),
+        status: o.status,
+      })),
+    };
+  }
+
+  async updateProfile(userId: string, data: { displayName?: string; avatarUrl?: string }) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { displayName: data.displayName, avatarUrl: data.avatarUrl },
+    });
+    return { id: user.id, displayName: user.displayName, avatarUrl: user.avatarUrl };
+  }
+
+  async addresses(userId: string) {
+    return this.prisma.address.findMany({ where: { userId }, orderBy: { isDefault: "desc" } });
+  }
+
+  async addAddress(userId: string, data: any) {
+    if (data.isDefault) {
+      await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+    }
+    return this.prisma.address.create({ data: { ...data, userId } });
+  }
+}

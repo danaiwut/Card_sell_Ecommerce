@@ -1,0 +1,31 @@
+{
+  "name": "cardverse",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.2.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @cardverse/db generate",
+    "db:push": "bash -c 'set -a; [ -f .env ] && source .env || source .env.example; set +a; pnpm --filter @cardverse/db push'",
+    "db:migrate": "bash -c 'set -a; [ -f .env ] && source .env || source .env.example; set +a; pnpm --filter @cardverse/db migrate'",
+    "db:seed": "bash -c 'set -a; [ -f .env ] && source .env || source .env.example; set +a; pnpm --filter @cardverse/shared build && pnpm --filter @cardverse/db seed'",
+    "db:studio": "bash -c 'set -a; [ -f .env ] && source .env || source .env.example; set +a; pnpm --filter @cardverse/db studio'"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "prisma", "esbuild", "@nestjs/core", "@clerk/shared", "sharp"],
+    "overrides": {
+      "ioredis": "5.11.1"
+    }
+  }
+}
