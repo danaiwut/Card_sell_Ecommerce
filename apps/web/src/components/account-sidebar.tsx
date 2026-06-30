@@ -10,7 +10,7 @@ const LINKS = [
   { href: "/account/orders", label: "ORDERS" },
   { href: "/account/purchases", label: "MARKETPLACE" },
   { href: "/account/sell", label: "SELL / MY LISTINGS" },
-  { href: "/collection", label: "MY CARDS" },
+  { href: "/collection", label: "WISHLIST" },
   { href: "/account/settings", label: "SETTINGS" },
 ];
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
@@ -43,7 +44,9 @@ export default function OrdersPage() {
               <div key={o.id} className="card p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold">{o.orderNumber}</p>
+                    <Link href={`/account/orders/${o.id}`} className="font-semibold hover:text-gold">
+                      {o.orderNumber}
+                    </Link>
                     <p className="text-xs text-ink/50">{formatDate(o.createdAt)}</p>
                   </div>
                   <div className="text-right">
@@ -72,6 +75,9 @@ export default function OrdersPage() {
                     </ol>
                   </div>
                 )}
+                <Link href={`/account/orders/${o.id}`} className="btn-outline mt-3">
+                  ดู tracking
+                </Link>
               </div>
             ))}
             {(data?.length ?? 0) === 0 && <p className="text-sm text-ink/40">ยังไม่มีคำสั่งซื้อ</p>}

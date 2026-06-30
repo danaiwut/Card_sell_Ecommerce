@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CARD_CONDITIONS,
-  CARRIERS,
   type CatalogItemDto,
   type ListingDto,
   type Paginated,
@@ -14,6 +13,9 @@ import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
 import { AccountSidebar } from "@/components/account-sidebar";
 import { formatBaht } from "@/lib/format";
+import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
+import { ShipmentUpdateForm, type ShipmentUpdatePayload } from "@/components/shipment-update-form";
+import { TrackingTimeline } from "@/components/tracking-timeline";
 
 export default function SellPage() {
   const { session } = useSession();
@@ -84,7 +86,14 @@ export default function SellPage() {
           </section>
 
           <section>
-            <h2 className="text-sm font-semibold tracking-wider text-ink/50">MY SALES (จัดส่ง)</h2>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold tracking-wider text-ink/50">SALES & SHIPPING</h2>
+                <p className="mt-1 text-sm text-ink/50">
+                  อัปเดตขนส่งและ tracking สำหรับออเดอร์ marketplace ที่ขายได้
+                </p>
+              </div>
+            </div>
             <div className="mt-3 space-y-3">
               {(sales ?? []).map((s) => (
                 <SaleRow key={s.id} sale={s} />
@@ -207,46 +216,49 @@ function CreateListingForm() {
 
 function SaleRow({ sale }: { sale: any }) {
   const qc = useQueryClient();
-  const [carrier, setCarrier] = useState<(typeof CARRIERS)[number]>("THAILAND_POST");
-  const [tracking, setTracking] = useState("");
 
   const ship = useMutation({
-    mutationFn: () =>
-      api.post(`/shipping/marketplace/${sale.id}`, { carrier, trackingNumber: tracking }),
+    mutationFn: (payload: ShipmentUpdatePayload) =>
+      api.post(`/shipping/marketplace/${sale.id}`, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-sales"] }),
   });
 
   return (
-    <div className="card p-4 text-sm">
-      <div className="flex items-center justify-between">
-        <span className="font-medium">{sale.listing.catalogItem.name}</span>
-        <span className="text-xs uppercase tracking-wider text-ink/50">{sale.status}</span>
-      </div>
-      {sale.status === "PAID_HELD" && (
-        <div className="mt-3 flex flex-wrap items-end gap-2">
-          <select className="input w-40" value={carrier} onChange={(e) => setCarrier(e.target.value as any)}>
-            {CARRIERS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <input
-            className="input w-44"
-            placeholder="เลขพัสดุ"
-            value={tracking}
-            onChange={(e) => setTracking(e.target.value)}
-          />
-          <button className="btn-primary" disabled={!tracking || ship.isPending} onClick={() => ship.mutate()}>
-            อัปเดตการจัดส่ง
-          </button>
+    <div className="card p-5 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-medium">{sale.listing.catalogItem.name}</p>
+          <p className="mt-1 text-xs text-ink/50">
+            ผู้ซื้อ {sale.buyer?.displayName ?? "—"} • ยอดขาย {formatBaht(sale.amount)}
+          </p>
         </div>
-      )}
-      {sale.shipment?.trackingNumber && (
-        <p className="mt-2 text-xs text-ink/60">
-          📦 {sale.shipment.carrier} • {sale.shipment.trackingNumber}
-        </p>
-      )}
+        <div className="text-right">
+          <span className="text-xs uppercase tracking-wider text-ink/50">{sale.status}</span>
+          <div className="mt-2">
+            <ShipmentStatusBadge status={sale.shipment?.status} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_420px]">
+        <TrackingTimeline
+          events={sale.shipment?.events ?? []}
+          currentStatus={sale.shipment?.status ?? "PENDING"}
+        />
+        <div>
+          <ShipmentUpdateForm
+            pending={ship.isPending}
+            initialCarrier={sale.shipment?.carrier}
+            initialTrackingNumber={sale.shipment?.trackingNumber}
+            initialStatus={sale.shipment?.status ?? "IN_TRANSIT"}
+            onSubmit={(payload) => ship.mutate(payload)}
+          />
+          <p className="mt-3 text-xs leading-relaxed text-ink/50">
+            เมื่อใส่เลขพัสดุครั้งแรก ระบบจะเปลี่ยนสถานะ escrow เป็นจัดส่งแล้ว
+            และผู้ซื้อจะเห็น tracking ในหน้า Marketplace Purchases
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

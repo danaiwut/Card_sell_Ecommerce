@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
@@ -57,7 +58,9 @@ export default function PurchasesPage() {
               <div key={o.id} className="card p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold">{o.listing.catalogItem.name}</p>
+                    <Link href={`/account/purchases/${o.id}`} className="font-semibold hover:text-gold">
+                      {o.listing.catalogItem.name}
+                    </Link>
                     <p className="text-xs text-ink/50">
                       {o.listing.catalogItem.setName} • ผู้ขาย {o.listing.seller.displayName} •{" "}
                       {formatDate(o.createdAt)}
@@ -89,6 +92,9 @@ export default function PurchasesPage() {
                     ยืนยันรับสินค้า (ปล่อยเงินให้ผู้ขาย)
                   </button>
                 )}
+                <Link href={`/account/purchases/${o.id}`} className="btn-outline mt-3">
+                  ดู tracking
+                </Link>
               </div>
             ))}
             {(data?.length ?? 0) === 0 && <p className="text-sm text-ink/40">ยังไม่มีรายการซื้อ</p>}

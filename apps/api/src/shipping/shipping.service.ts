@@ -8,6 +8,7 @@ import type { UpdateShipmentInput } from "@cardverse/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { QueueService } from "../queue/queue.service";
 import { MarketplaceOrdersService } from "../marketplace/marketplace-orders.service";
+import { normalizeShipmentUpdate, orderStatusForShipment } from "./shipping.types";
 
 @Injectable()
 export class ShippingService {
@@ -18,51 +19,87 @@ export class ShippingService {
 
   /** Seller adds carrier + tracking to a marketplace order; starts escrow timer. */
   async updateMarketplaceShipment(
-    sellerId: string,
+    sellerId: string | null,
     orderId: string,
     input: UpdateShipmentInput,
+    options: { skipSellerCheck?: boolean } = {},
   ) {
     const order = await this.prisma.marketplaceOrder.findUnique({
       where: { id: orderId },
       include: { shipment: true },
     });
     if (!order) throw new NotFoundException("Order not found");
-    if (order.sellerId !== sellerId) throw new ForbiddenException("ไม่ใช่คำสั่งซื้อของคุณ");
-    if (order.status !== "PAID_HELD") {
+    if (!options.skipSellerCheck && order.sellerId !== sellerId) {
+      throw new ForbiddenException("ไม่ใช่คำสั่งซื้อของคุณ");
+    }
+    if (!["PAID_HELD", "SHIPPED", "DELIVERED"].includes(order.status)) {
       throw new BadRequestException("คำสั่งซื้อยังไม่พร้อมจัดส่ง");
     }
 
-    const releaseDueAt = new Date(Date.now() + MarketplaceOrdersService.autoReleaseDelayMs());
+    const shipment = normalizeShipmentUpdate(input);
+    const orderStatus = orderStatusForShipment(shipment.status);
+    const isFirstShipment = order.status === "PAID_HELD";
+    const releaseDueAt = isFirstShipment
+      ? new Date(Date.now() + MarketplaceOrdersService.autoReleaseDelayMs())
+      : order.releaseDueAt;
+
+    const marketplaceOrderData: Record<string, unknown> = {};
+    if (isFirstShipment) {
+      marketplaceOrderData.status = "SHIPPED";
+      marketplaceOrderData.shippedAt = new Date();
+      marketplaceOrderData.releaseDueAt = releaseDueAt;
+    }
+    if (orderStatus === "DELIVERED") {
+      marketplaceOrderData.status = "DELIVERED";
+      marketplaceOrderData.deliveredAt = new Date();
+    } else if (orderStatus === "SHIPPED" && order.status !== "DELIVERED") {
+      marketplaceOrderData.status = "SHIPPED";
+    }
 
     await this.prisma.$transaction([
-      this.prisma.shipment.update({
+      this.prisma.shipment.upsert({
         where: { marketplaceOrderId: orderId },
-        data: {
-          carrier: input.carrier,
-          trackingNumber: input.trackingNumber,
-          status: "IN_TRANSIT",
+        create: {
+          marketplaceOrderId: orderId,
+          carrier: shipment.carrier,
+          trackingNumber: shipment.trackingNumber,
+          status: shipment.status,
           events: {
-            create: { status: "IN_TRANSIT", note: input.note ?? "ผู้ขายจัดส่งแล้ว" },
+            create: { status: shipment.status, note: shipment.note ?? "ผู้ขายอัปเดตการจัดส่ง" },
+          },
+        },
+        update: {
+          carrier: shipment.carrier,
+          trackingNumber: shipment.trackingNumber,
+          status: shipment.status,
+          events: {
+            create: { status: shipment.status, note: shipment.note ?? "ผู้ขายอัปเดตการจัดส่ง" },
           },
         },
       }),
-      this.prisma.marketplaceOrder.update({
-        where: { id: orderId },
-        data: { status: "SHIPPED", shippedAt: new Date(), releaseDueAt },
-      }),
+      ...(Object.keys(marketplaceOrderData).length
+        ? [
+            this.prisma.marketplaceOrder.update({
+              where: { id: orderId },
+              data: marketplaceOrderData,
+            }),
+          ]
+        : []),
     ]);
 
-    // Schedule escrow auto-release if the buyer doesn't confirm in time.
-    await this.queue.enqueueEscrowRelease(
-      orderId,
-      MarketplaceOrdersService.autoReleaseDelayMs(),
-    );
+    if (isFirstShipment) {
+      // Schedule escrow auto-release if the buyer doesn't confirm in time.
+      await this.queue.enqueueEscrowRelease(
+        orderId,
+        MarketplaceOrdersService.autoReleaseDelayMs(),
+      );
+    }
 
     await this.queue.enqueueNotification({
       userId: order.buyerId,
       type: "SHIPMENT_UPDATE",
-      title: "พัสดุถูกจัดส่งแล้ว",
-      body: `${input.carrier} • ${input.trackingNumber}`,
+      title: shipment.status === "DELIVERED" ? "พัสดุจัดส่งสำเร็จแล้ว" : "พัสดุมีการอัปเดต",
+      body: `${shipment.carrier} • ${shipment.trackingNumber}`,
       link: `/account/purchases/${orderId}`,
     });
 
@@ -77,28 +114,40 @@ export class ShippingService {
     });
     if (!order) throw new NotFoundException("Order not found");
 
-    await this.prisma.shipment.upsert({
-      where: { orderId },
-      update: {
-        carrier: input.carrier,
-        trackingNumber: input.trackingNumber,
-        status: "IN_TRANSIT",
-        events: { create: { status: "IN_TRANSIT", note: input.note } },
-      },
-      create: {
-        orderId,
-        carrier: input.carrier,
-        trackingNumber: input.trackingNumber,
-        status: "IN_TRANSIT",
-        events: { create: { status: "IN_TRANSIT", note: input.note } },
-      },
-    });
-    await this.prisma.order.update({ where: { id: orderId }, data: { status: "SHIPPED" } });
+    const shipment = normalizeShipmentUpdate(input);
+    const orderStatus = orderStatusForShipment(shipment.status);
+
+    await this.prisma.$transaction([
+      this.prisma.shipment.upsert({
+        where: { orderId },
+        create: {
+          orderId,
+          carrier: shipment.carrier,
+          trackingNumber: shipment.trackingNumber,
+          status: shipment.status,
+          events: { create: { status: shipment.status, note: shipment.note } },
+        },
+        update: {
+          carrier: shipment.carrier,
+          trackingNumber: shipment.trackingNumber,
+          status: shipment.status,
+          events: { create: { status: shipment.status, note: shipment.note } },
+        },
+      }),
+      ...(orderStatus
+        ? [
+            this.prisma.order.update({
+              where: { id: orderId },
+              data: { status: orderStatus },
+            }),
+          ]
+        : []),
+    ]);
     await this.queue.enqueueNotification({
       userId: order.userId,
       type: "SHIPMENT_UPDATE",
-      title: "คำสั่งซื้อถูกจัดส่งแล้ว",
-      body: `${input.carrier} • ${input.trackingNumber}`,
+      title: shipment.status === "DELIVERED" ? "คำสั่งซื้อจัดส่งสำเร็จแล้ว" : "คำสั่งซื้อมีการอัปเดต",
+      body: `${shipment.carrier} • ${shipment.trackingNumber}`,
       link: "/account/orders",
     });
     return { ok: true };

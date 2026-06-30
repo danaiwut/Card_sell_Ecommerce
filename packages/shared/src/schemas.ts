@@ -4,6 +4,7 @@ import {
   CARRIERS,
   PRODUCT_TYPES,
   RARITIES,
+  SHIPMENT_STATUS,
 } from "./enums";
 
 export const paginationSchema = z.object({
@@ -51,6 +52,7 @@ export const addToCartSchema = z.object({
 export const updateShipmentSchema = z.object({
   carrier: z.enum(CARRIERS),
   trackingNumber: z.string().min(3, "เลขพัสดุไม่ถูกต้อง"),
+  status: z.enum(SHIPMENT_STATUS).optional(),
   note: z.string().max(500).optional(),
 });
 export type UpdateShipmentInput = z.infer<typeof updateShipmentSchema>;

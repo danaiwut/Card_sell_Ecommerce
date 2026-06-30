@@ -10,7 +10,12 @@ import { StripeService } from "../payments/stripe.service";
 import { RealtimeGateway } from "../realtime/realtime.gateway";
 import { QueueService } from "../queue/queue.service";
 import { MarketService } from "./market.service";
-import { serializeTrade, catalogItemInclude, toBaht } from "../common/serializers";
+import {
+  catalogItemInclude,
+  serializeCatalogItem,
+  serializeTrade,
+  toBaht,
+} from "../common/serializers";
 
 const FEE_PERCENT = Number(process.env.MARKETPLACE_FEE_PERCENT ?? 8);
 const AUTO_RELEASE_DAYS = Number(process.env.ESCROW_AUTO_RELEASE_DAYS ?? 7);
@@ -235,6 +240,20 @@ export class MarketplaceOrdersService {
     });
   }
 
+  async purchase(buyerId: string, orderId: string): Promise<any> {
+    const order = await this.prisma.marketplaceOrder.findFirst({
+      where: { id: orderId, buyerId },
+      include: {
+        buyer: true,
+        seller: true,
+        listing: { include: { catalogItem: { include: catalogItemInclude }, seller: true } },
+        shipment: { include: { events: true } },
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    return this.serializeMarketplaceOrder(order);
+  }
+
   async sales(sellerId: string): Promise<any[]> {
     return this.prisma.marketplaceOrder.findMany({
       where: { sellerId },
@@ -246,7 +265,51 @@ export class MarketplaceOrdersService {
     });
   }
 
+  async sale(sellerId: string, orderId: string): Promise<any> {
+    const order = await this.prisma.marketplaceOrder.findFirst({
+      where: { id: orderId, sellerId },
+      include: {
+        buyer: true,
+        seller: true,
+        listing: { include: { catalogItem: { include: catalogItemInclude }, seller: true } },
+        shipment: { include: { events: true } },
+      },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    return this.serializeMarketplaceOrder(order);
+  }
+
   static autoReleaseDelayMs() {
     return AUTO_RELEASE_DAYS * 24 * 60 * 60 * 1000;
+  }
+
+  private serializeMarketplaceOrder(order: any) {
+    return {
+      id: order.id,
+      status: order.status,
+      amount: toBaht(order.amount),
+      platformFee: toBaht(order.platformFee),
+      sellerPayout: toBaht(order.sellerPayout),
+      createdAt: order.createdAt.toISOString(),
+      buyer: { id: order.buyer.id, displayName: order.buyer.displayName },
+      seller: { id: order.seller.id, displayName: order.seller.displayName },
+      listing: {
+        id: order.listing.id,
+        condition: order.listing.condition,
+        catalogItem: serializeCatalogItem(order.listing.catalogItem),
+      },
+      shipment: order.shipment
+        ? {
+            carrier: order.shipment.carrier,
+            trackingNumber: order.shipment.trackingNumber,
+            status: order.shipment.status,
+            events: order.shipment.events.map((e: any) => ({
+              status: e.status,
+              note: e.note,
+              at: e.at.toISOString(),
+            })),
+          }
+        : null,
+    };
   }
 }

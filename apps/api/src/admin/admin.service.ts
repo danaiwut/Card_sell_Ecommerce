@@ -2,28 +2,42 @@ import { Injectable } from "@nestjs/common";
 import type { Role } from "@cardverse/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { MarketplaceOrdersService } from "../marketplace/marketplace-orders.service";
-import { toBaht, toSatang } from "../common/serializers";
+import { catalogItemInclude, serializeCatalogItem, toBaht, toSatang } from "../common/serializers";
+import { ShippingService } from "../shipping/shipping.service";
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly marketplaceOrders: MarketplaceOrdersService,
+    private readonly shipping: ShippingService,
   ) {}
 
   // --- Products (manager) ---
   async listProducts() {
     const products = await this.prisma.product.findMany({
       orderBy: { createdAt: "desc" },
-      include: { catalogItem: { include: { category: true } } },
+      include: { catalogItem: { include: catalogItemInclude } },
     });
     return products.map((p) => ({
       id: p.id,
+      slug: p.slug,
       name: p.name,
+      subtitle: p.subtitle,
+      description: p.description,
       type: p.type,
       price: toBaht(p.price),
       stock: p.stock,
+      imageUrl: p.imageUrl,
+      images: p.images,
+      rarity: p.rarity,
       soldCount: p.soldCount,
+      isPreOrder: p.isPreOrder,
+      isFeatured: p.isFeatured,
+      isTrending: p.isTrending,
+      isNewArrival: p.isNewArrival,
+      catalogItemId: p.catalogItemId,
+      catalogItem: p.catalogItem ? serializeCatalogItem(p.catalogItem) : null,
       category: p.catalogItem?.category?.name ?? null,
     }));
   }
@@ -64,7 +78,7 @@ export class AdminService {
 
   async createCatalogItem(data: any): Promise<any> {
     const slug = data.slug ?? data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    return this.prisma.catalogItem.create({
+    const item = await this.prisma.catalogItem.create({
       data: {
         slug,
         name: data.name,
@@ -77,7 +91,45 @@ export class AdminService {
         imageUrl: data.imageUrl,
         images: data.images ?? [],
       },
+      include: catalogItemInclude,
     });
+    return serializeCatalogItem(item);
+  }
+
+  async catalogOptions() {
+    const [categories, subcategories, brands, sets] = await Promise.all([
+      this.prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
+      this.prisma.subcategory.findMany({ orderBy: { name: "asc" } }),
+      this.prisma.brand.findMany({ orderBy: { name: "asc" } }),
+      this.prisma.cardSet.findMany({ orderBy: { name: "asc" } }),
+    ]);
+
+    return {
+      categories: categories.map((c) => ({
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        nameTh: c.nameTh,
+      })),
+      subcategories: subcategories.map((s) => ({
+        id: s.id,
+        categoryId: s.categoryId,
+        slug: s.slug,
+        name: s.name,
+      })),
+      brands: brands.map((b) => ({
+        id: b.id,
+        categoryId: b.categoryId,
+        slug: b.slug,
+        name: b.name,
+      })),
+      sets: sets.map((s) => ({
+        id: s.id,
+        slug: s.slug,
+        name: s.name,
+        releaseDate: s.releaseDate?.toISOString() ?? null,
+      })),
+    };
   }
 
   // --- Orders + moderation (manager) ---
@@ -85,7 +137,7 @@ export class AdminService {
     const orders = await this.prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       take: 100,
-      include: { user: true, shipment: true },
+      include: { user: true, items: true, shipment: { include: { events: true } } },
     });
     return orders.map((o) => ({
       id: o.id,
@@ -95,7 +147,95 @@ export class AdminService {
       status: o.status,
       shipped: Boolean(o.shipment?.trackingNumber),
       createdAt: o.createdAt.toISOString(),
+      items: o.items.map((i) => ({
+        name: i.name,
+        quantity: i.quantity,
+        unitPrice: toBaht(i.unitPrice),
+      })),
+      shipment: this.serializeShipment(o.shipment),
     }));
+  }
+
+  async listMarketplaceOrders() {
+    const orders = await this.prisma.marketplaceOrder.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: {
+        buyer: true,
+        seller: true,
+        listing: { include: { catalogItem: { include: catalogItemInclude } } },
+        shipment: { include: { events: true } },
+      },
+    });
+
+    return orders.map((o) => ({
+      id: o.id,
+      status: o.status,
+      amount: toBaht(o.amount),
+      platformFee: toBaht(o.platformFee),
+      sellerPayout: toBaht(o.sellerPayout),
+      buyer: { id: o.buyer.id, displayName: o.buyer.displayName, email: o.buyer.email },
+      seller: { id: o.seller.id, displayName: o.seller.displayName, email: o.seller.email },
+      listing: {
+        id: o.listing.id,
+        condition: o.listing.condition,
+        catalogItem: serializeCatalogItem(o.listing.catalogItem),
+      },
+      shipment: this.serializeShipment(o.shipment),
+      createdAt: o.createdAt.toISOString(),
+    }));
+  }
+
+  async shippingQueue() {
+    const [shopOrders, marketplaceOrders] = await Promise.all([
+      this.prisma.order.findMany({
+        where: { status: { in: ["PAID", "PROCESSING", "SHIPPED"] } },
+        orderBy: { createdAt: "asc" },
+        include: { user: true, shipment: true },
+        take: 100,
+      }),
+      this.prisma.marketplaceOrder.findMany({
+        where: { status: { in: ["PAID_HELD", "SHIPPED", "DELIVERED"] } },
+        orderBy: { createdAt: "asc" },
+        include: {
+          buyer: true,
+          seller: true,
+          listing: { include: { catalogItem: true } },
+          shipment: true,
+        },
+        take: 100,
+      }),
+    ]);
+
+    return [
+      ...shopOrders.map((o) => ({
+        id: o.id,
+        kind: "shop" as const,
+        label: o.orderNumber,
+        customer: o.user.displayName,
+        status: o.status,
+        shipmentStatus: o.shipment?.status ?? null,
+        carrier: o.shipment?.carrier ?? null,
+        trackingNumber: o.shipment?.trackingNumber ?? null,
+        createdAt: o.createdAt.toISOString(),
+      })),
+      ...marketplaceOrders.map((o) => ({
+        id: o.id,
+        kind: "marketplace" as const,
+        label: o.listing.catalogItem.name,
+        customer: `${o.buyer.displayName} / ${o.seller.displayName}`,
+        status: o.status,
+        shipmentStatus: o.shipment?.status ?? null,
+        carrier: o.shipment?.carrier ?? null,
+        trackingNumber: o.shipment?.trackingNumber ?? null,
+        createdAt: o.createdAt.toISOString(),
+      })),
+    ].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+
+  async updateShipment(kind: "shop" | "marketplace", id: string, data: any) {
+    if (kind === "shop") return this.shipping.updateShopShipment(id, data);
+    return this.shipping.updateMarketplaceShipment(null, id, data, { skipSellerCheck: true });
   }
 
   async suspendListing(id: string) {
@@ -153,7 +293,7 @@ export class AdminService {
   }
 
   async reports() {
-    const [orders, revenue, marketplaceVolume, users, listings] = await Promise.all([
+    const [orders, revenue, marketplaceVolume, users, listings, shopToShip, marketplaceToShip, disputes] = await Promise.all([
       this.prisma.order.count({ where: { status: { in: ["PAID", "SHIPPED", "DELIVERED"] } } }),
       this.prisma.order.aggregate({
         _sum: { total: true },
@@ -165,6 +305,9 @@ export class AdminService {
       }),
       this.prisma.user.count(),
       this.prisma.listing.count({ where: { status: "ACTIVE" } }),
+      this.prisma.order.count({ where: { status: { in: ["PAID", "PROCESSING"] } } }),
+      this.prisma.marketplaceOrder.count({ where: { status: "PAID_HELD" } }),
+      this.prisma.marketplaceOrder.count({ where: { status: "DISPUTED" } }),
     ]);
     return {
       paidOrders: orders,
@@ -172,6 +315,24 @@ export class AdminService {
       marketplaceFeeRevenue: toBaht(marketplaceVolume._sum.platformFee ?? 0),
       users,
       activeListings: listings,
+      shopToShip,
+      marketplaceToShip,
+      disputes,
+    };
+  }
+
+  private serializeShipment(shipment: any) {
+    if (!shipment) return null;
+    return {
+      id: shipment.id,
+      carrier: shipment.carrier,
+      trackingNumber: shipment.trackingNumber,
+      status: shipment.status,
+      events: (shipment.events ?? []).map((event: any) => ({
+        status: event.status,
+        note: event.note,
+        at: event.at.toISOString(),
+      })),
     };
   }
 }

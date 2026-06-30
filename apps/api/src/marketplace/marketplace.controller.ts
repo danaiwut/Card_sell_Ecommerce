@@ -90,8 +90,18 @@ export class MarketplaceController {
     return this.orders.purchases(userId);
   }
 
+  @Get("purchases/:id")
+  purchase(@CurrentUser("id") userId: string, @Param("id") id: string) {
+    return this.orders.purchase(userId, id);
+  }
+
   @Get("sales")
   sales(@CurrentUser("id") userId: string) {
     return this.orders.sales(userId);
+  }
+
+  @Get("sales/:id")
+  sale(@CurrentUser("id") userId: string, @Param("id") id: string) {
+    return this.orders.sale(userId, id);
   }
 }

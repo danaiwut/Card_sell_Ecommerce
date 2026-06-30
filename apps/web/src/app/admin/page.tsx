@@ -6,9 +6,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { formatBaht } from "@/lib/format";
-import { uploadImageToR2 } from "@/lib/upload";
+import { AdminProductForm } from "@/components/admin-product-form";
+import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
+import { ShipmentUpdateForm, type ShipmentUpdatePayload } from "@/components/shipment-update-form";
+import { TrackingTimeline } from "@/components/tracking-timeline";
 
-type Tab = "reports" | "products" | "orders" | "disputes" | "users";
+type Tab =
+  | "reports"
+  | "products"
+  | "catalog"
+  | "shop-orders"
+  | "marketplace-orders"
+  | "shipping"
+  | "disputes"
+  | "users";
 
 export default function AdminPage() {
   const { session } = useSession();
@@ -28,7 +39,10 @@ export default function AdminPage() {
   const tabs: { id: Tab; label: string; adminOnly?: boolean }[] = [
     { id: "reports", label: "Reports" },
     { id: "products", label: "Products" },
-    { id: "orders", label: "Orders" },
+    { id: "catalog", label: "Catalog" },
+    { id: "shop-orders", label: "Shop Orders" },
+    { id: "marketplace-orders", label: "Marketplace" },
+    { id: "shipping", label: "Shipping" },
     { id: "disputes", label: "Disputes" },
     { id: "users", label: "Users", adminOnly: true },
   ];
@@ -58,7 +72,10 @@ export default function AdminPage() {
       <div className="mt-6">
         {tab === "reports" && <Reports />}
         {tab === "products" && <Products />}
-        {tab === "orders" && <Orders />}
+        {tab === "catalog" && <Catalog />}
+        {tab === "shop-orders" && <ShopOrders />}
+        {tab === "marketplace-orders" && <MarketplaceOrders />}
+        {tab === "shipping" && <ShippingQueue />}
         {tab === "disputes" && <Disputes isAdmin={session.role === "admin"} />}
         {tab === "users" && session.role === "admin" && <Users />}
       </div>
@@ -77,9 +94,12 @@ function Reports() {
     { label: "Marketplace Fees", value: formatBaht(data?.marketplaceFeeRevenue ?? 0) },
     { label: "Users", value: data?.users ?? 0 },
     { label: "Active Listings", value: data?.activeListings ?? 0 },
+    { label: "Shop To Ship", value: data?.shopToShip ?? 0 },
+    { label: "Market To Ship", value: data?.marketplaceToShip ?? 0 },
+    { label: "Disputes", value: data?.disputes ?? 0 },
   ];
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
       {cards.map((c) => (
         <div key={c.label} className="card p-4">
           <p className="text-xs font-semibold tracking-wider text-ink/50">{c.label}</p>
@@ -91,103 +111,83 @@ function Reports() {
 }
 
 function Products() {
-  const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ["admin-products"],
     queryFn: () => api.get<any[]>("/admin/products", true),
   });
-  const [form, setForm] = useState({
-    name: "",
-    price: "",
-    stock: "10",
-    type: "SINGLE_CARD",
-    imageUrl: "",
-  });
-  const [uploading, setUploading] = useState(false);
-  const create = useMutation({
-    mutationFn: () => api.post("/admin/products", { ...form, price: Number(form.price), stock: Number(form.stock) }),
-    onSuccess: () => {
-      setForm({ name: "", price: "", stock: "10", type: "SINGLE_CARD", imageUrl: "" });
-      qc.invalidateQueries({ queryKey: ["admin-products"] });
-    },
-  });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+    <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
       <div className="card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
             <tr>
               <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-3">Catalog</th>
               <th className="px-4 py-3">Type</th>
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Stock</th>
+              <th className="px-4 py-3">Flags</th>
               <th className="px-4 py-3">Sold</th>
             </tr>
           </thead>
           <tbody>
             {(data ?? []).map((p) => (
               <tr key={p.id} className="border-b border-ink/5">
-                <td className="px-4 py-3 font-medium">{p.name}</td>
+                <td className="px-4 py-3">
+                  <p className="font-medium">{p.name}</p>
+                  <p className="text-xs text-ink/45">{p.subtitle ?? "ไม่มี subtitle"}</p>
+                </td>
+                <td className="px-4 py-3 text-ink/60">{p.catalogItem?.name ?? "—"}</td>
                 <td className="px-4 py-3 text-ink/60">{p.type}</td>
                 <td className="px-4 py-3 price">{formatBaht(p.price)}</td>
                 <td className="px-4 py-3">{p.stock}</td>
+                <td className="px-4 py-3 text-xs text-ink/50">
+                  {[p.isPreOrder && "Pre", p.isFeatured && "Featured", p.isTrending && "Trend", p.isNewArrival && "New"]
+                    .filter(Boolean)
+                    .join(" / ") || "—"}
+                </td>
                 <td className="px-4 py-3">{p.soldCount}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="card h-fit p-4">
-        <p className="text-sm font-semibold">เพิ่มสินค้าใหม่</p>
-        <input className="input mt-2" placeholder="ชื่อสินค้า" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <input className="input mt-2" placeholder="ราคา" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-        <input className="input mt-2" placeholder="สต็อก" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
-        <input
-          className="input mt-2"
-          placeholder="Image URL (หรือ upload ด้านล่าง)"
-          value={form.imageUrl}
-          onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-        />
-        <label className="mt-2 block text-xs font-semibold tracking-wider text-ink/50">
-          Upload image to R2
-        </label>
-        <input
-          className="input mt-1"
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          disabled={uploading}
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            setUploading(true);
-            try {
-              const imageUrl = await uploadImageToR2(file, "products");
-              setForm((current) => ({ ...current, imageUrl }));
-            } finally {
-              setUploading(false);
-            }
-          }}
-        />
-        {uploading && <p className="mt-1 text-xs text-ink/50">กำลังอัปโหลดรูป...</p>}
-        {form.imageUrl && (
-          <p className="mt-1 truncate text-xs text-green-700">รูปพร้อมใช้: {form.imageUrl}</p>
-        )}
-        <select className="input mt-2" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-          <option value="SINGLE_CARD">Single Card</option>
-          <option value="BOOSTER_BOX">Booster Box</option>
-          <option value="DECK">Deck</option>
-          <option value="ACCESSORY">Accessory</option>
-        </select>
-        <button className="btn-primary mt-3 w-full" disabled={!form.name || !form.price || create.isPending} onClick={() => create.mutate()}>
-          เพิ่มสินค้า
-        </button>
+      <AdminProductForm />
+    </div>
+  );
+}
+
+function Catalog() {
+  const { data } = useQuery({
+    queryKey: ["admin-catalog-options"],
+    queryFn: () => api.get<any>("/admin/catalog-options", true),
+  });
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <CatalogCard title="Categories" items={(data?.categories ?? []).map((item: any) => item.name)} />
+      <CatalogCard title="Subcategories" items={(data?.subcategories ?? []).map((item: any) => item.name)} />
+      <CatalogCard title="Brands" items={(data?.brands ?? []).map((item: any) => item.name)} />
+      <CatalogCard title="Sets" items={(data?.sets ?? []).map((item: any) => item.name)} />
+    </div>
+  );
+}
+
+function CatalogCard({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="card p-4">
+      <p className="text-xs font-semibold tracking-wider text-ink/50">{title}</p>
+      <div className="mt-3 max-h-72 space-y-2 overflow-auto text-sm">
+        {items.map((item) => (
+          <p key={item} className="rounded bg-ink/[0.03] px-3 py-2">{item}</p>
+        ))}
       </div>
     </div>
   );
 }
 
-function Orders() {
+function ShopOrders() {
   const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ["admin-orders"],
@@ -207,7 +207,7 @@ function Orders() {
         </thead>
         <tbody>
           {(data ?? []).map((o) => (
-            <OrderRow key={o.id} order={o} onChange={() => qc.invalidateQueries({ queryKey: ["admin-orders"] })} />
+            <ShopOrderRow key={o.id} order={o} onChange={() => qc.invalidateQueries({ queryKey: ["admin-orders"] })} />
           ))}
         </tbody>
       </table>
@@ -215,11 +215,9 @@ function Orders() {
   );
 }
 
-function OrderRow({ order, onChange }: { order: any; onChange: () => void }) {
-  const [tracking, setTracking] = useState("");
+function ShopOrderRow({ order, onChange }: { order: any; onChange: () => void }) {
   const ship = useMutation({
-    mutationFn: () =>
-      api.post(`/shipping/orders/${order.id}`, { carrier: "THAILAND_POST", trackingNumber: tracking }),
+    mutationFn: (payload: ShipmentUpdatePayload) => api.post(`/shipping/orders/${order.id}`, payload),
     onSuccess: onChange,
   });
   return (
@@ -229,18 +227,106 @@ function OrderRow({ order, onChange }: { order: any; onChange: () => void }) {
       <td className="px-4 py-3 price">{formatBaht(order.total)}</td>
       <td className="px-4 py-3 text-xs uppercase">{order.status}</td>
       <td className="px-4 py-3">
-        {order.shipped ? (
-          <span className="text-xs text-green-600">จัดส่งแล้ว</span>
-        ) : (
-          <div className="flex gap-1">
-            <input className="input h-8 w-28" placeholder="เลขพัสดุ" value={tracking} onChange={(e) => setTracking(e.target.value)} />
-            <button className="btn-primary h-8 px-2 text-xs" disabled={!tracking} onClick={() => ship.mutate()}>
-              ส่ง
-            </button>
-          </div>
-        )}
+        <div className="space-y-2">
+          <ShipmentStatusBadge status={order.shipment?.status} />
+          {order.shipment?.trackingNumber && (
+            <p className="text-xs text-ink/60">{order.shipment.carrier} • {order.shipment.trackingNumber}</p>
+          )}
+          <ShipmentUpdateForm
+            pending={ship.isPending}
+            initialCarrier={order.shipment?.carrier}
+            initialTrackingNumber={order.shipment?.trackingNumber}
+            initialStatus={order.shipment?.status ?? "IN_TRANSIT"}
+            onSubmit={(payload) => ship.mutate(payload)}
+          />
+        </div>
       </td>
     </tr>
+  );
+}
+
+function MarketplaceOrders() {
+  const { data } = useQuery({
+    queryKey: ["admin-marketplace-orders"],
+    queryFn: () => api.get<any[]>("/admin/marketplace-orders", true),
+  });
+  return (
+    <div className="space-y-4">
+      {(data ?? []).map((order) => (
+        <div key={order.id} className="card p-5 text-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="font-semibold">{order.listing.catalogItem.name}</p>
+              <p className="text-xs text-ink/50">
+                buyer {order.buyer.displayName} • seller {order.seller.displayName}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="price">{formatBaht(order.amount)}</p>
+              <p className="text-xs uppercase text-ink/50">{order.status}</p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_320px]">
+            <TrackingTimeline events={order.shipment?.events ?? []} currentStatus={order.shipment?.status} />
+            <div className="card p-4 shadow-none">
+              <p className="text-xs font-semibold tracking-wider text-ink/50">SHIPMENT</p>
+              <p className="mt-2 text-sm text-ink/60">
+                {order.shipment?.carrier ?? "—"} • {order.shipment?.trackingNumber ?? "รอเลขพัสดุ"}
+              </p>
+              <ShipmentStatusBadge className="mt-3" status={order.shipment?.status} />
+            </div>
+          </div>
+        </div>
+      ))}
+      {(data?.length ?? 0) === 0 && <p className="text-sm text-ink/40">ยังไม่มี marketplace orders</p>}
+    </div>
+  );
+}
+
+function ShippingQueue() {
+  const qc = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["admin-shipping-queue"],
+    queryFn: () => api.get<any[]>("/admin/shipping-queue", true),
+  });
+  const update = useMutation({
+    mutationFn: ({ row, payload }: { row: any; payload: ShipmentUpdatePayload }) =>
+      api.post(`/admin/shipping/${row.kind}/${row.id}`, payload, true),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-shipping-queue"] });
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: ["admin-marketplace-orders"] });
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      {(data ?? []).map((row) => (
+        <div key={`${row.kind}-${row.id}`} className="card grid gap-4 p-5 lg:grid-cols-[1fr_420px]">
+          <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold">{row.label}</p>
+                <p className="text-xs uppercase tracking-wider text-ink/50">{row.kind} • {row.status}</p>
+                <p className="mt-1 text-sm text-ink/60">{row.customer}</p>
+              </div>
+              <ShipmentStatusBadge status={row.shipmentStatus} />
+            </div>
+            <p className="mt-3 text-sm text-ink/60">
+              {row.carrier ?? "ยังไม่เลือกขนส่ง"} • {row.trackingNumber ?? "ยังไม่มีเลขพัสดุ"}
+            </p>
+          </div>
+          <ShipmentUpdateForm
+            pending={update.isPending}
+            initialCarrier={row.carrier}
+            initialTrackingNumber={row.trackingNumber}
+            initialStatus={row.shipmentStatus ?? "IN_TRANSIT"}
+            onSubmit={(payload) => update.mutate({ row, payload })}
+          />
+        </div>
+      ))}
+      {(data?.length ?? 0) === 0 && <p className="text-sm text-ink/40">ไม่มีรายการที่ต้องจัดส่ง</p>}
+    </div>
   );
 }
 
