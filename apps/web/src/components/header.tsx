@@ -13,7 +13,6 @@ const NAV = [
   { href: "/", key: "nav.home" },
   { href: "/shop", key: "nav.shop" },
   { href: "/marketplace", key: "nav.marketplace" },
-  { href: "/collection", key: "nav.collection" },
   { href: "/news", key: "nav.news" },
 ] as const;
 
@@ -70,7 +69,7 @@ export function Header() {
           <Link href="/notifications" className="text-ink/60 hover:text-ink">
             <Bell size={18} />
           </Link>
-          <Link href="/collection?tab=wishlist" className="text-ink/60 hover:text-ink">
+          <Link href="/collection" className="text-ink/60 hover:text-ink">
             <Heart size={18} />
           </Link>
           <Link href="/cart" className="relative text-ink/60 hover:text-ink">

@@ -167,6 +167,32 @@ export class OrdersService {
       include: { items: true, shipment: { include: { events: true } } },
     });
     if (!order) throw new NotFoundException("Order not found");
-    return order;
+    return {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      subtotal: toBaht(order.subtotal),
+      shipping: toBaht(order.shipping),
+      discount: toBaht(order.discount),
+      total: toBaht(order.total),
+      createdAt: order.createdAt.toISOString(),
+      items: order.items.map((i) => ({
+        name: i.name,
+        quantity: i.quantity,
+        unitPrice: toBaht(i.unitPrice),
+      })),
+      shipment: order.shipment
+        ? {
+            carrier: order.shipment.carrier,
+            trackingNumber: order.shipment.trackingNumber,
+            status: order.shipment.status,
+            events: order.shipment.events.map((e) => ({
+              status: e.status,
+              note: e.note,
+              at: e.at.toISOString(),
+            })),
+          }
+        : null,
+    };
   }
 }

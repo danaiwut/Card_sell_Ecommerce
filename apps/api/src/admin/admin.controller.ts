@@ -42,9 +42,33 @@ export class AdminController {
     return this.admin.createCatalogItem(body);
   }
 
+  @Get("catalog-options")
+  catalogOptions() {
+    return this.admin.catalogOptions();
+  }
+
   @Get("orders")
   orders() {
     return this.admin.listShopOrders();
+  }
+
+  @Get("marketplace-orders")
+  marketplaceOrders() {
+    return this.admin.listMarketplaceOrders();
+  }
+
+  @Get("shipping-queue")
+  shippingQueue() {
+    return this.admin.shippingQueue();
+  }
+
+  @Post("shipping/:kind/:id")
+  updateShipment(
+    @Param("kind") kind: "shop" | "marketplace",
+    @Param("id") id: string,
+    @Body() body: any,
+  ) {
+    return this.admin.updateShipment(kind, id, body);
   }
 
   @Post("listings/:id/suspend")
