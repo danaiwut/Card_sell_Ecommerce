@@ -23,6 +23,17 @@ const DICT: Dict = {
   "home.trending": { th: "กำลังมาแรง", en: "TRENDING NOW" },
   "home.newArrival": { th: "สินค้าใหม่", en: "NEW ARRIVAL" },
   "home.preorder": { th: "พรีออเดอร์", en: "PRE-ORDER" },
+  "home.featured": { th: "สินค้าแนะนำ", en: "FEATURED" },
+  "home.heroTitle2": { th: "การ์ดหายากจากทั่วโลก", en: "Rare Cards From Around the World" },
+  "home.heroSubtitle2": {
+    th: "ค้นพบการ์ดสุดพิเศษจาก seller นักสะสมทั่วประเทศ",
+    en: "Discover rare finds from collectors and sellers nationwide",
+  },
+  "home.heroTitle3": { th: "มาร์เก็ตเพลสสำหรับนักสะสม", en: "The Collector's Marketplace" },
+  "home.heroSubtitle3": {
+    th: "ซื้อ ขาย และแลกเปลี่ยนการ์ดในระบบ escrow ที่ปลอดภัย",
+    en: "Buy, sell and trade cards with secure escrow protection",
+  },
   "common.viewAll": { th: "ดูทั้งหมด", en: "VIEW ALL" },
   "common.filter": { th: "ตัวกรอง", en: "FILTER" },
   "common.apply": { th: "ใช้งาน", en: "APPLY" },
