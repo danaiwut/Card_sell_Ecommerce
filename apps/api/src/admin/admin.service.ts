@@ -3,6 +3,7 @@ import type { Role } from "@cardverse/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { MarketplaceOrdersService } from "../marketplace/marketplace-orders.service";
 import { catalogItemInclude, serializeCatalogItem, toBaht, toSatang } from "../common/serializers";
+import { NewsService } from "../news/news.service";
 import { ShippingService } from "../shipping/shipping.service";
 
 @Injectable()
@@ -10,6 +11,7 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly marketplaceOrders: MarketplaceOrdersService,
+    private readonly news: NewsService,
     private readonly shipping: ShippingService,
   ) {}
 
@@ -236,6 +238,22 @@ export class AdminService {
   async updateShipment(kind: "shop" | "marketplace", id: string, data: any) {
     if (kind === "shop") return this.shipping.updateShopShipment(id, data);
     return this.shipping.updateMarketplaceShipment(null, id, data, { skipSellerCheck: true });
+  }
+
+  async listNews(status?: "draft" | "published") {
+    return this.news.listAdmin(status);
+  }
+
+  async updateNews(id: string, data: any) {
+    return this.news.update(id, data);
+  }
+
+  async publishNews(id: string) {
+    return this.news.publish(id);
+  }
+
+  async deleteNews(id: string) {
+    return this.news.delete(id);
   }
 
   async suspendListing(id: string) {

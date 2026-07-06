@@ -115,13 +115,13 @@ enum NotificationType {
 // ---------------------------------------------------------------------------
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
+  id          String  @id @default(cuid())
+  clerkId     String  @unique
+  email       String  @unique
   displayName String
-  avatarUrl String?
-  role      Role     @default(customer)
-  level     Int      @default(1)
+  avatarUrl   String?
+  role        Role    @default(customer)
+  level       Int     @default(1)
 
   // Stripe Connect (seller payouts / escrow transfers)
   stripeConnectAccountId String?
@@ -179,13 +179,13 @@ model Address {
 // ---------------------------------------------------------------------------
 
 model Category {
-  id      String  @id @default(cuid())
-  slug    String  @unique
-  name    String
-  nameTh  String
-  emoji   String
-  note    String?
-  sortOrder Int   @default(0)
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  name      String
+  nameTh    String
+  emoji     String
+  note      String?
+  sortOrder Int     @default(0)
 
   subcategories Subcategory[]
   brands        Brand[]
@@ -225,9 +225,9 @@ model Brand {
 }
 
 model CardSet {
-  id        String        @id @default(cuid())
-  slug      String        @unique
-  name      String
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
   releaseDate DateTime?
 
   catalogItems CatalogItem[]
@@ -255,15 +255,15 @@ model CatalogItem {
   cardNumber  String?
   releaseDate DateTime?
   imageUrl    String?
-  images      String[]      @default([])
+  images      String[]  @default([])
   attributes  Json?
 
-  products   Product[]
-  listings   Listing[]
-  trades     Trade[]
+  products    Product[]
+  listings    Listing[]
+  trades      Trade[]
   pricePoints PricePoint[]
-  wishlist   WishlistItem[]
-  collection CollectionItem[]
+  wishlist    WishlistItem[]
+  collection  CollectionItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -279,22 +279,22 @@ model CatalogItem {
 // ---------------------------------------------------------------------------
 
 model Product {
-  id            String       @id @default(cuid())
-  slug          String       @unique
-  name          String
-  subtitle      String?
-  description   String?
-  type          ProductType  @default(SINGLE_CARD)
-  price         Int          // stored in satang (THB * 100)
-  stock         Int          @default(0)
-  imageUrl      String?
-  images        String[]     @default([])
-  isPreOrder    Boolean      @default(false)
-  isFeatured    Boolean      @default(false)
-  isTrending    Boolean      @default(false)
-  isNewArrival  Boolean      @default(false)
-  rarity        Rarity?
-  soldCount     Int          @default(0)
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  name         String
+  subtitle     String?
+  description  String?
+  type         ProductType @default(SINGLE_CARD)
+  price        Int // stored in satang (THB * 100)
+  stock        Int         @default(0)
+  imageUrl     String?
+  images       String[]    @default([])
+  isPreOrder   Boolean     @default(false)
+  isFeatured   Boolean     @default(false)
+  isTrending   Boolean     @default(false)
+  isNewArrival Boolean     @default(false)
+  rarity       Rarity?
+  soldCount    Int         @default(0)
 
   catalogItemId String?
   catalogItem   CatalogItem? @relation(fields: [catalogItemId], references: [id])
@@ -380,15 +380,15 @@ model OrderItem {
 }
 
 model Coupon {
-  id           String   @id @default(cuid())
-  code         String   @unique
-  description  String?
-  percentOff   Int?
-  amountOff    Int?
+  id             String    @id @default(cuid())
+  code           String    @unique
+  description    String?
+  percentOff     Int?
+  amountOff      Int?
   maxRedemptions Int?
-  timesRedeemed Int     @default(0)
-  active       Boolean  @default(true)
-  expiresAt    DateTime?
+  timesRedeemed  Int       @default(0)
+  active         Boolean   @default(true)
+  expiresAt      DateTime?
 
   orders Order[]
 
@@ -401,16 +401,16 @@ model Coupon {
 // ---------------------------------------------------------------------------
 
 model Listing {
-  id          String        @id @default(cuid())
+  id            String        @id @default(cuid())
   catalogItemId String
-  catalogItem CatalogItem   @relation(fields: [catalogItemId], references: [id])
-  sellerId    String
-  seller      User          @relation(fields: [sellerId], references: [id])
-  price       Int           // satang
-  condition   CardCondition @default(NEAR_MINT)
-  quantity    Int           @default(1)
-  description String?
-  status      ListingStatus @default(ACTIVE)
+  catalogItem   CatalogItem   @relation(fields: [catalogItemId], references: [id])
+  sellerId      String
+  seller        User          @relation(fields: [sellerId], references: [id])
+  price         Int // satang
+  condition     CardCondition @default(NEAR_MINT)
+  quantity      Int           @default(1)
+  description   String?
+  status        ListingStatus @default(ACTIVE)
 
   orders MarketplaceOrder[]
 
@@ -433,10 +433,10 @@ model MarketplaceOrder {
   seller    User                   @relation("SellerOrders", fields: [sellerId], references: [id])
   status    MarketplaceOrderStatus @default(PENDING_PAYMENT)
 
-  amount      Int // satang, what buyer pays
-  platformFee Int @default(0)
+  amount       Int // satang, what buyer pays
+  platformFee  Int @default(0)
   sellerPayout Int @default(0)
-  quantity    Int @default(1)
+  quantity     Int @default(1)
 
   addressSnapshot Json?
 
@@ -444,9 +444,9 @@ model MarketplaceOrder {
   stripeTransferId      String?
   stripeChargeId        String?
 
-  shippedAt   DateTime?
-  deliveredAt DateTime?
-  completedAt DateTime?
+  shippedAt    DateTime?
+  deliveredAt  DateTime?
+  completedAt  DateTime?
   releaseDueAt DateTime? // when escrow auto-releases
 
   shipment Shipment?
@@ -465,15 +465,15 @@ model MarketplaceOrder {
 /// A completed marketplace sale at a real transacted price.
 /// Drives the market-price chart and the global "recent sales" feed.
 model Trade {
-  id            String   @id @default(cuid())
-  catalogItemId String
-  catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id])
-  marketplaceOrderId String @unique
+  id                 String           @id @default(cuid())
+  catalogItemId      String
+  catalogItem        CatalogItem      @relation(fields: [catalogItemId], references: [id])
+  marketplaceOrderId String           @unique
   marketplaceOrder   MarketplaceOrder @relation(fields: [marketplaceOrderId], references: [id])
-  sellerId      String
-  seller        User     @relation("SellerTrades", fields: [sellerId], references: [id])
-  price         Int      // satang, the actual purchase price
-  soldAt        DateTime @default(now())
+  sellerId           String
+  seller             User             @relation("SellerTrades", fields: [sellerId], references: [id])
+  price              Int // satang, the actual purchase price
+  soldAt             DateTime         @default(now())
 
   createdAt DateTime @default(now())
 
@@ -483,7 +483,7 @@ model Trade {
 
 /// Pre-aggregated daily price buckets per catalog item (filled by worker).
 model PricePoint {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   catalogItemId String
   catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
   day           DateTime // day bucket (UTC midnight)
@@ -497,15 +497,15 @@ model PricePoint {
 }
 
 model SellerReview {
-  id        String   @id @default(cuid())
-  orderId   String   @unique
-  order     MarketplaceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id])
-  sellerId  String
-  seller    User     @relation("ReviewSeller", fields: [sellerId], references: [id])
-  rating    Int
-  comment   String?
+  id       String           @id @default(cuid())
+  orderId  String           @unique
+  order    MarketplaceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User             @relation("ReviewAuthor", fields: [authorId], references: [id])
+  sellerId String
+  seller   User             @relation("ReviewSeller", fields: [sellerId], references: [id])
+  rating   Int
+  comment  String?
 
   createdAt DateTime @default(now())
 
@@ -517,14 +517,14 @@ model SellerReview {
 // ---------------------------------------------------------------------------
 
 model Shipment {
-  id                 String          @id @default(cuid())
-  orderId            String?         @unique
-  order              Order?          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  marketplaceOrderId String?         @unique
+  id                 String            @id @default(cuid())
+  orderId            String?           @unique
+  order              Order?            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  marketplaceOrderId String?           @unique
   marketplaceOrder   MarketplaceOrder? @relation(fields: [marketplaceOrderId], references: [id], onDelete: Cascade)
   carrier            Carrier?
   trackingNumber     String?
-  status             ShipmentStatus  @default(PENDING)
+  status             ShipmentStatus    @default(PENDING)
   events             ShipmentEvent[]
 
   createdAt DateTime @default(now())
@@ -575,14 +575,14 @@ model WishlistItem {
 }
 
 model Notification {
-  id      String           @id @default(cuid())
-  userId  String
-  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type    NotificationType
-  title   String
-  body    String?
-  link    String?
-  read    Boolean          @default(false)
+  id     String           @id @default(cuid())
+  userId String
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type   NotificationType
+  title  String
+  body   String?
+  link   String?
+  read   Boolean          @default(false)
 
   createdAt DateTime @default(now())
 
@@ -590,23 +590,28 @@ model Notification {
 }
 
 model NewsPost {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  kind      NewsKind @default(NEWS)
-  title     String
-  excerpt   String?
-  body      String?
-  imageUrl  String?
-  published Boolean  @default(true)
-  eventDate DateTime?
-  authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
+  id         String    @id @default(cuid())
+  slug       String    @unique
+  kind       NewsKind  @default(NEWS)
+  title      String
+  excerpt    String?
+  body       String?
+  imageUrl   String?
+  published  Boolean   @default(true)
+  eventDate  DateTime?
+  sourceUrl  String?   @unique
+  externalId String?
+  sourceName String?
+  importedAt DateTime?
+  authorId   String?
+  author     User?     @relation(fields: [authorId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([kind])
   @@index([published])
+  @@index([sourceName])
 }
 
 // ---------------------------------------------------------------------------

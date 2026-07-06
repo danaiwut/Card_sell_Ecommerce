@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CARD_CONDITIONS,
   CARRIERS,
+  NEWS_KIND,
   PRODUCT_TYPES,
   RARITIES,
   SHIPMENT_STATUS,
@@ -56,6 +57,45 @@ export const updateShipmentSchema = z.object({
   note: z.string().max(500).optional(),
 });
 export type UpdateShipmentInput = z.infer<typeof updateShipmentSchema>;
+
+const newsFields = {
+  kind: z.enum(NEWS_KIND).default("NEWS"),
+  title: z.string().trim().min(1).max(200),
+  excerpt: z.string().trim().max(500).optional().nullable(),
+  body: z.string().trim().max(20000).optional().nullable(),
+  imageUrl: z.string().trim().url().optional().nullable(),
+  eventDate: z.string().trim().optional().nullable(),
+};
+
+export const createNewsSchema = z.object({
+  slug: z.string().trim().min(1).max(80).optional(),
+  ...newsFields,
+});
+export type CreateNewsInput = z.infer<typeof createNewsSchema>;
+
+export const ingestNewsSchema = z.object({
+  sourceUrl: z.string().trim().url(),
+  sourceName: z.string().trim().max(120).optional().nullable(),
+  externalId: z.string().trim().max(200).optional().nullable(),
+  published: z.literal(false).optional(),
+  ...newsFields,
+});
+export type IngestNewsInput = z.infer<typeof ingestNewsSchema>;
+
+export const updateNewsSchema = z.object({
+  slug: z.string().trim().min(1).max(80).optional(),
+  kind: z.enum(NEWS_KIND).optional(),
+  title: z.string().trim().min(1).max(200).optional(),
+  excerpt: z.string().trim().max(500).optional().nullable(),
+  body: z.string().trim().max(20000).optional().nullable(),
+  imageUrl: z.string().trim().url().optional().nullable(),
+  eventDate: z.string().trim().optional().nullable(),
+  sourceUrl: z.string().trim().url().optional().nullable(),
+  sourceName: z.string().trim().max(120).optional().nullable(),
+  externalId: z.string().trim().max(200).optional().nullable(),
+  published: z.boolean().optional(),
+});
+export type UpdateNewsInput = z.infer<typeof updateNewsSchema>;
 
 export const addressSchema = z.object({
   fullName: z.string().min(1),

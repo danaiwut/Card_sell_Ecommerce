@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { NEWS_KIND } from "@cardverse/shared";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
-import { formatBaht } from "@/lib/format";
+import { formatBaht, formatDate } from "@/lib/format";
 import { AdminProductForm } from "@/components/admin-product-form";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { ShipmentUpdateForm, type ShipmentUpdatePayload } from "@/components/shipment-update-form";
@@ -15,11 +16,29 @@ type Tab =
   | "reports"
   | "products"
   | "catalog"
+  | "news"
   | "shop-orders"
   | "marketplace-orders"
   | "shipping"
   | "disputes"
   | "users";
+
+interface AdminNewsPost {
+  id: string;
+  slug: string;
+  kind: string;
+  title: string;
+  excerpt: string | null;
+  body: string | null;
+  imageUrl: string | null;
+  published: boolean;
+  eventDate: string | null;
+  sourceUrl: string | null;
+  sourceName: string | null;
+  importedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function AdminPage() {
   const { session } = useSession();
@@ -40,6 +59,7 @@ export default function AdminPage() {
     { id: "reports", label: "Reports" },
     { id: "products", label: "Products" },
     { id: "catalog", label: "Catalog" },
+    { id: "news", label: "News" },
     { id: "shop-orders", label: "Shop Orders" },
     { id: "marketplace-orders", label: "Marketplace" },
     { id: "shipping", label: "Shipping" },
@@ -73,6 +93,7 @@ export default function AdminPage() {
         {tab === "reports" && <Reports />}
         {tab === "products" && <Products />}
         {tab === "catalog" && <Catalog />}
+        {tab === "news" && <NewsAdmin />}
         {tab === "shop-orders" && <ShopOrders />}
         {tab === "marketplace-orders" && <MarketplaceOrders />}
         {tab === "shipping" && <ShippingQueue />}
@@ -184,6 +205,285 @@ function CatalogCard({ title, items }: { title: string; items: string[] }) {
         ))}
       </div>
     </div>
+  );
+}
+
+const EMPTY_NEWS_FORM = {
+  kind: "NEWS",
+  title: "",
+  excerpt: "",
+  body: "",
+  imageUrl: "",
+  eventDate: "",
+};
+
+function NewsAdmin() {
+  const qc = useQueryClient();
+  const [manual, setManual] = useState(EMPTY_NEWS_FORM);
+  const { data: drafts } = useQuery({
+    queryKey: ["admin-news", "draft"],
+    queryFn: () => api.get<AdminNewsPost[]>("/admin/news?status=draft", true),
+  });
+  const { data: published } = useQuery({
+    queryKey: ["admin-news", "published"],
+    queryFn: () => api.get<AdminNewsPost[]>("/admin/news?status=published", true),
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin-news"] });
+    qc.invalidateQueries({ queryKey: ["news"] });
+    qc.invalidateQueries({ queryKey: ["events-upcoming"] });
+  };
+
+  const create = useMutation({
+    mutationFn: () =>
+      api.post("/news", {
+        ...manual,
+        excerpt: manual.excerpt || undefined,
+        body: manual.body || undefined,
+        imageUrl: manual.imageUrl || undefined,
+        eventDate: manual.eventDate || undefined,
+      }),
+    onSuccess: () => {
+      setManual(EMPTY_NEWS_FORM);
+      invalidate();
+    },
+  });
+  const update = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<AdminNewsPost> }) =>
+      api.patch(`/admin/news/${id}`, payload, true),
+    onSuccess: invalidate,
+  });
+  const publish = useMutation({
+    mutationFn: (id: string) => api.post(`/admin/news/${id}/publish`, undefined, true),
+    onSuccess: invalidate,
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => api.del(`/admin/news/${id}`, true),
+    onSuccess: invalidate,
+  });
+
+  return (
+    <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+      <div className="space-y-6">
+        <section className="card p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">News Draft Queue</p>
+              <p className="mt-1 text-xs text-ink/50">
+                ข่าวที่ n8n scrape เข้ามาจะอยู่ตรงนี้จนกว่าแอดมินจะกดอนุมัติ
+              </p>
+            </div>
+            <span className="rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold text-gold">
+              {drafts?.length ?? 0} drafts
+            </span>
+          </div>
+          <div className="mt-4 space-y-4">
+            {(drafts ?? []).map((post) => (
+              <NewsEditor
+                key={post.id}
+                post={post}
+                pending={update.isPending || publish.isPending || remove.isPending}
+                onSave={(payload) => update.mutate({ id: post.id, payload })}
+                onPublish={() => publish.mutate(post.id)}
+                onDelete={() => remove.mutate(post.id)}
+              />
+            ))}
+            {(drafts?.length ?? 0) === 0 && (
+              <p className="rounded-md bg-ink/[0.03] p-4 text-sm text-ink/50">
+                ยังไม่มีข่าว draft จาก n8n
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="card p-5">
+          <p className="text-sm font-semibold">Published News</p>
+          <div className="mt-4 space-y-3">
+            {(published ?? []).slice(0, 12).map((post) => (
+              <div key={post.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-ink/10 p-3 text-sm">
+                <div>
+                  <p className="font-medium">{post.title}</p>
+                  <p className="text-xs text-ink/50">
+                    {post.kind} • {formatDate(post.createdAt)}
+                    {post.sourceName ? ` • ${post.sourceName}` : ""}
+                  </p>
+                </div>
+                <button className="btn-outline" disabled={remove.isPending} onClick={() => remove.mutate(post.id)}>
+                  Delete
+                </button>
+              </div>
+            ))}
+            {(published?.length ?? 0) === 0 && <p className="text-sm text-ink/40">ยังไม่มีข่าวที่เผยแพร่</p>}
+          </div>
+        </section>
+      </div>
+
+      <aside className="card h-fit p-4">
+        <p className="text-sm font-semibold">Create News Manually</p>
+        <p className="mt-1 text-xs text-ink/50">ใช้สำหรับลงข่าวเองเมื่อไม่ผ่าน n8n</p>
+        <div className="mt-4 grid gap-3">
+          <select
+            className="input"
+            value={manual.kind}
+            onChange={(event) => setManual({ ...manual, kind: event.target.value })}
+          >
+            {NEWS_KIND.map((kind) => (
+              <option key={kind} value={kind}>
+                {kind}
+              </option>
+            ))}
+          </select>
+          <input
+            className="input"
+            placeholder="Title"
+            value={manual.title}
+            onChange={(event) => setManual({ ...manual, title: event.target.value })}
+          />
+          <textarea
+            className="input min-h-20"
+            placeholder="Excerpt"
+            value={manual.excerpt}
+            onChange={(event) => setManual({ ...manual, excerpt: event.target.value })}
+          />
+          <textarea
+            className="input min-h-32"
+            placeholder="Body"
+            value={manual.body}
+            onChange={(event) => setManual({ ...manual, body: event.target.value })}
+          />
+          <input
+            className="input"
+            placeholder="Image URL"
+            value={manual.imageUrl}
+            onChange={(event) => setManual({ ...manual, imageUrl: event.target.value })}
+          />
+          <input
+            className="input"
+            type="datetime-local"
+            value={manual.eventDate}
+            onChange={(event) => setManual({ ...manual, eventDate: event.target.value })}
+          />
+          <button
+            type="button"
+            className="btn-primary w-full"
+            disabled={!manual.title || create.isPending}
+            onClick={() => create.mutate()}
+          >
+            {create.isPending ? "Creating..." : "Create published news"}
+          </button>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function NewsEditor({
+  post,
+  pending,
+  onSave,
+  onPublish,
+  onDelete,
+}: {
+  post: AdminNewsPost;
+  pending: boolean;
+  onSave: (payload: Partial<AdminNewsPost>) => void;
+  onPublish: () => void;
+  onDelete: () => void;
+}) {
+  const [form, setForm] = useState({
+    kind: post.kind,
+    title: post.title,
+    excerpt: post.excerpt ?? "",
+    body: post.body ?? "",
+    imageUrl: post.imageUrl ?? "",
+    eventDate: post.eventDate ? post.eventDate.slice(0, 16) : "",
+  });
+
+  return (
+    <article className="rounded-lg border border-ink/10 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold tracking-wider text-gold">{post.kind}</p>
+          <h3 className="font-display text-lg font-semibold">{post.title}</h3>
+          <p className="mt-1 text-xs text-ink/50">
+            {post.sourceName ?? "Unknown source"} • imported {formatDate(post.importedAt ?? post.createdAt)}
+          </p>
+          {post.sourceUrl && (
+            <a className="mt-1 block text-xs text-gold hover:underline" href={post.sourceUrl} target="_blank" rel="noreferrer">
+              View source
+            </a>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <button className="btn-outline" disabled={pending} onClick={onDelete}>
+            Delete
+          </button>
+          <button className="btn-primary" disabled={pending} onClick={onPublish}>
+            Approve
+          </button>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <select
+          className="input"
+          value={form.kind}
+          onChange={(event) => setForm({ ...form, kind: event.target.value })}
+        >
+          {NEWS_KIND.map((kind) => (
+            <option key={kind} value={kind}>
+              {kind}
+            </option>
+          ))}
+        </select>
+        <input
+          className="input"
+          placeholder="Image URL"
+          value={form.imageUrl}
+          onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
+        />
+        <input
+          className="input md:col-span-2"
+          placeholder="Title"
+          value={form.title}
+          onChange={(event) => setForm({ ...form, title: event.target.value })}
+        />
+        <textarea
+          className="input min-h-20 md:col-span-2"
+          placeholder="Excerpt"
+          value={form.excerpt}
+          onChange={(event) => setForm({ ...form, excerpt: event.target.value })}
+        />
+        <textarea
+          className="input min-h-32 md:col-span-2"
+          placeholder="Body"
+          value={form.body}
+          onChange={(event) => setForm({ ...form, body: event.target.value })}
+        />
+        <input
+          className="input"
+          type="datetime-local"
+          value={form.eventDate}
+          onChange={(event) => setForm({ ...form, eventDate: event.target.value })}
+        />
+        <button
+          type="button"
+          className="btn-outline"
+          disabled={pending || !form.title}
+          onClick={() =>
+            onSave({
+              ...form,
+              excerpt: form.excerpt || null,
+              body: form.body || null,
+              imageUrl: form.imageUrl || null,
+              eventDate: form.eventDate || null,
+            })
+          }
+        >
+          Save draft changes
+        </button>
+      </div>
+    </article>
   );
 }
 

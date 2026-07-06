@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from "@nestjs/common";
 import type { Role } from "@cardverse/shared";
 import { AdminService } from "./admin.service";
@@ -69,6 +70,26 @@ export class AdminController {
     @Body() body: any,
   ) {
     return this.admin.updateShipment(kind, id, body);
+  }
+
+  @Get("news")
+  news(@Query("status") status?: "draft" | "published") {
+    return this.admin.listNews(status);
+  }
+
+  @Patch("news/:id")
+  updateNews(@Param("id") id: string, @Body() body: any) {
+    return this.admin.updateNews(id, body);
+  }
+
+  @Post("news/:id/publish")
+  publishNews(@Param("id") id: string) {
+    return this.admin.publishNews(id);
+  }
+
+  @Delete("news/:id")
+  deleteNews(@Param("id") id: string) {
+    return this.admin.deleteNews(id);
   }
 
   @Post("listings/:id/suspend")
