@@ -3,8 +3,8 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { SlidersHorizontal } from "lucide-react";
-import type { Paginated, ProductDto, PRODUCT_TYPES } from "@cardverse/shared";
+import { SlidersHorizontal, X } from "lucide-react";
+import type { Paginated, ProductDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { ProductCard } from "@/components/product-card";
@@ -26,6 +26,7 @@ function ShopInner() {
   const q = params.get("q") ?? "";
   const [minPrice, setMinPrice] = useState(params.get("minPrice") ?? "");
   const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") ?? "");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -53,89 +54,135 @@ function ShopInner() {
         <input
           defaultValue={q}
           placeholder={t("common.search")}
-          className="input"
+          className="input h-11"
           onKeyDown={(e) => {
             if (e.key === "Enter") update({ q: (e.target as HTMLInputElement).value });
           }}
         />
-        <button className="btn-outline whitespace-nowrap">
+        <button 
+          onClick={() => setIsFilterOpen(true)}
+          className="card flex h-11 items-center gap-2 px-4 text-sm font-semibold hover:border-gold hover:text-gold transition whitespace-nowrap cursor-pointer"
+        >
           <SlidersHorizontal size={16} /> {t("common.filter")}
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr]">
-        <aside className="card h-fit p-4 text-sm">
-          <p className="mb-3 text-xs font-semibold tracking-wider text-ink/50">
-            {t("common.filter")}
-          </p>
-
-          <p className="mb-2 text-xs font-semibold tracking-wider">{t("shop.game")}</p>
-          <label className="flex items-center gap-2 py-1">
-            <input
-              type="radio"
-              checked={!category}
-              onChange={() => update({ category: undefined })}
-            />
-            {t("shop.all")}
-          </label>
-          {(categories ?? []).slice(0, 8).map((c) => (
-            <label key={c.id} className="flex items-center gap-2 py-1">
-              <input
-                type="radio"
-                checked={category === c.slug}
-                onChange={() => update({ category: c.slug })}
-              />
-              {locale === "th" ? c.nameTh : c.name}
-            </label>
-          ))}
-
-          <p className="mb-2 mt-4 text-xs font-semibold tracking-wider">{t("shop.type")}</p>
-          {TYPES.map((ty) => (
-            <label key={ty.value} className="flex items-center gap-2 py-1">
-              <input
-                type="checkbox"
-                checked={type === ty.value}
-                onChange={() => update({ type: type === ty.value ? undefined : ty.value })}
-              />
-              {ty.label}
-            </label>
-          ))}
-
-          <p className="mb-2 mt-4 text-xs font-semibold tracking-wider">{t("shop.price")}</p>
-          <div className="flex gap-2">
-            <input
-              className="input"
-              placeholder="Min"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-            />
-            <input
-              className="input"
-              placeholder="Max"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-            />
+      <div>
+        {isLoading ? (
+          <p className="text-sm text-ink/50">Loading…</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            {(data?.items ?? []).map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
-          <button
-            className="btn-primary mt-4 w-full"
-            onClick={() => update({ minPrice: minPrice || undefined, maxPrice: maxPrice || undefined })}
-          >
-            {t("common.apply")}
-          </button>
-        </aside>
-
-        <div>
-          {isLoading ? (
-            <p className="text-sm text-ink/50">Loading…</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
-              {(data?.items ?? []).map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </div>
+
+      {/* Filter Pop-up Modal */}
+      {isFilterOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="card w-full max-w-md p-6 relative overflow-hidden bg-white shadow-xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200">
+            <button 
+              className="absolute top-4 right-4 text-ink/50 hover:text-ink transition cursor-pointer"
+              onClick={() => setIsFilterOpen(false)}
+            >
+              <X size={20} />
+            </button>
+            
+            <h3 className="mb-4 text-lg font-bold text-ink flex items-center gap-2">
+              <SlidersHorizontal size={18} /> {t("common.filter")}
+            </h3>
+
+            <div className="flex-1 overflow-y-auto pr-1 text-sm space-y-5">
+              {/* Game Category */}
+              <div>
+                <p className="mb-2 text-xs font-semibold tracking-wider text-ink/50 uppercase">{t("shop.game")}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex items-center gap-2 py-1 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={!category}
+                      onChange={() => update({ category: undefined })}
+                    />
+                    <span className="truncate">{t("shop.all")}</span>
+                  </label>
+                  {(categories ?? []).slice(0, 8).map((c) => (
+                    <label key={c.id} className="flex items-center gap-2 py-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={category === c.slug}
+                        onChange={() => update({ category: c.slug })}
+                      />
+                      <span className="truncate">{locale === "th" ? c.nameTh : c.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Product Type */}
+              <div>
+                <p className="mb-2 text-xs font-semibold tracking-wider text-ink/50 uppercase">{t("shop.type")}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {TYPES.map((ty) => (
+                    <label key={ty.value} className="flex items-center gap-2 py-1 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={type === ty.value}
+                        onChange={() => update({ type: type === ty.value ? undefined : ty.value })}
+                      />
+                      <span className="truncate">{ty.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div>
+                <p className="mb-2 text-xs font-semibold tracking-wider text-ink/50 uppercase">{t("shop.price")}</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    className="input"
+                    placeholder="Min"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                  />
+                  <span className="text-ink/40">—</span>
+                  <input
+                    className="input"
+                    placeholder="Max"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                className="btn-outline flex-1 cursor-pointer"
+                onClick={() => {
+                  setMinPrice("");
+                  setMaxPrice("");
+                  update({ category: undefined, type: undefined, minPrice: undefined, maxPrice: undefined });
+                  setIsFilterOpen(false);
+                }}
+              >
+                Clear
+              </button>
+              <button
+                className="btn-primary flex-1 cursor-pointer"
+                onClick={() => {
+                  update({ minPrice: minPrice || undefined, maxPrice: maxPrice || undefined });
+                  setIsFilterOpen(false);
+                }}
+              >
+                {t("common.apply")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -147,3 +194,4 @@ export default function ShopPage() {
     </Suspense>
   );
 }
+
