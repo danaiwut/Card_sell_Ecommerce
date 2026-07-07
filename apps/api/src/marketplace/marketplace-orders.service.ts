@@ -300,13 +300,22 @@ export class MarketplaceOrdersService {
       },
       shipment: order.shipment
         ? {
+            id: order.shipment.id,
             carrier: order.shipment.carrier,
             trackingNumber: order.shipment.trackingNumber,
             status: order.shipment.status,
+            autoTrackingEnabled: order.shipment.autoTrackingEnabled,
+            trackingSource: order.shipment.trackingSource,
+            lastTrackedAt: order.shipment.lastTrackedAt?.toISOString() ?? null,
+            lastCourierSyncAt: order.shipment.lastCourierSyncAt?.toISOString() ?? null,
             events: order.shipment.events.map((e: any) => ({
               status: e.status,
               note: e.note,
               at: e.at.toISOString(),
+              courier: e.courier,
+              rawStatus: e.rawStatus,
+              accepted: e.accepted,
+              ignoredReason: e.ignoredReason,
             })),
           }
         : null,

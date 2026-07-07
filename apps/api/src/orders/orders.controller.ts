@@ -19,6 +19,11 @@ export class OrdersController {
     return this.orders.listMine(userId);
   }
 
+  @Get(":id/shipment")
+  shipment(@CurrentUser("id") userId: string, @Param("id") id: string) {
+    return this.orders.getShipment(userId, id);
+  }
+
   @Get(":id")
   get(@CurrentUser("id") userId: string, @Param("id") id: string) {
     return this.orders.get(userId, id);

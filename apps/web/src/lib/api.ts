@@ -1,3 +1,5 @@
+import { isClerkEnabled } from "./clerk-config";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/backend";
 
 export interface DevSession {
@@ -33,8 +35,8 @@ async function authHeaders(): Promise<Record<string, string>> {
         /* ignore */
       }
     }
-    // Dev fallback session (used when Clerk is not configured).
-    if (!headers.Authorization) {
+    // Dev fallback session only when Clerk is not configured.
+    if (!headers.Authorization && !isClerkEnabled()) {
       const dev = getDevSession();
       if (dev) {
         headers["x-dev-user-id"] = dev.userId;

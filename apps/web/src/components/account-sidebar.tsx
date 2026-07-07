@@ -22,7 +22,7 @@ export function AccountSidebar() {
     <aside className="card h-fit p-4">
       <div className="flex flex-col items-center border-b border-ink/10 pb-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ink/5 text-2xl">👤</div>
-        <p className="mt-2 font-semibold">{session?.userId}</p>
+        <p className="mt-2 font-semibold">{session?.displayName ?? session?.userId}</p>
         <p className="text-xs uppercase tracking-wider text-ink/50">{session?.role}</p>
       </div>
       <nav className="mt-4 space-y-1 text-sm">

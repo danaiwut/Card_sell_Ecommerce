@@ -89,7 +89,42 @@ export interface ShipmentDto {
   carrier: Carrier | null;
   trackingNumber: string | null;
   status: ShipmentStatus;
-  events: { status: ShipmentStatus; note?: string; at: string }[];
+  autoTrackingEnabled?: boolean;
+  trackingSource?: string | null;
+  lastTrackedAt?: string | null;
+  lastCourierSyncAt?: string | null;
+  events: {
+    status: ShipmentStatus;
+    note?: string | null;
+    at: string;
+    courier?: Carrier | null;
+    rawStatus?: string | null;
+    accepted?: boolean;
+    ignoredReason?: string | null;
+  }[];
+}
+
+export interface NormalizedCarrierEvent {
+  courier: Carrier;
+  trackingNumber: string;
+  status: ShipmentStatus;
+  rawStatus: string;
+  timestamp: string;
+  eventKey: string;
+  note?: string;
+  rawPayload?: unknown;
+}
+
+export interface ShipmentUpdateEventDto {
+  shipmentId: string;
+  orderId: string | null;
+  marketplaceOrderId: string | null;
+  userIds: string[];
+  carrier: Carrier | null;
+  trackingNumber: string | null;
+  status: ShipmentStatus;
+  note?: string | null;
+  at: string;
 }
 
 export interface MarketplaceOrderDto {

@@ -10,8 +10,9 @@ export interface ShipmentEventView {
 
 const DEFAULT_STEPS = [
   "PENDING",
-  "LABEL_CREATED",
-  "IN_TRANSIT",
+  "CONFIRMED",
+  "PACKED",
+  "SHIPPED",
   "OUT_FOR_DELIVERY",
   "DELIVERED",
 ];
@@ -49,7 +50,7 @@ export function TrackingTimeline({
               <span className="relative z-10 mt-0.5">
                 {step === "DELIVERED" && complete ? (
                   <PackageCheck size={24} className="text-emerald-600" />
-                ) : step === "IN_TRANSIT" && complete ? (
+                ) : step === "SHIPPED" && complete ? (
                   <Truck size={24} className="text-blue-600" />
                 ) : complete ? (
                   <CheckCircle2 size={24} className="text-gold" />

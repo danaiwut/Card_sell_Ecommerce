@@ -146,18 +146,7 @@ export class OrdersService {
         quantity: i.quantity,
         unitPrice: toBaht(i.unitPrice),
       })),
-      shipment: o.shipment
-        ? {
-            carrier: o.shipment.carrier,
-            trackingNumber: o.shipment.trackingNumber,
-            status: o.shipment.status,
-            events: o.shipment.events.map((e) => ({
-              status: e.status,
-              note: e.note,
-              at: e.at.toISOString(),
-            })),
-          }
-        : null,
+      shipment: this.serializeShipment(o.shipment),
     }));
   }
 
@@ -181,18 +170,39 @@ export class OrdersService {
         quantity: i.quantity,
         unitPrice: toBaht(i.unitPrice),
       })),
-      shipment: order.shipment
-        ? {
-            carrier: order.shipment.carrier,
-            trackingNumber: order.shipment.trackingNumber,
-            status: order.shipment.status,
-            events: order.shipment.events.map((e) => ({
-              status: e.status,
-              note: e.note,
-              at: e.at.toISOString(),
-            })),
-          }
-        : null,
+      shipment: this.serializeShipment(order.shipment),
+    };
+  }
+
+  async getShipment(userId: string, orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: { shipment: { include: { events: true } } },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    return this.serializeShipment(order.shipment);
+  }
+
+  private serializeShipment(shipment: any) {
+    if (!shipment) return null;
+    return {
+      id: shipment.id,
+      carrier: shipment.carrier,
+      trackingNumber: shipment.trackingNumber,
+      status: shipment.status,
+      autoTrackingEnabled: shipment.autoTrackingEnabled,
+      trackingSource: shipment.trackingSource,
+      lastTrackedAt: shipment.lastTrackedAt?.toISOString() ?? null,
+      lastCourierSyncAt: shipment.lastCourierSyncAt?.toISOString() ?? null,
+      events: shipment.events.map((e: any) => ({
+        status: e.status,
+        note: e.note,
+        at: e.at.toISOString(),
+        courier: e.courier,
+        rawStatus: e.rawStatus,
+        accepted: e.accepted,
+        ignoredReason: e.ignoredReason,
+      })),
     };
   }
 }

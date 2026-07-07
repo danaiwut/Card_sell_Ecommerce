@@ -216,6 +216,10 @@ function CreateListingForm() {
 
 function SaleRow({ sale }: { sale: any }) {
   const qc = useQueryClient();
+  const autoFlashTracking =
+    sale.shipment?.carrier === "FLASH" &&
+    sale.shipment?.trackingNumber &&
+    sale.shipment?.autoTrackingEnabled;
 
   const ship = useMutation({
     mutationFn: (payload: ShipmentUpdatePayload) =>
@@ -246,17 +250,33 @@ function SaleRow({ sale }: { sale: any }) {
           currentStatus={sale.shipment?.status ?? "PENDING"}
         />
         <div>
-          <ShipmentUpdateForm
-            pending={ship.isPending}
-            initialCarrier={sale.shipment?.carrier}
-            initialTrackingNumber={sale.shipment?.trackingNumber}
-            initialStatus={sale.shipment?.status ?? "IN_TRANSIT"}
-            onSubmit={(payload) => ship.mutate(payload)}
-          />
-          <p className="mt-3 text-xs leading-relaxed text-ink/50">
-            เมื่อใส่เลขพัสดุครั้งแรก ระบบจะเปลี่ยนสถานะ escrow เป็นจัดส่งแล้ว
-            และผู้ซื้อจะเห็น tracking ในหน้า Marketplace Purchases
-          </p>
+          {autoFlashTracking ? (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+              <p className="text-sm font-semibold text-emerald-800">
+                ระบบติดตาม Flash Express อัตโนมัติแล้ว
+              </p>
+              <p className="mt-2 text-sm text-emerald-700">
+                {sale.shipment.carrier} • {sale.shipment.trackingNumber}
+              </p>
+              <p className="mt-3 text-xs leading-relaxed text-emerald-700/80">
+                สถานะจะอัปเดตจาก Flash webhook และ reconciliation job โดยไม่ต้องกรอกสถานะเอง
+              </p>
+            </div>
+          ) : (
+            <>
+              <ShipmentUpdateForm
+                pending={ship.isPending}
+                initialCarrier={sale.shipment?.carrier}
+                initialTrackingNumber={sale.shipment?.trackingNumber}
+                initialStatus={sale.shipment?.status ?? "SHIPPED"}
+                onSubmit={(payload) => ship.mutate(payload)}
+              />
+              <p className="mt-3 text-xs leading-relaxed text-ink/50">
+                เมื่อใส่เลขพัสดุครั้งแรก ระบบจะเปลี่ยนสถานะ escrow เป็นจัดส่งแล้ว
+                ถ้าเลือก Flash Express ระบบจะติดตามสถานะให้อัตโนมัติ
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

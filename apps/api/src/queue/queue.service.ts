@@ -56,6 +56,23 @@ export class QueueService implements OnModuleDestroy {
     });
   }
 
+  async enqueueShipmentTracking(payload: {
+    courier: "FLASH";
+    source: "webhook";
+    payload: unknown;
+  }) {
+    await this.queue(QUEUE_NAMES.SHIPMENT_POLL)?.add(
+      "flash-webhook",
+      payload,
+      {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 5_000 },
+        removeOnComplete: 200,
+        removeOnFail: 200,
+      },
+    );
+  }
+
   async onModuleDestroy() {
     await Promise.all([...this.queues.values()].map((q) => q.close()));
     await this.connection?.quit();

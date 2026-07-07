@@ -77,10 +77,15 @@ enum MarketplaceOrderStatus {
 
 enum ShipmentStatus {
   PENDING
+  CONFIRMED
+  PACKED
+  SHIPPED
   LABEL_CREATED
   IN_TRANSIT
   OUT_FOR_DELIVERY
   DELIVERED
+  CANCELLED
+  EXCEPTION
   FAILED
 }
 
@@ -525,23 +530,41 @@ model Shipment {
   carrier            Carrier?
   trackingNumber     String?
   status             ShipmentStatus    @default(PENDING)
+  autoTrackingEnabled Boolean           @default(false)
+  trackingSource     String?
+  lastTrackedAt      DateTime?
+  lastCourierSyncAt  DateTime?
   events             ShipmentEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([carrier, trackingNumber])
   @@index([trackingNumber])
+  @@index([carrier, status])
+  @@index([lastCourierSyncAt])
 }
 
 model ShipmentEvent {
-  id         String         @id @default(cuid())
-  shipmentId String
-  shipment   Shipment       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
-  status     ShipmentStatus
-  note       String?
-  at         DateTime       @default(now())
+  id               String          @id @default(cuid())
+  shipmentId       String?
+  shipment         Shipment?       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  courier          Carrier?
+  trackingNumber   String?
+  status           ShipmentStatus
+  rawStatus        String?
+  normalizedStatus ShipmentStatus?
+  accepted         Boolean         @default(true)
+  ignoredReason    String?
+  eventKey         String?
+  rawPayload       Json?
+  note             String?
+  at               DateTime        @default(now())
+  receivedAt       DateTime        @default(now())
 
   @@index([shipmentId])
+  @@index([courier, trackingNumber])
+  @@index([courier, eventKey])
 }
 
 // ---------------------------------------------------------------------------

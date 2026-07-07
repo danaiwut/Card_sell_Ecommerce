@@ -3,7 +3,7 @@ import { updateShipmentSchema } from "@cardverse/shared";
 import { normalizeShipmentUpdate, orderStatusForShipment } from "./shipping.types";
 
 describe("shipment update helpers", () => {
-  it("defaults first shipment updates to IN_TRANSIT when no status is provided", () => {
+  it("defaults first shipment updates to SHIPPED when no status is provided", () => {
     expect(
       normalizeShipmentUpdate({
         carrier: "FLASH",
@@ -12,14 +12,16 @@ describe("shipment update helpers", () => {
     ).toEqual({
       carrier: "FLASH",
       trackingNumber: "TH123",
-      status: "IN_TRANSIT",
+      status: "SHIPPED",
       note: undefined,
     });
   });
 
   it("maps delivered shipment status to delivered order status", () => {
     expect(orderStatusForShipment("DELIVERED")).toBe("DELIVERED");
+    expect(orderStatusForShipment("OUT_FOR_DELIVERY")).toBe("SHIPPED");
     expect(orderStatusForShipment("IN_TRANSIT")).toBe("SHIPPED");
+    expect(orderStatusForShipment("CANCELLED")).toBe("CANCELLED");
     expect(orderStatusForShipment("PENDING")).toBeNull();
   });
 

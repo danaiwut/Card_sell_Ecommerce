@@ -1,4 +1,5 @@
 import { Body, Controller, Param, Post, UseGuards } from "@nestjs/common";
+import type { NormalizedCarrierEvent } from "@cardverse/shared";
 import { Public } from "../auth/decorators";
 import { InternalGuard } from "../common/internal.guard";
 import { MarketplaceOrdersService } from "../marketplace/marketplace-orders.service";
@@ -24,6 +25,11 @@ export class InternalController {
   @Post("shipments/:id/delivered")
   delivered(@Param("id") id: string) {
     return this.shipping.markDelivered(id);
+  }
+
+  @Post("shipments/carrier-event")
+  carrierEvent(@Body() body: NormalizedCarrierEvent) {
+    return this.shipping.applyCarrierEvent(body);
   }
 
   @Post("news/ingest")

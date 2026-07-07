@@ -15,7 +15,7 @@ export function ShipmentUpdateForm({
   pending,
   initialCarrier = "THAILAND_POST",
   initialTrackingNumber = "",
-  initialStatus = "IN_TRANSIT",
+  initialStatus = "SHIPPED",
   submitLabel = "อัปเดตการจัดส่ง",
 }: {
   onSubmit: (payload: ShipmentUpdatePayload) => void;
@@ -30,7 +30,7 @@ export function ShipmentUpdateForm({
   );
   const [trackingNumber, setTrackingNumber] = useState(initialTrackingNumber ?? "");
   const [status, setStatus] = useState<(typeof SHIPMENT_STATUS)[number]>(
-    initialStatus ?? "IN_TRANSIT",
+    initialStatus ?? "SHIPPED",
   );
   const [note, setNote] = useState("");
 

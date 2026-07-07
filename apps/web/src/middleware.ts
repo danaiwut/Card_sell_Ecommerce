@@ -1,17 +1,29 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 
-/**
- * Route protection.
- *
- * When Clerk is configured (NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY set), wire this
- * up with Clerk's `clerkMiddleware()` from `@clerk/nextjs/server` to protect
- * the /account and /admin route groups server-side. In demo mode (no keys)
- * protection is handled client-side via the dev session, so this is a no-op.
- */
-export function middleware(_req: NextRequest) {
-  return NextResponse.next();
+const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
+const isProtectedRoute = createRouteMatcher([
+  "/account(.*)",
+  "/admin(.*)",
+  "/notifications(.*)",
+  "/collection(.*)",
+]);
+
+const clerkHandler = clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    await auth.protect();
+  }
+});
+
+export default function middleware(req: NextRequest, event: NextFetchEvent) {
+  if (!clerkEnabled) return NextResponse.next();
+  return clerkHandler(req, event);
 }
 
 export const config = {
-  matcher: ["/account/:path*", "/admin/:path*"],
+  matcher: [
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
+  ],
 };

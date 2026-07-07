@@ -101,8 +101,8 @@ export class AuthGuard implements CanActivate {
       if (identity) return { ...identity, role: undefined as Role | undefined };
     }
 
-    // Dev fallback: impersonate via headers when Clerk is not configured.
-    if (process.env.NODE_ENV !== "production") {
+    // Dev fallback: impersonate via headers only when Clerk is not configured.
+    if (!this.clerk.enabled && process.env.NODE_ENV !== "production") {
       const devId = req.headers["x-dev-user-id"] as string | undefined;
       if (devId) {
         const role = (req.headers["x-dev-role"] as Role) ?? "customer";

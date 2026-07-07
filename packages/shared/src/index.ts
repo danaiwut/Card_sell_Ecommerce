@@ -6,6 +6,7 @@ export * from "./dto";
 export const SOCKET_EVENTS = {
   RECENT_SALE: "marketplace:recent-sale",
   PRICE_UPDATE: "marketplace:price-update",
+  SHIPMENT_UPDATE: "shipment:update",
 } as const;
 
 export const QUEUE_NAMES = {

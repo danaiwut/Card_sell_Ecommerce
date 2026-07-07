@@ -4,7 +4,12 @@ import {
 } from "@nestjs/websockets";
 import { Injectable } from "@nestjs/common";
 import { Server } from "socket.io";
-import { SOCKET_EVENTS, type TradeDto, type MarketStatsDto } from "@cardverse/shared";
+import {
+  SOCKET_EVENTS,
+  type TradeDto,
+  type MarketStatsDto,
+  type ShipmentUpdateEventDto,
+} from "@cardverse/shared";
 
 @Injectable()
 @WebSocketGateway({
@@ -26,5 +31,10 @@ export class RealtimeGateway {
       SOCKET_EVENTS.PRICE_UPDATE,
       stats,
     );
+  }
+
+  /** Broadcast shipment changes so buyer/seller pages can refresh without polling. */
+  emitShipmentUpdate(update: ShipmentUpdateEventDto) {
+    this.server?.emit(SOCKET_EVENTS.SHIPMENT_UPDATE, update);
   }
 }

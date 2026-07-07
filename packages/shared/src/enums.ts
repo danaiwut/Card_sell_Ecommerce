@@ -69,13 +69,27 @@ export type OrderStatus = (typeof ORDER_STATUS)[number];
 
 export const SHIPMENT_STATUS = [
   "PENDING",
+  "CONFIRMED",
+  "PACKED",
+  "SHIPPED",
   "LABEL_CREATED",
   "IN_TRANSIT",
   "OUT_FOR_DELIVERY",
   "DELIVERED",
+  "CANCELLED",
+  "EXCEPTION",
   "FAILED",
 ] as const;
 export type ShipmentStatus = (typeof SHIPMENT_STATUS)[number];
+
+export const SHIPMENT_TERMINAL_STATUS = [
+  "DELIVERED",
+  "CANCELLED",
+  "EXCEPTION",
+  "FAILED",
+] as const satisfies readonly ShipmentStatus[];
+
+export const SHIPMENT_AUTO_TRACKING_CARRIERS = ["FLASH"] as const;
 
 export const CARRIERS = [
   "THAILAND_POST",
