@@ -21,6 +21,7 @@ function ShopInner() {
   const router = useRouter();
   const params = useSearchParams();
 
+  const page = parseInt(params.get("page") ?? "1", 10);
   const category = params.get("category") ?? "";
   const type = params.get("type") ?? "";
   const q = params.get("q") ?? "";
@@ -33,19 +34,31 @@ function ShopInner() {
     queryFn: () => api.get<any[]>("/categories"),
   });
 
-  const queryString = params.toString();
+  // Enforce pageSize = 16 for products
+  const sp = new URLSearchParams(params.toString());
+  if (!sp.has("pageSize")) {
+    sp.set("pageSize", "16");
+  }
+  const queryString = sp.toString();
+
   const { data, isLoading } = useQuery({
     queryKey: ["shop", queryString],
     queryFn: () => api.get<Paginated<ProductDto>>(`/products?${queryString}`),
   });
 
+  const totalPages = data?.totalPages ?? 1;
+
   const update = (next: Record<string, string | undefined>) => {
-    const sp = new URLSearchParams(queryString);
-    for (const [k, v] of Object.entries(next)) {
-      if (v) sp.set(k, v);
-      else sp.delete(k);
+    const freshSp = new URLSearchParams(params.toString());
+    // If not explicitly setting page, reset to page 1
+    if (!next.hasOwnProperty("page")) {
+      freshSp.delete("page");
     }
-    router.push(`/shop?${sp.toString()}`);
+    for (const [k, v] of Object.entries(next)) {
+      if (v) freshSp.set(k, v);
+      else freshSp.delete(k);
+    }
+    router.push(`/shop?${freshSp.toString()}`);
   };
 
   return (
@@ -71,11 +84,38 @@ function ShopInner() {
         {isLoading ? (
           <p className="text-sm text-ink/50">Loading…</p>
         ) : (
-          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-            {(data?.items ?? []).map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              {(data?.items ?? []).map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => update({ page: String(page - 1) })}
+                  className="btn-outline px-4 py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  &larr; Prev
+                </button>
+                
+                <span className="text-sm font-semibold text-ink/75">
+                  Page {page} of {totalPages}
+                </span>
+                
+                <button
+                  disabled={page >= totalPages}
+                  onClick={() => update({ page: String(page + 1) })}
+                  className="btn-outline px-4 py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next &rarr;
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
