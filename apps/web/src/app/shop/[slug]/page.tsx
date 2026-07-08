@@ -50,6 +50,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   const qc = useQueryClient();
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+  const [wishlisted, setWishlisted] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["product", slug],
@@ -62,6 +63,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cart-count"] });
       router.push("/cart");
+    },
+  });
+
+  // toggle wishlist — endpoint เดียวกับหน้า collection
+  const toggleWishlist = useMutation({
+    mutationFn: (catalogItemId: string) =>
+      api.post("/collection/wishlist/toggle", { catalogItemId }),
+    onSuccess: () => {
+      setWishlisted((prev) => !prev);
+      qc.invalidateQueries({ queryKey: ["wishlist"] });
     },
   });
 
@@ -207,8 +218,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               <Handshake size={16} />
               Make an Offer
             </button>
-            <button type="button" className="btn-outline sm:w-auto">
-              <Heart size={16} />
+            {/* ปุ่ม wishlist — กดแล้วเพิ่ม/ลบออกจาก collection */}
+            <button
+              type="button"
+              className="btn-outline sm:w-auto"
+              disabled={toggleWishlist.isPending}
+              onClick={() => {
+                if (!session) return router.push("/account");
+                const catalogItemId = product.catalogItem?.id;
+                if (catalogItemId) toggleWishlist.mutate(catalogItemId);
+              }}
+            >
+              <Heart
+                size={16}
+                className={wishlisted ? "fill-gold text-gold" : ""}
+              />
               <span className="sr-only">{t("common.wishlist")}</span>
             </button>
           </div>
