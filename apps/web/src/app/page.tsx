@@ -144,7 +144,12 @@ export default function HomePage() {
             >
               <div className="relative aspect-square overflow-hidden rounded-md bg-ink/5">
                 <Image
-                  src={`https://picsum.photos/seed/${c.slug}/400/400`}
+                  src={
+                    c.slug === "sports-cards" ? "/images/sports-nba-box.png" :
+                    c.slug === "anime-manga" ? "/images/naruto-box-3.jpg" :
+                    c.slug === "tcg" ? "/images/pokemon-pikachu-ex-sar-th.png" :
+                    `https://picsum.photos/seed/${c.slug}/400/400`
+                  }
                   alt={c.name}
                   fill
                   className="object-cover transition group-hover:scale-105"
