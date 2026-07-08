@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Bell, Heart, ShoppingCart, User } from "lucide-react";
@@ -34,9 +35,14 @@ export function Header() {
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-ink font-display text-sm font-bold text-white">
-              C
-            </span>
+            <Image
+              src="/logo.png"
+              alt="Cardivers Logo"
+              width={36}
+              height={36}
+              className="rounded-lg object-contain"
+              priority
+            />
             <span className="font-display text-xl font-semibold tracking-tight">CardVerse</span>
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
