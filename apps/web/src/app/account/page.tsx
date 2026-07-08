@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { ShoppingBag, Heart, CreditCard, Tag, ArrowRight } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
@@ -14,6 +16,14 @@ interface Me {
   recentOrders: { orderNumber: string; date: string; total: number; status: string }[];
 }
 
+const STATUS_STYLE: Record<string, string> = {
+  PAID: "bg-green-100 text-green-700",
+  PENDING: "bg-yellow-100 text-yellow-700",
+  SHIPPED: "bg-blue-100 text-blue-700",
+  DELIVERED: "bg-green-100 text-green-700",
+  CANCELLED: "bg-red-100 text-red-600",
+};
+
 export default function AccountPage() {
   const { session } = useSession();
   const { data } = useQuery({
@@ -25,60 +35,101 @@ export default function AccountPage() {
   if (!session) return <DevLogin />;
 
   const stats = [
-    { label: "ORDERS", value: data?.stats.orders ?? 0 },
-    { label: "WISHLIST", value: data?.stats.wishlist ?? 0 },
-    { label: "MY CARDS", value: data?.stats.myCards ?? 0 },
-    { label: "COUPONS", value: data?.stats.coupons ?? 0 },
+    { label: "Orders", value: data?.stats.orders ?? 0, icon: ShoppingBag, href: "/account/orders" },
+    { label: "Wishlist", value: data?.stats.wishlist ?? 0, icon: Heart, href: "/collection" },
+    { label: "My Cards", value: data?.stats.myCards ?? 0, icon: CreditCard, href: "/collection" },
+    { label: "Coupons", value: data?.stats.coupons ?? 0, icon: Tag, href: "/account/settings" },
   ];
 
   return (
     <div className="container-page py-8">
       <div className="grid gap-6 md:grid-cols-[240px_1fr]">
         <AccountSidebar />
-        <div>
-          <h1 className="font-display text-3xl font-semibold">ACCOUNT OVERVIEW</h1>
-          <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label} className="card p-4 text-center">
-                <p className="text-xs font-semibold tracking-wider text-ink/50">{s.label}</p>
-                <p className="mt-2 font-display text-2xl font-semibold">{s.value}</p>
-              </div>
-            ))}
+
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="border-b border-ink/10 pb-5">
+            <p className="text-xs font-semibold tracking-[0.2em] text-gold uppercase">
+              Welcome back
+            </p>
+            <h1 className="mt-1 font-display text-3xl font-semibold text-ink">
+              {data?.displayName ?? session.userId}
+            </h1>
           </div>
 
-          <h2 className="mt-8 text-sm font-semibold tracking-wider text-ink/50">RECENT ORDERS</h2>
-          <div className="card mt-3 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
-                <tr>
-                  <th className="px-4 py-3">Order No.</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Total</th>
-                  <th className="px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(data?.recentOrders ?? []).map((o) => (
-                  <tr key={o.orderNumber} className="border-b border-ink/5">
-                    <td className="px-4 py-3 font-medium">{o.orderNumber}</td>
-                    <td className="px-4 py-3 text-ink/60">{formatDate(o.date)}</td>
-                    <td className="px-4 py-3 price">{formatBaht(o.total)}</td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
-                        {o.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {(data?.recentOrders.length ?? 0) === 0 && (
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {stats.map((s) => {
+              const Icon = s.icon;
+              return (
+                <Link
+                  key={s.label}
+                  href={s.href}
+                  className="card group flex flex-col gap-3 p-5 transition hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-ink/40">
+                      {s.label}
+                    </span>
+                    <Icon size={15} className="text-ink/20 group-hover:text-gold transition" />
+                  </div>
+                  <p className="font-display text-3xl font-semibold text-ink">{s.value}</p>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Recent Orders */}
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/50">
+                Recent Orders
+              </h2>
+              <Link
+                href="/account/orders"
+                className="flex items-center gap-1 text-xs font-medium text-gold hover:underline"
+              >
+                ดูทั้งหมด <ArrowRight size={12} />
+              </Link>
+            </div>
+
+            <div className="card overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="border-b border-ink/10 bg-ink/[0.02] text-left text-xs font-semibold uppercase tracking-wider text-ink/40">
                   <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-ink/40">
-                      ยังไม่มีคำสั่งซื้อ
-                    </td>
+                    <th className="px-5 py-3">Order No.</th>
+                    <th className="px-5 py-3">Date</th>
+                    <th className="px-5 py-3">Total</th>
+                    <th className="px-5 py-3">Status</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-ink/5">
+                  {(data?.recentOrders ?? []).map((o) => (
+                    <tr key={o.orderNumber} className="hover:bg-ink/[0.015] transition">
+                      <td className="px-5 py-3.5 font-medium text-ink">{o.orderNumber}</td>
+                      <td className="px-5 py-3.5 text-ink/50">{formatDate(o.date)}</td>
+                      <td className="px-5 py-3.5 font-semibold text-ink">{formatBaht(o.total)}</td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            STATUS_STYLE[o.status] ?? "bg-ink/10 text-ink/60"
+                          }`}
+                        >
+                          {o.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {(data?.recentOrders.length ?? 0) === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-5 py-10 text-center text-sm text-ink/30">
+                        ยังไม่มีคำสั่งซื้อ
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
