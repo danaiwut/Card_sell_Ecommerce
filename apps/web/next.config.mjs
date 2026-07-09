@@ -5,11 +5,9 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@cardverse/shared"],
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "picsum.photos" },
-      { protocol: "https", hostname: "**.r2.dev" },
-      { protocol: "https", hostname: "images.unsplash.com" },
-    ],
+    // เปิด unoptimized เพื่อให้รูปจาก RSS feed (ทุก domain) โหลดได้
+    // trade-off คือ Next.js จะไม่ optimize รูปให้ แต่ยังแสดงได้ปกติ
+    unoptimized: true,
   },
   async rewrites() {
     return [
