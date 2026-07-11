@@ -22,7 +22,7 @@ interface HomePayload {
 // Static hero slides — no backend table for these yet, so they live here.
 // To add/change a slide, just edit this array.
 interface HeroSlide {
-  imageUrl: string;
+  gradientClass: string;
   presentsKey: string;
   titleKey: string;
   subtitleKey: string;
@@ -30,19 +30,19 @@ interface HeroSlide {
 
 const HERO_SLIDES: HeroSlide[] = [
   {
-    imageUrl: "https://picsum.photos/seed/cardverse-hero/1400/600",
+    gradientClass: "from-ink-950 via-ink-900 to-amber-950/40 border-gold/20",
     presentsKey: "home.presents",
     titleKey: "home.title",
     subtitleKey: "home.subtitle",
   },
   {
-    imageUrl: "https://picsum.photos/seed/cardverse-hero-2/1400/600",
+    gradientClass: "from-ink-950 via-ink-900 to-rose-950/30 border-rose-950/20",
     presentsKey: "home.presents",
     titleKey: "home.heroTitle2",
     subtitleKey: "home.heroSubtitle2",
   },
   {
-    imageUrl: "https://picsum.photos/seed/cardverse-hero-3/1400/600",
+    gradientClass: "from-ink-950 via-ink-900 to-cyan-950/30 border-cyan-950/20",
     presentsKey: "home.presents",
     titleKey: "home.heroTitle3",
     subtitleKey: "home.heroSubtitle3",
@@ -78,20 +78,14 @@ export default function HomePage() {
   return (
     <div className="container-page py-6">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-2xl bg-ink-900 text-white">
-        <Image
-          key={slide.imageUrl}
-          src={slide.imageUrl}
-          alt="hero"
-          fill
-          className="object-cover opacity-40 transition-opacity duration-500"
-          priority
-        />
+      <section className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${slide.gradientClass} text-white border transition-all duration-700`}>
+        {/* Subtle decorative grid/pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30" />
         <div className="relative flex flex-col items-center justify-center px-6 py-20 text-center">
           <p className="text-xs font-semibold tracking-[0.3em] text-white/70">
             {t(slide.presentsKey)}
           </p>
-          <h1 className="mt-3 font-display text-5xl font-semibold md:text-6xl">
+          <h1 className="mt-3 font-display text-5xl font-semibold md:text-6xl text-gold">
             {t(slide.titleKey)}
           </h1>
           <p className="mt-3 max-w-xl text-sm text-white/80">{t(slide.subtitleKey)}</p>
@@ -118,7 +112,7 @@ export default function HomePage() {
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
           {HERO_SLIDES.map((s, i) => (
             <button
-              key={s.imageUrl}
+              key={s.gradientClass}
               type="button"
               aria-label={`Go to slide ${i + 1}`}
               onClick={() => setSlideIndex(i)}

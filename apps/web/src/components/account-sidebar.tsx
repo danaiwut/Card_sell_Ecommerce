@@ -10,9 +10,11 @@ const LINKS = [
   { href: "/account/orders", label: "ORDERS" },
   { href: "/account/purchases", label: "MARKETPLACE" },
   { href: "/account/sell", label: "SELL / MY LISTINGS" },
+  { href: "/account/addresses", label: "ที่อยู่จัดส่ง" },
   { href: "/collection", label: "WISHLIST" },
   { href: "/account/settings", label: "SETTINGS" },
 ];
+
 
 export function AccountSidebar() {
   const pathname = usePathname();

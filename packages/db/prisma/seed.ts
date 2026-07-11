@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 
 // ─── Image helpers ─────────────────────────────────────────────────────────────
 const localImg = (filename: string) => `/images/${filename}`;
-const picsumImg = (seed: string) => `https://picsum.photos/seed/${seed}/400/556`;
 
 const baht = (n: number) => Math.round(n * 100);
 
@@ -24,7 +23,7 @@ interface DemoCard {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PRODUCT LIST
+// DIVERSE PRODUCT LIST (ลดความซ้ำซ้อนของการ์ดประเภทเดียวกัน เพิ่มความหลากหลาย)
 // ══════════════════════════════════════════════════════════════════════════════
 const DEMO_CARDS: DemoCard[] = [
 
@@ -32,37 +31,28 @@ const DEMO_CARDS: DemoCard[] = [
   // ONE PIECE TCG
   // ──────────────────────────────────────────────────────────────────────────
   {
+    name: "One Piece Card Game OP-13 Carrying on His Will Booster Box (เซ็ตใหม่ล่าสุด!)",
+    category: "anime-manga", subcategory: "one-piece",
+    rarity: "SR", set: "OP-13 Carrying on His Will",
+    basePrice: 1990, type: "BOOSTER_BOX",
+    imageUrl: localImg("box-op13.png"),
+    flags: { trending: true, newArrival: true },
+  },
+  {
     name: "One Piece Card Game OP-09 Emperors in the New World Booster Box",
     category: "anime-manga", subcategory: "one-piece",
     rarity: "SR", set: "OP-09 Emperors in the New World",
     basePrice: 1890, type: "BOOSTER_BOX",
     imageUrl: localImg("box-op09.webp"),
-    flags: { trending: true },
+    flags: { featured: true },
   },
   {
-    name: "One Piece Card Game OP-10 Royal Blood Booster Box",
-    category: "anime-manga", subcategory: "one-piece",
-    rarity: "SR", set: "OP-10 Royal Blood",
-    basePrice: 1790, type: "BOOSTER_BOX",
-    imageUrl: localImg("box-op10.webp"),
-    flags: { newArrival: true },
-  },
-  {
-    name: "One Piece Card Game OP-01 Romance Dawn Booster Box",
+    name: "One Piece Card Game OP-01 Romance Dawn Booster Box (ระดับตำนาน)",
     category: "anime-manga", subcategory: "one-piece",
     rarity: "SR", set: "OP-01 Romance Dawn",
     basePrice: 3490, type: "BOOSTER_BOX",
     imageUrl: localImg("box-op01.webp"),
     stock: 4,
-    flags: { featured: true },
-  },
-  {
-    name: "One Piece Card Game EB-01 Memorial Collection Booster Box",
-    category: "anime-manga", subcategory: "one-piece",
-    rarity: "SR", set: "EB-01 Memorial Collection",
-    basePrice: 1190, type: "BOOSTER_BOX",
-    imageUrl: localImg("box-eb01b.webp"),
-    flags: { newArrival: true },
   },
   {
     name: "One Piece Card Game ST-10 Ultra Deck Three Captains",
@@ -73,31 +63,8 @@ const DEMO_CARDS: DemoCard[] = [
   },
 
   // ──────────────────────────────────────────────────────────────────────────
-  // NARUTO KAYOU  (ใส่รูปจริงที่อัปโหลดมา และเพิ่มกล่อง)
+  // NARUTO KAYOU
   // ──────────────────────────────────────────────────────────────────────────
-  {
-    name: "Naruto Kayou Tier 1 Wave 1 Booster Box (การ์ดนารูโตะกล่องส้ม)",
-    category: "anime-manga", subcategory: "weiss-schwarz",
-    rarity: "R", set: "Naruto Kayou T1W1",
-    basePrice: 790, type: "BOOSTER_BOX",
-    imageUrl: localImg("naruto-box-1.jpg"),
-    flags: { trending: true },
-  },
-  {
-    name: "Naruto Kayou Tier 2 Wave 1 Booster Box",
-    category: "anime-manga", subcategory: "weiss-schwarz",
-    rarity: "SR", set: "Naruto Kayou T2W1",
-    basePrice: 990, type: "BOOSTER_BOX",
-    imageUrl: localImg("naruto-box-2.jpg"),
-  },
-  {
-    name: "Naruto Kayou Tier 3 Wave 1 Booster Box (กล่องเหล็กต่อสู้สุดเท่)",
-    category: "anime-manga", subcategory: "weiss-schwarz",
-    rarity: "SSR", set: "Naruto Kayou T3W1",
-    basePrice: 1290, type: "BOOSTER_BOX",
-    imageUrl: localImg("naruto-box-3.jpg"),
-    flags: { trending: true },
-  },
   {
     name: "Naruto Kayou Tier 4 Wave 1 Booster Box (กล่องพรีเมี่ยมสุดแรร์)",
     category: "anime-manga", subcategory: "weiss-schwarz",
@@ -107,76 +74,39 @@ const DEMO_CARDS: DemoCard[] = [
     flags: { trending: true, newArrival: true },
   },
   {
+    name: "Naruto Kayou Tier 3 Wave 1 Booster Box (กล่องเหล็กต่อสู้)",
+    category: "anime-manga", subcategory: "weiss-schwarz",
+    rarity: "SSR", set: "Naruto Kayou T3W1",
+    basePrice: 1290, type: "BOOSTER_BOX",
+    imageUrl: localImg("naruto-box-3.jpg"),
+    flags: { featured: true },
+  },
+  {
     name: "Naruto Kayou Heaven Scroll English Booster Box",
     category: "anime-manga", subcategory: "weiss-schwarz",
     rarity: "SR", set: "Naruto Kayou Heaven Scroll EN",
     basePrice: 1290, type: "BOOSTER_BOX",
     imageUrl: localImg("naruto-kayou-box.png"),
   },
-  {
-    name: "Naruto Kayou Akatsuki Edition Special Box",
-    category: "anime-manga", subcategory: "weiss-schwarz",
-    rarity: "SSR", set: "Naruto Kayou Akatsuki Edition",
-    basePrice: 1890, type: "BOOSTER_BOX",
-    imageUrl: localImg("naruto-box-3.jpg"),
-    stock: 5,
-    flags: { featured: true },
-  },
 
   // ──────────────────────────────────────────────────────────────────────────
-  // DISNEY LORCANA
+  // SPORTS CARDS (บาส, บอล, เบสบอล, บอลโลก 2026 รูปจริง)
   // ──────────────────────────────────────────────────────────────────────────
   {
-    name: "Disney Lorcana Azurite Sea Booster Box (Set 7 — Newest!)",
-    category: "tcg", subcategory: "disney-lorcana",
-    rarity: "SR", set: "Azurite Sea",
-    basePrice: 2490, type: "BOOSTER_BOX",
-    imageUrl: picsumImg("disney-lorcana-azurite-sea-set7-box"),
-    flags: { newArrival: true, trending: true },
+    name: "Panini FIFA World Cup 2026 Official Football Ultra Box (การ์ดฟุตบอลโลก 2026)",
+    category: "sports-cards", subcategory: "football",
+    rarity: "SR", set: "Panini World Cup 2026",
+    basePrice: 3200, type: "BOOSTER_BOX",
+    imageUrl: localImg("sports-fifa-2026-box.png"),
+    flags: { trending: true, newArrival: true, featured: true },
   },
-  {
-    name: "Disney Lorcana Shimmering Skies Booster Box",
-    category: "tcg", subcategory: "disney-lorcana",
-    rarity: "SR", set: "Shimmering Skies",
-    basePrice: 2290, type: "BOOSTER_BOX",
-    imageUrl: picsumImg("disney-lorcana-shimmering-skies-set6-box"),
-    flags: { trending: true },
-  },
-  {
-    name: "Disney Lorcana Ursula's Return Booster Box",
-    category: "tcg", subcategory: "disney-lorcana",
-    rarity: "SR", set: "Ursula's Return",
-    basePrice: 2190, type: "BOOSTER_BOX",
-    imageUrl: picsumImg("disney-lorcana-ursulas-return-set4-box"),
-  },
-  {
-    name: "Disney Lorcana The First Chapter Booster Box",
-    category: "tcg", subcategory: "disney-lorcana",
-    rarity: "R", set: "The First Chapter",
-    basePrice: 1790, type: "BOOSTER_BOX",
-    imageUrl: picsumImg("disney-lorcana-the-first-chapter-set1-box"),
-    stock: 6,
-    flags: { featured: true },
-  },
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SPORTS CARDS (การ์ดกีฬาพร้อมรูปภาพจริง!)
-  // ──────────────────────────────────────────────────────────────────────────
   {
     name: "2024 Panini Prizm Basketball Blaster Box (บาสเกตบอล)",
     category: "sports-cards", subcategory: "nba",
     rarity: "SR", set: "Panini Prizm NBA 2024",
     basePrice: 2990, type: "BOOSTER_BOX",
     imageUrl: localImg("sports-nba-box.png"),
-    flags: { trending: true, featured: true },
-  },
-  {
-    name: "2024 Topps Chrome Soccer UEFA Champions League Box (ฟุตบอล)",
-    category: "sports-cards", subcategory: "football",
-    rarity: "SR", set: "Topps Chrome UCL 2024",
-    basePrice: 2490, type: "BOOSTER_BOX",
-    imageUrl: localImg("sports-ucl-box.png"),
-    flags: { newArrival: true, trending: true },
+    flags: { trending: true },
   },
   {
     name: "2024 Topps Chrome Baseball Blaster Box (เบสบอล)",
@@ -184,15 +114,6 @@ const DEMO_CARDS: DemoCard[] = [
     rarity: "R", set: "Topps Chrome MLB 2024",
     basePrice: 2290, type: "BOOSTER_BOX",
     imageUrl: localImg("sports-mlb-box.png"),
-    flags: { newArrival: true },
-  },
-  {
-    name: "2024 Panini Prizm NFL Football Blaster Box (อเมริกันฟุตบอล)",
-    category: "sports-cards", subcategory: "nfl",
-    rarity: "SR", set: "Panini Prizm NFL 2024",
-    basePrice: 2890, type: "BOOSTER_BOX",
-    imageUrl: localImg("sports-nfl-box.png"),
-    flags: { preOrder: true },
   },
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -207,20 +128,12 @@ const DEMO_CARDS: DemoCard[] = [
     flags: { trending: true },
   },
   {
-    name: "Pokémon TCG Scarlet & Violet 151 Booster Bundle",
-    category: "tcg", subcategory: "pokemon-tcg",
-    rarity: "SR", set: "Scarlet & Violet 151",
-    basePrice: 4490, type: "BOOSTER_BOX",
-    imageUrl: picsumImg("pokemon-sv151-booster-bundle-box"),
-    stock: 8,
-    flags: { featured: true },
-  },
-  {
     name: "Pokémon TCG Crown Zenith Elite Trainer Box",
     category: "tcg", subcategory: "pokemon-tcg",
     rarity: "SR", set: "Crown Zenith",
     basePrice: 2490, type: "BOOSTER_BOX",
     imageUrl: localImg("pokemon-crown-zenith-logo.png"),
+    flags: { featured: true },
   },
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -240,26 +153,23 @@ const DEMO_CARDS: DemoCard[] = [
     rarity: "R", set: "Phantom Nightmare",
     basePrice: 1390, type: "BOOSTER_BOX",
     imageUrl: localImg("ygo-blue-eyes.jpg"),
-    flags: { newArrival: true },
   },
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // DRAGON BALL SUPER CARD GAME
-  // ──────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // MARKETPLACE RARE SINGLES (หลากหลายขึ้น ไม่มีการ์ดซ้ำหมวดหมู่)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ONE PIECE
   {
-    name: "Dragon Ball Super Card Game Fusion World FB04 Booster Box",
-    category: "anime-manga", subcategory: "dragon-ball-super",
-    rarity: "SR", set: "Fusion World FB04",
-    basePrice: 1490, type: "BOOSTER_BOX",
-    imageUrl: picsumImg("dbs-fusion-world-fb04-box"),
-    flags: { trending: true, newArrival: true },
+    name: "Monkey D. Luffy OP13-118 SEC Super Parallel (เซ็ตใหม่ Carrying on His Will)",
+    category: "anime-manga", subcategory: "one-piece",
+    rarity: "SECRET", set: "OP-13 Carrying on His Will",
+    cardNumber: "OP13-118",
+    basePrice: 39000, type: "SINGLE_CARD",
+    imageUrl: localImg("op13-luffy-sec.jpg"),
+    stock: 1,
+    flags: { featured: true, newArrival: true },
   },
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // MARKETPLACE RARE SINGLES
-  // ══════════════════════════════════════════════════════════════════════════
-
-  // ONE PIECE — Rare marketplace singles
   {
     name: "Gol D. Roger OP09-118 Gold Super Parallel Secret Rare",
     category: "anime-manga", subcategory: "one-piece",
@@ -278,20 +188,19 @@ const DEMO_CARDS: DemoCard[] = [
     basePrice: 38000, type: "SINGLE_CARD",
     imageUrl: localImg("op09-luffy-sec.webp"),
     stock: 1,
-    flags: { featured: true },
-  },
-  {
-    name: "Shanks OP09-001 Alt Art Leader Gold Parallel",
-    category: "anime-manga", subcategory: "one-piece",
-    rarity: "SSR", set: "OP-09 Emperors in the New World",
-    cardNumber: "OP09-001",
-    basePrice: 22000, type: "SINGLE_CARD",
-    imageUrl: localImg("op09-shanks-leader.webp"),
-    stock: 1,
-    flags: { trending: true },
   },
 
-  // NARUTO KAYOU — Rare marketplace singles (รูปจริงอัปโหลดมา!)
+  // NARUTO KAYOU
+  {
+    name: "Naruto Uzumaki NRSA-PR-002 Select Edition Special PR Card (ลายเส้นสุดอาร์ต)",
+    category: "anime-manga", subcategory: "weiss-schwarz",
+    rarity: "SECRET", set: "Naruto Kayou Select Edition",
+    cardNumber: "NRSA-PR-002",
+    basePrice: 19500, type: "SINGLE_CARD",
+    imageUrl: localImg("naruto-card-pr.jpg"),
+    stock: 1,
+    flags: { featured: true, newArrival: true },
+  },
   {
     name: "Naruto Uzumaki Crystal Rare NRB08-CR-001 (การ์ดแรร์นารูโตะทอง)",
     category: "anime-manga", subcategory: "weiss-schwarz",
@@ -300,52 +209,9 @@ const DEMO_CARDS: DemoCard[] = [
     basePrice: 25000, type: "SINGLE_CARD",
     imageUrl: localImg("naruto-card-ssr.png"),
     stock: 1,
-    flags: { featured: true },
-  },
-  {
-    name: "Itachi Uchiha Ultra Rare NRB07-UR-014 Naruto Kayou",
-    category: "anime-manga", subcategory: "weiss-schwarz",
-    rarity: "UR", set: "Naruto Kayou T2W3",
-    cardNumber: "NRB07-UR-014",
-    basePrice: 18000, type: "SINGLE_CARD",
-    imageUrl: picsumImg("itachi-uchiha-ultra-rare-nrb07-ur014"),
-    stock: 1,
-    flags: { trending: true },
-  },
-  {
-    name: "Kakashi Hatake Crystal Rare NRB07-CR-001 Naruto Kayou",
-    category: "anime-manga", subcategory: "weiss-schwarz",
-    rarity: "SECRET", set: "Naruto Kayou T2W3",
-    cardNumber: "NRB07-CR-001",
-    basePrice: 22000, type: "SINGLE_CARD",
-    imageUrl: picsumImg("kakashi-hatake-crystal-rare-nrb07-cr001"),
-    stock: 1,
-    flags: { featured: true },
   },
 
-  // DISNEY LORCANA — Rare marketplace singles
-  {
-    name: "Elsa Queen of Arendelle Enchanted Card 23/204 The First Chapter",
-    category: "tcg", subcategory: "disney-lorcana",
-    rarity: "SECRET", set: "The First Chapter",
-    cardNumber: "TFC-023",
-    basePrice: 28000, type: "SINGLE_CARD",
-    imageUrl: picsumImg("disney-lorcana-elsa-queen-enchanted-tfc-023"),
-    stock: 1,
-    flags: { featured: true },
-  },
-  {
-    name: "Mickey Mouse Brave Little Tailor Enchanted 1/204 The First Chapter",
-    category: "tcg", subcategory: "disney-lorcana",
-    rarity: "SECRET", set: "The First Chapter",
-    cardNumber: "TFC-001",
-    basePrice: 35000, type: "SINGLE_CARD",
-    imageUrl: picsumImg("disney-lorcana-mickey-mouse-enchanted-tfc-001"),
-    stock: 1,
-    flags: { featured: true },
-  },
-
-  // POKÉMON — Rare marketplace singles (รูปจริงภาษาไทย!)
+  // POKÉMON
   {
     name: "Pikachu ex 173/123 SAR (การ์ดพิคาชูหนึ่งแสนโวลต์ เวอร์ชันภาษาไทย)",
     category: "tcg", subcategory: "pokemon-tcg",
@@ -374,10 +240,9 @@ const DEMO_CARDS: DemoCard[] = [
     basePrice: 22000, type: "SINGLE_CARD",
     imageUrl: localImg("pokemon-umbreon-vmax-215.png"),
     stock: 1,
-    flags: { featured: true },
   },
 
-  // YU-GI-OH! — Rare marketplace singles
+  // YU-GI-OH!
   {
     name: "Dark Magician TEN-EN012 Yugi's Legend Ultra Rare",
     category: "tcg", subcategory: "yu-gi-oh",
@@ -403,8 +268,12 @@ const DEMO_CARDS: DemoCard[] = [
 // ─── Taxonomy ───────────────────────────────────────────────────────────────────
 async function seedTaxonomy() {
   console.log("Seeding taxonomy...");
-  for (let i = 0; i < CATALOG_TAXONOMY.length; i++) {
-    const c = CATALOG_TAXONOMY[i];
+  const ACTIVE_CATEGORIES = CATALOG_TAXONOMY.filter(c => 
+    ["sports-cards", "anime-manga", "tcg"].includes(c.slug)
+  );
+
+  for (let i = 0; i < ACTIVE_CATEGORIES.length; i++) {
+    const c = ACTIVE_CATEGORIES[i];
     const category = await prisma.category.upsert({
       where: { slug: c.slug },
       update: { name: c.name, nameTh: c.nameTh, emoji: c.emoji, note: c.note, sortOrder: i },
@@ -460,7 +329,7 @@ async function seedCatalogAndProducts() {
     });
 
     const slug = card.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const extraImages = [card.imageUrl, picsumImg(slug + "-alt1"), picsumImg(slug + "-alt2"), picsumImg(slug + "-alt3")];
+    const extraImages = [card.imageUrl];
 
     const catalogItem = await prisma.catalogItem.upsert({
       where: { slug },
@@ -608,25 +477,18 @@ async function seedNews() {
 
   const posts = [
     {
-      slug: "disney-lorcana-azurite-sea-launch-thailand",
+      slug: "naruto-kayou-select-edition-launch",
       kind: "SET_RELEASE",
-      title: "Disney Lorcana Azurite Sea — Set ล่าสุดวางขายแล้วในไทย!",
-      excerpt: "Azurite Sea เซ็ตที่ 7 ของ Disney Lorcana มาแล้ว! พร้อมการ์ด Enchanted ใหม่หลายใบที่นักสะสมต้องมี",
-      imageUrl: img("disney-lorcana-azurite-sea-launch"),
+      title: "Naruto Kayou Select Edition — การ์ดลายเส้นสุดอาร์ตวางขายแล้ว!",
+      excerpt: "เซ็ตพิเศษที่นำเอาภาพร่างดั้งเดิมมาทำการ์ดสุดพรีเมี่ยม พร้อมการ์ด PR รหัส NRSA-PR-002 วางจำหน่ายแล้ววันนี้",
+      imageUrl: img("naruto-select-edition"),
     },
     {
-      slug: "naruto-kayou-t4w1-thailand-launch",
+      slug: "one-piece-op13-carrying-on-his-will",
       kind: "SET_RELEASE",
-      title: "Naruto Kayou T4W1 — Crystal Rare Naruto Uzumaki มาถึงไทยแล้ว!",
-      excerpt: "Naruto Kayou Tier 4 Wave 1 เซ็ตที่ rare ที่สุด พร้อมการ์ด Crystal Rare และ Ultra Rare ที่นักสะสมทั่วโลกตามหา",
-      imageUrl: img("naruto-kayou-t4w1-thailand-launch"),
-    },
-    {
-      slug: "one-piece-op09-emperors-release",
-      kind: "SET_RELEASE",
-      title: "One Piece OP-09 Emperors in the New World — Gol D. Roger กลับมา!",
-      excerpt: "Roger Gold Super Parallel SEC ราคาพุ่งสูงถึง 45,000 บาท! ชุด OP-09 hot ที่สุดในประวัติศาสตร์ One Piece TCG",
-      imageUrl: img("op09-emperors-news"),
+      title: "One Piece TCG OP-13 Carrying on His Will — วางจำหน่ายเป็นทางการ!",
+      excerpt: "ชุด OP-13 ใหม่ล่าสุดพร้อมการ์ดระดับพระกาฬ Luffy OP13-118 SEC ลายเส้นสไตล์มังงะสีแดงสะกดสายตา",
+      imageUrl: img("op13-carrying-will"),
     },
   ] as const;
 
@@ -639,8 +501,8 @@ async function seedNews() {
 async function seedCoupons() {
   const coupons = [
     { code: "WELCOME10", description: "ลด 10% สำหรับลูกค้าใหม่", percentOff: 10, active: true },
-    { code: "LORCANA15", description: "ลด 15% สำหรับสินค้า Disney Lorcana", percentOff: 15, active: true },
     { code: "NARUTO20", description: "ลด 20% สำหรับสินค้า Naruto Kayou", percentOff: 20, active: true },
+    { code: "ONEPIECE15", description: "ลด 15% สำหรับสินค้า One Piece", percentOff: 15, active: true },
   ];
   for (const c of coupons) {
     await prisma.coupon.upsert({ where: { code: c.code }, update: {}, create: c });
