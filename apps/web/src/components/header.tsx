@@ -4,9 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Bell, Heart, ShoppingCart, User } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
+import { isClerkEnabled } from "@/lib/clerk-config";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/format";
 
@@ -86,14 +88,41 @@ export function Header() {
               </span>
             )}
           </Link>
-          <Link
-            href="/account"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/5 text-ink/70 hover:bg-ink/10"
-          >
-            <User size={16} />
-          </Link>
+          {isClerkEnabled() ? (
+            <AuthControls />
+          ) : (
+            <Link
+              href="/account"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/5 text-ink/70 hover:bg-ink/10"
+            >
+              <User size={16} />
+            </Link>
+          )}
         </div>
       </div>
     </header>
+  );
+}
+
+function AuthControls() {
+  return (
+    <>
+      <SignedOut>
+        <SignInButton mode="modal">
+          <button className="text-xs font-semibold tracking-wider text-ink/60 hover:text-ink">
+            Sign in
+          </button>
+        </SignInButton>
+        <SignUpButton mode="modal">
+          <button className="btn-primary h-8 px-3 text-xs">Sign up</button>
+        </SignUpButton>
+      </SignedOut>
+      <SignedIn>
+        <UserButton
+          afterSignOutUrl="/"
+          appearance={{ elements: { avatarBox: "h-8 w-8" } }}
+        />
+      </SignedIn>
+    </>
   );
 }

@@ -55,7 +55,7 @@ export default function AdminPage() {
     );
   }
 
-  const tabs: { id: Tab; label: string; adminOnly?: boolean }[] = [
+  const tabs: { id: Tab; label: string }[] = [
     { id: "reports", label: "Reports" },
     { id: "products", label: "Products" },
     { id: "catalog", label: "Catalog" },
@@ -64,8 +64,10 @@ export default function AdminPage() {
     { id: "marketplace-orders", label: "Marketplace" },
     { id: "shipping", label: "Shipping" },
     { id: "disputes", label: "Disputes" },
-    { id: "users", label: "Users", adminOnly: true },
+    { id: "users", label: "Users" },
   ];
+  const isStaff = session.role === "manager" || session.role === "admin";
+  const canManageRoles = session.role === "admin";
 
   return (
     <div className="container-page py-8">
@@ -74,9 +76,7 @@ export default function AdminPage() {
       </h1>
 
       <div className="mt-4 flex gap-6 border-b border-ink/10 text-sm">
-        {tabs
-          .filter((t) => !t.adminOnly || session.role === "admin")
-          .map((t) => (
+        {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
@@ -97,8 +97,8 @@ export default function AdminPage() {
         {tab === "shop-orders" && <ShopOrders />}
         {tab === "marketplace-orders" && <MarketplaceOrders />}
         {tab === "shipping" && <ShippingQueue />}
-        {tab === "disputes" && <Disputes isAdmin={session.role === "admin"} />}
-        {tab === "users" && session.role === "admin" && <Users />}
+        {tab === "disputes" && <Disputes canRefund={isStaff} />}
+        {tab === "users" && <Users canManageRoles={canManageRoles} />}
       </div>
     </div>
   );
@@ -630,7 +630,7 @@ function ShippingQueue() {
   );
 }
 
-function Disputes({ isAdmin }: { isAdmin: boolean }) {
+function Disputes({ canRefund }: { canRefund: boolean }) {
   const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ["admin-disputes"],
@@ -650,7 +650,7 @@ function Disputes({ isAdmin }: { isAdmin: boolean }) {
               buyer {d.buyer?.displayName} • seller {d.seller?.displayName}
             </p>
           </div>
-          {isAdmin && (
+          {canRefund && (
             <button className="btn-outline" disabled={refund.isPending} onClick={() => refund.mutate(d.id)}>
               คืนเงินผู้ซื้อ
             </button>
@@ -662,7 +662,7 @@ function Disputes({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
-function Users() {
+function Users({ canManageRoles }: { canManageRoles: boolean }) {
   const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ["admin-users"],
@@ -689,15 +689,19 @@ function Users() {
               <td className="px-4 py-3 font-medium">{u.displayName}</td>
               <td className="px-4 py-3 text-ink/60">{u.email}</td>
               <td className="px-4 py-3">
-                <select
-                  className="input h-8 w-32"
-                  value={u.role}
-                  onChange={(e) => setRole.mutate({ id: u.id, role: e.target.value })}
-                >
-                  <option value="customer">customer</option>
-                  <option value="manager">manager</option>
-                  <option value="admin">admin</option>
-                </select>
+                {canManageRoles ? (
+                  <select
+                    className="input h-8 w-32"
+                    value={u.role}
+                    onChange={(e) => setRole.mutate({ id: u.id, role: e.target.value })}
+                  >
+                    <option value="customer">customer</option>
+                    <option value="manager">manager</option>
+                    <option value="admin">admin</option>
+                  </select>
+                ) : (
+                  <span className="text-ink/70">{u.role}</span>
+                )}
               </td>
             </tr>
           ))}

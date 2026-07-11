@@ -18,12 +18,21 @@
     "db:studio": "bash -c 'set -a; [ -f .env ] && source .env || source .env.example; set +a; pnpm --filter @cardverse/db studio'"
   },
   "devDependencies": {
+    "clerk": "^2.0.0",
     "prettier": "^3.3.3",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "prisma", "esbuild", "@nestjs/core", "@clerk/shared", "sharp"],
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "@nestjs/core",
+      "@clerk/shared",
+      "sharp"
+    ],
     "overrides": {
       "ioredis": "5.11.1"
     }

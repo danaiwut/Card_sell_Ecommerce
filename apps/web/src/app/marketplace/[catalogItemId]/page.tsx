@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
 import { Heart, ShoppingCart, Star } from "lucide-react";
@@ -47,6 +47,7 @@ export default function CatalogDetailPage({
   params: Promise<{ catalogItemId: string }>;
 }) {
   const { catalogItemId } = use(params);
+  const listingId = useSearchParams().get("listing");
   const { t } = useI18n();
   const { session } = useSession();
   const router = useRouter();
@@ -90,9 +91,12 @@ export default function CatalogDetailPage({
   }, [catalogItemId]);
 
   const effStats = liveStats ?? stats;
-  const lowest = listings?.[0];
+  const activeListing = listingId
+    ? listings?.find((l) => l.id === listingId)
+    : listings?.[0];
+  const listingUnavailable = Boolean(listingId && listings && !activeListing);
   const trend = priceTrendPct(effStats?.avg7d, effStats?.avg30d);
-  const displayPrice = lowest?.price ?? effStats?.today ?? effStats?.lowestActiveListing;
+  const displayPrice = activeListing?.price ?? effStats?.today ?? effStats?.lowestActiveListing;
   const lastSold = (recent ?? []).find((r) => r.catalogItem.id === catalogItemId);
 
   const similar = useMemo(() => {
@@ -109,7 +113,7 @@ export default function CatalogDetailPage({
   const buy = useMutation({
     mutationFn: () =>
       api.post<{ orderId: string; mock: boolean; clientSecret: string | null }>(
-        `/marketplace/orders/${lowest!.id}/buy`,
+        `/marketplace/orders/${activeListing!.id}/buy`,
       ),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["catalog-listings", catalogItemId] });
@@ -159,26 +163,26 @@ export default function CatalogDetailPage({
             <Tag label={item.category.name} />
             {item.brandName && <Tag label={item.brandName} />}
             {item.rarity && <Tag label={item.rarity} />}
-            {lowest && <Tag label={lowest.condition.replace(/_/g, " ")} />}
+            {activeListing && <Tag label={activeListing.condition.replace(/_/g, " ")} />}
           </div>
 
-          {lowest && (
+          {activeListing && (
             <div className="card mt-5 p-5">
               <div className="flex flex-wrap items-start gap-4">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-gold/15 text-2xl font-bold text-gold">
-                  {lowest.seller.rating.toFixed(1)}
+                  {activeListing.seller.rating.toFixed(1)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-ink">{lowest.condition.replace(/_/g, " ")}</p>
+                  <p className="font-semibold text-ink">{activeListing.condition.replace(/_/g, " ")}</p>
                   <p className="mt-0.5 text-sm text-ink/50">
-                    Seller: {lowest.seller.displayName}
+                    Seller: {activeListing.seller.displayName}
                   </p>
                   <div className="mt-1 flex items-center gap-0.5 text-gold">
-                    {Array.from({ length: Math.round(lowest.seller.rating) }).map((_, i) => (
+                    {Array.from({ length: Math.round(activeListing.seller.rating) }).map((_, i) => (
                       <Star key={i} size={12} fill="currentColor" />
                     ))}
                     <span className="ml-1 text-xs text-ink/50">
-                      ({lowest.seller.ratingCount} reviews)
+                      ({activeListing.seller.ratingCount} reviews)
                     </span>
                   </div>
                 </div>
@@ -187,7 +191,7 @@ export default function CatalogDetailPage({
                 <GradeStat label="Rarity" value={item.rarity ?? "—"} />
                 <GradeStat label="Set" value={item.setName?.slice(0, 8) ?? "—"} />
                 <GradeStat label="Brand" value={item.brandName?.slice(0, 8) ?? "—"} />
-                <GradeStat label="Qty" value={String(lowest.quantity)} />
+                <GradeStat label="Qty" value={String(activeListing.quantity)} />
               </div>
             </div>
           )}
@@ -209,13 +213,18 @@ export default function CatalogDetailPage({
           </div>
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            {listingUnavailable && (
+              <p className="text-sm text-ink/60 sm:basis-full">
+                รายการที่เลือกไม่พร้อมขายแล้ว — ลองเลือกจาก Marketplace อีกครั้ง
+              </p>
+            )}
             <button
               type="button"
               className="btn-primary flex-1"
-              disabled={!lowest || buy.isPending}
+              disabled={!activeListing || buy.isPending}
               onClick={() => {
                 if (!session) return router.push("/account");
-                if (lowest) buy.mutate();
+                if (activeListing) buy.mutate();
               }}
             >
               <ShoppingCart size={16} />
@@ -277,11 +286,11 @@ export default function CatalogDetailPage({
 
           {tab === "Seller Reviews" && (
             <div className="py-5">
-              {lowest ? (
+              {activeListing ? (
                 <div className="card mb-4 p-4 text-sm">
-                  <p className="font-semibold">{lowest.seller.displayName}</p>
+                  <p className="font-semibold">{activeListing.seller.displayName}</p>
                   <p className="mt-1 text-ink/60">
-                    Rating {lowest.seller.rating.toFixed(1)} / 5 · {lowest.seller.ratingCount}{" "}
+                    Rating {activeListing.seller.rating.toFixed(1)} / 5 · {activeListing.seller.ratingCount}{" "}
                     reviews
                   </p>
                 </div>
@@ -335,7 +344,7 @@ export default function CatalogDetailPage({
             {similar.map((l) => (
               <RelatedCatalogCard
                 key={l.id}
-                href={`/marketplace/${l.catalogItem.id}`}
+                href={`/marketplace/${l.catalogItem.id}?listing=${l.id}`}
                 name={l.catalogItem.name}
                 imageUrl={l.catalogItem.imageUrl}
                 meta={`${l.catalogItem.setName ?? item.category.name} · ${l.condition.replace(/_/g, " ")}`}

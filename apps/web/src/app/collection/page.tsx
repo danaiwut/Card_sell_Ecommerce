@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { isClerkEnabled } from "@/lib/clerk-config";
+import { formatDate } from "@/lib/format";
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3000";
 const ACTIVE_SHIPMENT_STATUS = new Set([
