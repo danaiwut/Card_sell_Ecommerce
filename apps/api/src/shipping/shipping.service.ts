@@ -164,7 +164,7 @@ export class ShippingService {
       type: "SHIPMENT_UPDATE",
       title: shipment.status === "DELIVERED" ? "คำสั่งซื้อจัดส่งสำเร็จแล้ว" : "คำสั่งซื้อมีการอัปเดต",
       body: `${shipment.carrier} • ${shipment.trackingNumber}`,
-      link: "/account/orders",
+      link: `/account/orders/${orderId}`,
     });
     return { ok: true };
   }
@@ -294,7 +294,9 @@ export class ShippingService {
           body: `FLASH • ${input.trackingNumber}`,
           link: shipment.marketplaceOrderId
             ? `/account/purchases/${shipment.marketplaceOrderId}`
-            : "/account/orders",
+            : shipment.orderId
+              ? `/account/orders/${shipment.orderId}`
+              : "/account/orders",
         }),
       ),
     );

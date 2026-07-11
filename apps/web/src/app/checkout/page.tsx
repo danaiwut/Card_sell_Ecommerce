@@ -1,0 +1,351 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, MapPin, CreditCard, Package } from "lucide-react";
+import type { ProductDto } from "@cardverse/shared";
+import { api } from "@/lib/api";
+import { useSession } from "@/lib/session";
+import { formatBaht } from "@/lib/format";
+import { DevLogin } from "@/components/dev-login";
+
+interface CartPayload {
+  items: { id: string; quantity: number; product: ProductDto; lineTotal: number }[];
+  subtotal: number;
+  shipping: number;
+  total: number;
+}
+
+interface Address {
+  id: string;
+  fullName: string;
+  phone: string;
+  line1: string;
+  line2: string | null;
+  district: string;
+  province: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
+const STEPS = [
+  { key: "shipping", label: "ที่อยู่จัดส่ง", icon: MapPin },
+  { key: "payment", label: "ชำระเงิน", icon: CreditCard },
+  { key: "done", label: "เสร็จสิ้น", icon: Check },
+] as const;
+
+type Step = (typeof STEPS)[number]["key"];
+
+const SHIPPING_OPTIONS = [
+  { id: "standard", label: "จัดส่งมาตรฐาน", days: "3–5 วัน", price: 0 },
+  { id: "express", label: "จัดส่งด่วน", days: "1–2 วัน", price: 80 },
+] as const;
+
+export default function CheckoutPage() {
+  const { session } = useSession();
+  const router = useRouter();
+  const qc = useQueryClient();
+  const [step, setStep] = useState<Step>("shipping");
+  const [shippingMethod, setShippingMethod] = useState("standard");
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [newAddress, setNewAddress] = useState({
+    fullName: "",
+    phone: "",
+    line1: "",
+    line2: "",
+    district: "",
+    province: "",
+    postalCode: "",
+    isDefault: true,
+  });
+  const [paymentState, setPaymentState] = useState<"idle" | "processing" | "success" | "error">("idle");
+
+  const { data: cart } = useQuery({
+    queryKey: ["cart", session?.userId],
+    queryFn: () => api.get<CartPayload>("/cart", true),
+    enabled: Boolean(session),
+  });
+
+  const { data: addresses } = useQuery({
+    queryKey: ["addresses", session?.userId],
+    queryFn: () => api.get<Address[]>("/users/me/addresses", true),
+    enabled: Boolean(session),
+  });
+
+  const saveAddress = useMutation({
+    mutationFn: () => api.post<Address>("/users/me/addresses", newAddress),
+    onSuccess: (addr) => {
+      setSelectedAddressId(addr.id);
+      qc.invalidateQueries({ queryKey: ["addresses"] });
+    },
+  });
+
+  const checkout = useMutation({
+    mutationFn: (addressId: string) =>
+      api.post<{ url: string | null; orderNumber: string; orderId: string }>(
+        "/orders/checkout",
+        { addressId },
+      ),
+    onMutate: () => setPaymentState("processing"),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["cart"] });
+      qc.invalidateQueries({ queryKey: ["cart-count"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      if (res.url) {
+        window.location.href = res.url;
+        return;
+      }
+      setPaymentState("success");
+      setStep("done");
+      router.push(`/account/orders/${res.orderId}`);
+    },
+    onError: () => setPaymentState("error"),
+  });
+
+  if (!session) return <DevLogin />;
+
+  const shippingFee =
+    SHIPPING_OPTIONS.find((o) => o.id === shippingMethod)?.price ?? 0;
+  const total = (cart?.subtotal ?? 0) + shippingFee;
+
+  const activeAddressId =
+    selectedAddressId ?? addresses?.find((a) => a.isDefault)?.id ?? addresses?.[0]?.id;
+
+  function proceedToPayment() {
+    if (!activeAddressId && !newAddress.fullName) return;
+    if (!activeAddressId) {
+      saveAddress.mutate(undefined, {
+        onSuccess: (addr) => {
+          setStep("payment");
+          setSelectedAddressId(addr.id);
+        },
+      });
+      return;
+    }
+    setStep("payment");
+  }
+
+  return (
+    <div className="container-page py-8">
+      <h1 className="font-display text-3xl font-semibold">ชำระเงิน &amp; จัดส่ง</h1>
+
+      {/* Step indicator */}
+      <div className="mt-6 flex items-center gap-2">
+        {STEPS.map((s, i) => {
+          const Icon = s.icon;
+          const active = step === s.key || (step === "done" && s.key === "done");
+          const done =
+            (step === "payment" && s.key === "shipping") ||
+            (step === "done" && s.key !== "done");
+          return (
+            <div key={s.key} className="flex items-center gap-2">
+              <div
+                className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  active
+                    ? "bg-ink text-white"
+                    : done
+                      ? "bg-green-100 text-green-700"
+                      : "bg-ink/5 text-ink/40"
+                }`}
+              >
+                {done ? <Check size={12} /> : <Icon size={12} />}
+                {s.label}
+              </div>
+              {i < STEPS.length - 1 && <div className="h-px w-6 bg-ink/10" />}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
+        <div>
+          {step === "shipping" && (
+            <div className="card p-6">
+              <h2 className="flex items-center gap-2 font-semibold">
+                <MapPin size={18} className="text-gold" />
+                ที่อยู่จัดส่ง
+              </h2>
+
+              {(addresses ?? []).length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {addresses!.map((addr) => (
+                    <label
+                      key={addr.id}
+                      className={`flex cursor-pointer gap-3 rounded-lg border p-4 transition ${
+                        activeAddressId === addr.id
+                          ? "border-gold bg-gold/5"
+                          : "border-ink/10 hover:border-ink/20"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="address"
+                        checked={activeAddressId === addr.id}
+                        onChange={() => setSelectedAddressId(addr.id)}
+                        className="mt-1"
+                      />
+                      <div className="text-sm">
+                        <p className="font-medium">{addr.fullName}</p>
+                        <p className="text-ink/60">
+                          {addr.line1} {addr.district} {addr.province} {addr.postalCode}
+                        </p>
+                        <p className="text-ink/50">{addr.phone}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {(
+                  [
+                    ["fullName", "ชื่อผู้รับ"],
+                    ["phone", "เบอร์โทร"],
+                    ["line1", "ที่อยู่"],
+                    ["district", "เขต/อำเภอ"],
+                    ["province", "จังหวัด"],
+                    ["postalCode", "รหัสไปรษณีย์"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <div key={key} className={key === "line1" ? "sm:col-span-2" : ""}>
+                    <label className="text-xs font-medium text-ink/50">{label}</label>
+                    <input
+                      className="input mt-1"
+                      value={newAddress[key]}
+                      onChange={(e) =>
+                        setNewAddress((a) => ({ ...a, [key]: e.target.value }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink/50">
+                  วิธีจัดส่ง
+                </p>
+                <div className="mt-2 space-y-2">
+                  {SHIPPING_OPTIONS.map((opt) => (
+                    <label
+                      key={opt.id}
+                      className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition ${
+                        shippingMethod === opt.id
+                          ? "border-gold bg-gold/5"
+                          : "border-ink/10"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="shipping"
+                          checked={shippingMethod === opt.id}
+                          onChange={() => setShippingMethod(opt.id)}
+                        />
+                        <div>
+                          <p className="text-sm font-medium">{opt.label}</p>
+                          <p className="text-xs text-ink/50">{opt.days}</p>
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold text-gold">
+                        {opt.price === 0 ? "ฟรี" : formatBaht(opt.price)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                className="btn-primary mt-6 w-full"
+                disabled={(cart?.items.length ?? 0) === 0}
+                onClick={proceedToPayment}
+              >
+                ดำเนินการต่อ
+              </button>
+            </div>
+          )}
+
+          {step === "payment" && (
+            <div className="card p-6">
+              <h2 className="flex items-center gap-2 font-semibold">
+                <CreditCard size={18} className="text-gold" />
+                สถานะการชำระเงิน
+              </h2>
+
+              <div className="mt-5 rounded-lg bg-ink/[0.03] p-5">
+                {paymentState === "idle" && (
+                  <div className="text-center">
+                    <Package size={40} className="mx-auto text-ink/20" />
+                    <p className="mt-3 font-medium">พร้อมชำระเงิน</p>
+                    <p className="mt-1 text-sm text-ink/50">
+                      ยอดรวม {formatBaht(total)} — กดปุ่มด้านล่างเพื่อดำเนินการ
+                    </p>
+                  </div>
+                )}
+                {paymentState === "processing" && (
+                  <div className="text-center">
+                    <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+                    <p className="mt-3 font-medium">กำลังประมวลผลการชำระเงิน…</p>
+                  </div>
+                )}
+                {paymentState === "error" && (
+                  <p className="text-center text-sm text-red-600">
+                    ชำระเงินไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-5 flex gap-3">
+                <button className="btn-outline flex-1" onClick={() => setStep("shipping")}>
+                  ย้อนกลับ
+                </button>
+                <button
+                  className="btn-primary flex-1"
+                  disabled={checkout.isPending || !activeAddressId}
+                  onClick={() => activeAddressId && checkout.mutate(activeAddressId)}
+                >
+                  {checkout.isPending ? "กำลังชำระ…" : `ชำระ ${formatBaht(total)}`}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Order summary */}
+        <aside className="card h-fit p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink/50">
+            สรุปคำสั่งซื้อ
+          </p>
+          <div className="mt-3 space-y-2">
+            {(cart?.items ?? []).map((line) => (
+              <div key={line.id} className="flex justify-between text-sm">
+                <span className="text-ink/70">
+                  {line.product.name} × {line.quantity}
+                </span>
+                <span className="font-medium">{formatBaht(line.lineTotal)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 space-y-1 border-t border-ink/10 pt-3 text-sm">
+            <div className="flex justify-between text-ink/60">
+              <span>ยอดสินค้า</span>
+              <span>{formatBaht(cart?.subtotal ?? 0)}</span>
+            </div>
+            <div className="flex justify-between text-ink/60">
+              <span>ค่าจัดส่ง</span>
+              <span>{shippingFee === 0 ? "ฟรี" : formatBaht(shippingFee)}</span>
+            </div>
+            <div className="flex justify-between pt-2 font-semibold">
+              <span>รวม</span>
+              <span className="text-gold">{formatBaht(total)}</span>
+            </div>
+          </div>
+          <Link href="/cart" className="btn-outline mt-4 w-full text-center text-xs">
+            กลับไปตะกร้า
+          </Link>
+        </aside>
+      </div>
+    </div>
+  );
+}

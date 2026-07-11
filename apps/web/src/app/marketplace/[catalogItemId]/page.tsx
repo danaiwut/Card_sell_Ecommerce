@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
-import { Heart, ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 import {
   SOCKET_EVENTS,
   type CatalogItemDto,
@@ -19,7 +19,6 @@ import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 import { formatBaht, formatDate } from "@/lib/format";
-import { PriceChart } from "@/components/price-chart";
 import {
   DetailBreadcrumb,
   DetailTabs,
@@ -30,6 +29,8 @@ import {
   SpecTile,
   VerifiedBadge,
 } from "@/components/detail-layout";
+import { PriceChart } from "@/components/price-chart";
+import { WishlistButton } from "@/components/wishlist-button";
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3000";
 
@@ -117,7 +118,7 @@ export default function CatalogDetailPage({
       ),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["catalog-listings", catalogItemId] });
-      router.push(`/account/purchases?status=success&order=${res.orderId}`);
+      router.push(`/account/purchases/${res.orderId}`);
     },
   });
 
@@ -223,17 +224,14 @@ export default function CatalogDetailPage({
               className="btn-primary flex-1"
               disabled={!activeListing || buy.isPending}
               onClick={() => {
-                if (!session) return router.push("/account");
+                if (!session) return router.push("/sign-in");
                 if (activeListing) buy.mutate();
               }}
             >
               <ShoppingCart size={16} />
               {buy.isPending ? "…" : t("common.buyNow")}
             </button>
-            <button type="button" className="btn-outline flex-1">
-              <Heart size={16} />
-              {t("common.wishlist")}
-            </button>
+            <WishlistButton catalogItemId={catalogItemId} />
             <Link href="/account/sell" className="btn-outline flex-1">
               Make an Offer
             </Link>

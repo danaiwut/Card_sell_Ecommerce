@@ -8,6 +8,7 @@ const isProtectedRoute = createRouteMatcher([
   "/admin(.*)",
   "/notifications(.*)",
   "/collection(.*)",
+  "/checkout(.*)",
 ]);
 
 const clerkHandler = clerkMiddleware(async (auth, req) => {

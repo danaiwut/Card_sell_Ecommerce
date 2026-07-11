@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, Param } from "@nestjs/common";
 import { CollectionService } from "./collection.service";
 import { CurrentUser } from "../auth/decorators";
 
@@ -29,5 +29,13 @@ export class CollectionController {
   @Post("wishlist/toggle")
   toggle(@CurrentUser("id") userId: string, @Body() body: { catalogItemId: string }) {
     return this.collection.toggleWishlist(userId, body.catalogItemId);
+  }
+
+  @Get("wishlist/check/:catalogItemId")
+  checkWishlist(
+    @CurrentUser("id") userId: string,
+    @Param("catalogItemId") catalogItemId: string,
+  ) {
+    return this.collection.isWishlisted(userId, catalogItemId);
   }
 }

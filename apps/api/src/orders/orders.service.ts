@@ -125,7 +125,7 @@ export class OrdersService {
       type: "ORDER_UPDATE",
       title: "ชำระเงินสำเร็จ",
       body: `คำสั่งซื้อ ${order.orderNumber} กำลังเตรียมจัดส่ง`,
-      link: `/account/orders`,
+      link: `/account/orders/${orderId}`,
     });
   }
 

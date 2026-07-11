@@ -30,6 +30,14 @@ export function Header() {
     enabled: Boolean(session),
   });
 
+  const { data: notifications } = useQuery({
+    queryKey: ["notifications", session?.userId],
+    queryFn: () => api.get<{ unread: number }>("/notifications", true),
+    enabled: Boolean(session),
+    refetchInterval: 30_000,
+  });
+
+  const unreadCount = notifications?.unread ?? 0;
   const cartCount = cart?.items?.length ?? 0;
 
   return (
@@ -74,10 +82,21 @@ export function Header() {
           >
             {locale === "th" ? "TH | en" : "th | EN"}
           </button>
-          <Link href="/notifications" className="text-ink/60 hover:text-ink">
+          <Link href="/notifications" className="relative text-ink/60 hover:text-ink">
             <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </Link>
-          <Link href="/collection" className="text-ink/60 hover:text-ink">
+          <Link
+            href="/account/wishlist"
+            className={cn(
+              "text-ink/60 hover:text-ink",
+              pathname.startsWith("/account/wishlist") && "text-gold",
+            )}
+          >
             <Heart size={18} />
           </Link>
           <Link href="/cart" className="relative text-ink/60 hover:text-ink">
@@ -118,8 +137,15 @@ function AuthControls() {
         </SignUpButton>
       </SignedOut>
       <SignedIn>
+        <Link
+          href="/account"
+          className="hidden text-xs font-semibold tracking-wider text-ink/60 hover:text-ink sm:block"
+        >
+          บัญชี
+        </Link>
         <UserButton
           afterSignOutUrl="/"
+          userProfileUrl="/account"
           appearance={{ elements: { avatarBox: "h-8 w-8" } }}
         />
       </SignedIn>

@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
 import { AccountSidebar } from "@/components/account-sidebar";
+import { SuccessBanner } from "@/components/success-banner";
 import { formatBaht, formatDate } from "@/lib/format";
 
 interface MpOrder {
@@ -32,17 +35,43 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function PurchasesPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <PurchasesPageInner />
+    </Suspense>
+  );
+}
+
+function PurchasesPageInner() {
   const { session } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const successOrderId = searchParams.get("order");
+  const isSuccess = searchParams.get("status") === "success";
+
   const { data } = useQuery({
     queryKey: ["purchases", session?.userId],
     queryFn: () => api.get<MpOrder[]>("/marketplace/purchases", true),
     enabled: Boolean(session),
   });
 
+  useEffect(() => {
+    if (isSuccess && successOrderId) {
+      router.replace(`/account/purchases/${successOrderId}`);
+      return;
+    }
+    if (isSuccess) setShowSuccess(true);
+  }, [isSuccess, successOrderId, router]);
+
   const confirm = useMutation({
     mutationFn: (id: string) => api.post(`/marketplace/orders/${id}/confirm`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["purchases"] }),
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: ["purchases"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      router.push(`/account/purchases/${id}?review=1`);
+    },
   });
 
   if (!session) return <DevLogin />;
@@ -53,6 +82,14 @@ export default function PurchasesPage() {
         <AccountSidebar />
         <div>
           <h1 className="font-display text-3xl font-semibold">Marketplace Purchases</h1>
+          {showSuccess && (
+            <div className="mt-4">
+              <SuccessBanner
+                message="ซื้อสำเร็จ! เงินอยู่ใน escrow รอผู้ขายจัดส่ง"
+                onDismiss={() => setShowSuccess(false)}
+              />
+            </div>
+          )}
           <div className="mt-5 space-y-4">
             {(data ?? []).map((o) => (
               <div key={o.id} className="card p-5">

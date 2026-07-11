@@ -7,7 +7,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
   Handshake,
-  Heart,
   Info,
   Minus,
   Plus,
@@ -27,6 +26,7 @@ import {
   TrustBadges,
   VerifiedBadge,
 } from "@/components/detail-layout";
+import { WishlistButton } from "@/components/wishlist-button";
 
 interface DetailPayload {
   product: ProductDto;
@@ -217,10 +217,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               <Handshake size={16} />
               Make an Offer
             </button>
-            <button type="button" className="btn-outline sm:w-auto">
-              <Heart size={16} />
-              <span className="sr-only">{t("common.wishlist")}</span>
-            </button>
+            {product.catalogItem?.id && (
+              <WishlistButton
+                catalogItemId={product.catalogItem.id}
+                className="sm:w-auto sm:flex-none"
+                label=""
+              />
+            )}
           </div>
           {cartError && <p className="mt-2 text-sm text-red-600">{cartError}</p>}
 

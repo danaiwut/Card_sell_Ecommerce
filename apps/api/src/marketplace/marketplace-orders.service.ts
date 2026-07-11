@@ -110,7 +110,14 @@ export class MarketplaceOrdersService {
       type: "MARKETPLACE_SALE",
       title: "มีคนซื้อการ์ดของคุณ",
       body: "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
-      link: `/account/sales/${orderId}`,
+      link: `/account/sell`,
+    });
+    await this.queue.enqueueNotification({
+      userId: order.buyerId,
+      type: "ORDER_UPDATE",
+      title: "ชำระเงินสำเร็จ",
+      body: "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+      link: `/account/purchases/${orderId}`,
     });
   }
 
@@ -184,7 +191,68 @@ export class MarketplaceOrdersService {
       type: "PAYOUT",
       title: "ได้รับเงินจากการขาย",
       body: `ยอดสุทธิ ฿${toBaht(order.sellerPayout).toLocaleString()}`,
-      link: `/account/sales/${orderId}`,
+      link: `/account/sell`,
+    });
+    await this.queue.enqueueNotification({
+      userId: order.buyerId,
+      type: "ORDER_UPDATE",
+      title: "ยืนยันรับสินค้าแล้ว",
+      body: "กรุณาให้คะแนนผู้ขายเพื่อช่วยชุมชน",
+      link: `/account/purchases/${orderId}?review=1`,
+    });
+
+    return { ok: true, needsReview: true };
+  }
+
+  async submitReview(
+    buyerId: string,
+    orderId: string,
+    data: { rating: number; comment?: string },
+  ) {
+    if (data.rating < 1 || data.rating > 5) {
+      throw new BadRequestException("คะแนนต้องอยู่ระหว่าง 1–5");
+    }
+    const order = await this.prisma.marketplaceOrder.findUnique({
+      where: { id: orderId },
+      include: { review: true, seller: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (order.buyerId !== buyerId) throw new ForbiddenException();
+    if (order.status !== "COMPLETED") {
+      throw new BadRequestException("สามารถรีวิวได้หลังยืนยันรับสินค้าแล้วเท่านั้น");
+    }
+    if (order.review) throw new BadRequestException("คุณรีวิวคำสั่งซื้อนี้แล้ว");
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.sellerReview.create({
+        data: {
+          orderId,
+          authorId: buyerId,
+          sellerId: order.sellerId,
+          rating: data.rating,
+          comment: data.comment,
+        },
+      });
+      const agg = await tx.sellerReview.aggregate({
+        where: { sellerId: order.sellerId },
+        _avg: { rating: true },
+        _count: true,
+      });
+      await tx.user.update({
+        where: { id: order.sellerId },
+        data: {
+          sellerRating: agg._avg.rating ?? 0,
+          sellerRatingCount: agg._count,
+        },
+      });
+    });
+
+    await this.queue.enqueueNotification({
+      userId: order.sellerId,
+      type: "SYSTEM",
+      title: "ได้รับรีวิวใหม่",
+      body: `คะแนน ${data.rating}/5 จากผู้ซื้อ`,
+      link: `/account/sell`,
     });
 
     return { ok: true };
@@ -246,6 +314,7 @@ export class MarketplaceOrdersService {
       include: {
         buyer: true,
         seller: true,
+        review: true,
         listing: { include: { catalogItem: { include: catalogItemInclude }, seller: true } },
         shipment: { include: { events: true } },
       },
@@ -317,6 +386,13 @@ export class MarketplaceOrdersService {
               accepted: e.accepted,
               ignoredReason: e.ignoredReason,
             })),
+          }
+        : null,
+      review: order.review
+        ? {
+            rating: order.review.rating,
+            comment: order.review.comment,
+            createdAt: order.review.createdAt.toISOString(),
           }
         : null,
     };

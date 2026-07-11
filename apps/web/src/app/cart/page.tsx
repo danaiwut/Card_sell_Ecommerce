@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Minus, Plus, Trash2 } from "lucide-react";
 import type { ProductDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
+import { isClerkEnabled } from "@/lib/clerk-config";
 import { formatBaht } from "@/lib/format";
 
 interface CartPayload {
@@ -19,10 +21,23 @@ interface CartPayload {
 }
 
 export default function CartPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <CartPageInner />
+    </Suspense>
+  );
+}
+
+function CartPageInner() {
   const { t } = useI18n();
   const { session } = useSession();
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [showCancelled, setShowCancelled] = useState(false);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (searchParams.get("status") === "cancelled") setShowCancelled(true);
+  }, [searchParams]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["cart", session?.userId],
@@ -44,20 +59,14 @@ export default function CartPage() {
     mutationFn: (id: string) => api.del(`/cart/items/${id}`),
     onSuccess: invalidate,
   });
-  const checkout = useMutation({
-    mutationFn: () => api.post<{ url: string | null; orderNumber: string }>("/orders/checkout", {}),
-    onSuccess: (res) => {
-      invalidate();
-      if (res.url) window.location.href = res.url;
-      else router.push(`/account/orders?status=success&order=${res.orderNumber}`);
-    },
-  });
 
   if (!session) {
     return (
       <div className="container-page py-16 text-center">
         <p className="text-ink/60">กรุณาเข้าสู่ระบบเพื่อดูตะกร้า</p>
-        <Link href="/account" className="btn-primary mt-4">เข้าสู่ระบบ</Link>
+        <Link href={isClerkEnabled() ? "/sign-in" : "/account"} className="btn-primary mt-4">
+          เข้าสู่ระบบ
+        </Link>
       </div>
     );
   }
@@ -65,6 +74,18 @@ export default function CartPage() {
   return (
     <div className="container-page py-8">
       <h1 className="font-display text-3xl font-semibold">{t("cart.title")}</h1>
+      {showCancelled && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          ยกเลิกการชำระเงินแล้ว — สินค้ายังอยู่ในตะกร้า
+          <button
+            type="button"
+            className="ml-2 underline"
+            onClick={() => setShowCancelled(false)}
+          >
+            ปิด
+          </button>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_320px]">
         <div className="card overflow-hidden">
@@ -143,13 +164,14 @@ export default function CartPage() {
             <span>{t("cart.total")}</span>
             <span className="price">{formatBaht(data?.total ?? 0)}</span>
           </div>
-          <button
-            className="btn-primary mt-4 w-full"
-            disabled={checkout.isPending || (data?.items.length ?? 0) === 0}
-            onClick={() => checkout.mutate()}
+          <Link
+            href="/checkout"
+            className={`btn-primary mt-4 w-full text-center ${
+              (data?.items.length ?? 0) === 0 ? "pointer-events-none opacity-50" : ""
+            }`}
           >
             {t("cart.checkout")}
-          </button>
+          </Link>
         </div>
       </div>
     </div>

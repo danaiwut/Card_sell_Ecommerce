@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NEWS_KIND } from "@cardverse/shared";
 import { useSession } from "@/lib/session";
@@ -23,6 +24,18 @@ type Tab =
   | "disputes"
   | "users";
 
+const VALID_TABS = new Set<Tab>([
+  "reports",
+  "products",
+  "catalog",
+  "news",
+  "shop-orders",
+  "marketplace-orders",
+  "shipping",
+  "disputes",
+  "users",
+]);
+
 interface AdminNewsPost {
   id: string;
   slug: string;
@@ -41,14 +54,28 @@ interface AdminNewsPost {
 }
 
 export default function AdminPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <AdminPageInner />
+    </Suspense>
+  );
+}
+
+function AdminPageInner() {
   const { session } = useSession();
-  const [tab, setTab] = useState<Tab>("reports");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab") as Tab | null;
+  const [tab, setTab] = useState<Tab>(tabParam && VALID_TABS.has(tabParam) ? tabParam : "reports");
+
+  useEffect(() => {
+    if (tabParam && VALID_TABS.has(tabParam)) setTab(tabParam);
+  }, [tabParam]);
 
   if (!session || session.role === "customer") {
     return (
       <div className="container-page py-16 text-center">
         <p className="text-ink/60">หน้านี้สำหรับ Manager และ Admin เท่านั้น</p>
-        <Link href="/account" className="btn-primary mt-4">
+        <Link href="/sign-in" className="btn-primary mt-4">
           เข้าสู่ระบบ
         </Link>
       </div>

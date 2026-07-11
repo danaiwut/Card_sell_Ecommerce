@@ -7,12 +7,13 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async me(userId: string) {
-    const [user, ordersCount, wishlistCount, cardsCount, recentOrders] =
+    const [user, ordersCount, purchasesCount, wishlistCount, listingsCount, recentOrders] =
       await Promise.all([
         this.prisma.user.findUnique({ where: { id: userId } }),
         this.prisma.order.count({ where: { userId } }),
+        this.prisma.marketplaceOrder.count({ where: { buyerId: userId } }),
         this.prisma.wishlistItem.count({ where: { userId } }),
-        this.prisma.collectionItem.count({ where: { userId } }),
+        this.prisma.listing.count({ where: { sellerId: userId, status: "ACTIVE" } }),
         this.prisma.order.findMany({
           where: { userId },
           orderBy: { createdAt: "desc" },
@@ -31,9 +32,9 @@ export class UsersService {
       sellerRating: user!.sellerRating,
       stats: {
         orders: ordersCount,
+        purchases: purchasesCount,
         wishlist: wishlistCount,
-        myCards: cardsCount,
-        coupons: 0,
+        listings: listingsCount,
       },
       recentOrders: recentOrders.map((o) => ({
         orderNumber: o.orderNumber,

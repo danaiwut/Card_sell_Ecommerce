@@ -45,7 +45,7 @@ export class StripeService {
         },
       })),
       metadata: { orderId: params.orderId, kind: "shop" },
-      success_url: `${process.env.WEB_URL}/account/orders?status=success&order=${params.orderNumber}`,
+      success_url: `${process.env.WEB_URL}/account/orders/${params.orderId}`,
       cancel_url: `${process.env.WEB_URL}/cart?status=cancelled`,
     });
   }

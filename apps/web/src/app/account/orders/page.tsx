@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
 import { AccountSidebar } from "@/components/account-sidebar";
+import { SuccessBanner } from "@/components/success-banner";
 import { formatBaht, formatDate } from "@/lib/format";
 
 interface OrderRow {
@@ -24,12 +27,29 @@ interface OrderRow {
 }
 
 export default function OrdersPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <OrdersPageInner />
+    </Suspense>
+  );
+}
+
+function OrdersPageInner() {
   const { session } = useSession();
+  const searchParams = useSearchParams();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const successOrder = searchParams.get("order");
+  const isSuccess = searchParams.get("status") === "success";
+
   const { data } = useQuery({
     queryKey: ["orders", session?.userId],
     queryFn: () => api.get<OrderRow[]>("/orders", true),
     enabled: Boolean(session),
   });
+
+  useEffect(() => {
+    if (isSuccess) setShowSuccess(true);
+  }, [isSuccess]);
 
   if (!session) return <DevLogin />;
 
@@ -39,6 +59,18 @@ export default function OrdersPage() {
         <AccountSidebar />
         <div>
           <h1 className="font-display text-3xl font-semibold">My Orders</h1>
+          {showSuccess && (
+            <div className="mt-4">
+              <SuccessBanner
+                message={
+                  successOrder
+                    ? `ชำระเงินสำเร็จ! คำสั่งซื้อ ${successOrder} กำลังเตรียมจัดส่ง`
+                    : "ชำระเงินสำเร็จ! คำสั่งซื้อของคุณกำลังเตรียมจัดส่ง"
+                }
+                onDismiss={() => setShowSuccess(false)}
+              />
+            </div>
+          )}
           <div className="mt-5 space-y-4">
             {(data ?? []).map((o) => (
               <div key={o.id} className="card p-5">

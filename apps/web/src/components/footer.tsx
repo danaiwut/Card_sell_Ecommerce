@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { isClerkEnabled } from "@/lib/clerk-config";
 
 const COLUMNS = [
   {
@@ -8,13 +11,15 @@ const COLUMNS = [
       { label: "All Cards", href: "/shop" },
       { label: "Marketplace", href: "/marketplace" },
       { label: "Track Order", href: "/account/orders" },
+      { label: "Shipments", href: "/account/shipments" },
     ],
   },
   {
     title: "Account",
     links: [
-      { label: "Login", href: "/account" },
-      { label: "Register", href: "/account" },
+      { label: "Login", href: isClerkEnabled() ? "/sign-in" : "/account" },
+      { label: "Register", href: isClerkEnabled() ? "/sign-up" : "/account" },
+      { label: "Wishlist", href: "/account/wishlist" },
       { label: "Settings", href: "/account/settings" },
     ],
   },
