@@ -40,4 +40,7 @@ body {
   .nav-link {
     @apply text-sm font-medium tracking-wide text-ink/70 transition hover:text-ink;
   }
+  .label-xs {
+    @apply block text-xs font-semibold tracking-wider text-ink/50;
+  }
 }

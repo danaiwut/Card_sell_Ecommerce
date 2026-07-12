@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Minus, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, Minus, Plus, Trash2, ShieldCheck } from "lucide-react";
 import type { ProductDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 import { formatBaht } from "@/lib/format";
+import { CheckoutModal } from "@/components/checkout-modal";
 
 interface CartPayload {
   items: { id: string; quantity: number; product: ProductDto; lineTotal: number }[];
@@ -21,8 +22,8 @@ interface CartPayload {
 export default function CartPage() {
   const { t } = useI18n();
   const { session } = useSession();
-  const router = useRouter();
   const qc = useQueryClient();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["cart", session?.userId],
@@ -43,14 +44,6 @@ export default function CartPage() {
   const remove = useMutation({
     mutationFn: (id: string) => api.del(`/cart/items/${id}`),
     onSuccess: invalidate,
-  });
-  const checkout = useMutation({
-    mutationFn: () => api.post<{ url: string | null; orderNumber: string }>("/orders/checkout", {}),
-    onSuccess: (res) => {
-      invalidate();
-      if (res.url) window.location.href = res.url;
-      else router.push(`/account/orders?status=success&order=${res.orderNumber}`);
-    },
   });
 
   if (!session) {
@@ -143,15 +136,23 @@ export default function CartPage() {
             <span>{t("cart.total")}</span>
             <span className="price">{formatBaht(data?.total ?? 0)}</span>
           </div>
+
           <button
             className="btn-primary mt-4 w-full"
-            disabled={checkout.isPending || (data?.items.length ?? 0) === 0}
-            onClick={() => checkout.mutate()}
+            disabled={(data?.items.length ?? 0) === 0}
+            onClick={() => setCheckoutOpen(true)}
           >
-            {t("cart.checkout")}
+            <ShieldCheck size={16} /> {t("cart.checkout")}
           </button>
+          <p className="mt-2 text-center text-xs text-ink/40">🔒 ปลอดภัยด้วย SSL</p>
         </div>
       </div>
+
+      <CheckoutModal
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        cart={data}
+      />
     </div>
   );
 }

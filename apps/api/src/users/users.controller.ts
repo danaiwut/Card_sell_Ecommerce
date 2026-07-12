@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
 import { addressSchema } from "@cardverse/shared";
 import { UsersService } from "./users.service";
 import { CurrentUser } from "../auth/decorators";
@@ -28,5 +28,19 @@ export class UsersController {
   @Post("me/addresses")
   addAddress(@CurrentUser("id") userId: string, @Body() body: unknown) {
     return this.users.addAddress(userId, addressSchema.parse(body));
+  }
+
+  @Patch("me/addresses/:id")
+  updateAddress(
+    @CurrentUser("id") userId: string,
+    @Param("id") addressId: string,
+    @Body() body: unknown,
+  ) {
+    return this.users.updateAddress(userId, addressId, addressSchema.partial().parse(body));
+  }
+
+  @Delete("me/addresses/:id")
+  deleteAddress(@CurrentUser("id") userId: string, @Param("id") addressId: string) {
+    return this.users.deleteAddress(userId, addressId);
   }
 }

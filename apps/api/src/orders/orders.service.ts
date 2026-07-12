@@ -205,4 +205,45 @@ export class OrdersService {
       })),
     };
   }
+
+  async cancel(userId: string, orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: { items: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+
+    const cancellable: string[] = ["PENDING", "PAID"];
+    if (!cancellable.includes(order.status)) {
+      throw new BadRequestException(
+        `ไม่สามารถยกเลิกคำสั่งซื้อที่มีสถานะ ${order.status} ได้`,
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: "CANCELLED" },
+      }),
+      // Restore stock only for paid orders (PAID status means stock was already decremented)
+      ...(order.status === "PAID"
+        ? order.items.map((i) =>
+            this.prisma.product.update({
+              where: { id: i.productId },
+              data: { stock: { increment: i.quantity }, soldCount: { decrement: i.quantity } },
+            }),
+          )
+        : []),
+    ]);
+
+    await this.queue.enqueueNotification({
+      userId,
+      type: "ORDER_UPDATE",
+      title: "ยกเลิกคำสั่งซื้อแล้ว",
+      body: `คำสั่งซื้อ ${order.orderNumber} ถูกยกเลิกเรียบร้อย`,
+      link: `/account/orders`,
+    });
+
+    return { success: true, orderNumber: order.orderNumber };
+  }
 }
