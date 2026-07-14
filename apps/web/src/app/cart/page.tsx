@@ -5,13 +5,14 @@ import Image from "next/image";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Minus, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, Minus, Plus, Trash2, ShieldCheck } from "lucide-react";
 import type { ProductDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 import { isClerkEnabled } from "@/lib/clerk-config";
 import { formatBaht } from "@/lib/format";
+import { CheckoutModal } from "@/components/checkout-modal";
 
 interface CartPayload {
   items: { id: string; quantity: number; product: ProductDto; lineTotal: number }[];
@@ -34,6 +35,7 @@ function CartPageInner() {
   const searchParams = useSearchParams();
   const [showCancelled, setShowCancelled] = useState(false);
   const qc = useQueryClient();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("status") === "cancelled") setShowCancelled(true);
@@ -206,16 +208,22 @@ function CartPageInner() {
             <span>{t("cart.total")}</span>
             <span className="price">{formatBaht(data?.total ?? 0)}</span>
           </div>
-          <Link
-            href="/checkout"
-            className={`btn-primary mt-4 w-full text-center ${
-              (data?.items.length ?? 0) === 0 ? "pointer-events-none opacity-50" : ""
-            }`}
+          <button
+            className="btn-primary mt-4 w-full"
+            disabled={(data?.items.length ?? 0) === 0}
+            onClick={() => setCheckoutOpen(true)}
           >
-            {t("cart.checkout")}
-          </Link>
+            <ShieldCheck size={16} /> {t("cart.checkout")}
+          </button>
+          <p className="mt-2 text-center text-xs text-ink/40">🔒 ปลอดภัยด้วย SSL</p>
         </div>
       </div>
+
+      <CheckoutModal
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        cart={data}
+      />
     </div>
   );
 }

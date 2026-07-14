@@ -21,6 +21,7 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/format";
 
 const LINKS = [
+
   { href: "/account", label: "Overview", icon: LayoutDashboard },
   { href: "/account/wallet", label: "Wallet", icon: Coins, shortLabel: "Wallet" },
   { href: "/account/orders", label: "Shop Orders", icon: ShoppingBag, shortLabel: "Orders" },

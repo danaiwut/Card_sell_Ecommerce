@@ -70,6 +70,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     },
   });
 
+
+
   if (!data) return <div className="container-page py-10">Loading…</div>;
 
   const { product } = data;
