@@ -4,7 +4,7 @@ import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 import { DevLogin } from "@/components/dev-login";
 import { ReviewModal } from "@/components/review-modal";
 import { SuccessBanner } from "@/components/success-banner";
@@ -120,7 +120,7 @@ function MarketplacePurchaseTrackingInner({
   const canConfirm = ["SHIPPED", "DELIVERED"].includes(data.status);
 
   return (
-    <div className="container-page py-8">
+    <>
       <ReviewModal
         open={showReview}
         sellerName={data.seller.displayName}
@@ -131,10 +131,7 @@ function MarketplacePurchaseTrackingInner({
           submitReview.mutate({ rating, comment: comment || undefined })
         }
       />
-
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+      <AccountLayout>
           <Link href="/account/purchases" className="text-sm text-ink/50 hover:text-ink">
             ← กลับไป Marketplace Purchases
           </Link>
@@ -218,9 +215,8 @@ function MarketplacePurchaseTrackingInner({
               </div>
             </aside>
           </div>
-        </div>
-      </div>
-    </div>
+        </AccountLayout>
+    </>
   );
 }
 

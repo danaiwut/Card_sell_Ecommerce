@@ -40,4 +40,13 @@ body {
   .nav-link {
     @apply text-sm font-medium tracking-wide text-ink/70 transition hover:text-ink;
   }
+  .table-scroll {
+    @apply -mx-1 overflow-x-auto px-1;
+  }
+  .table-scroll table {
+    @apply min-w-[640px] w-full;
+  }
+  .page-title {
+    @apply font-display text-2xl font-semibold sm:text-3xl;
+  }
 }

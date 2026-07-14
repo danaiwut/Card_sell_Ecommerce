@@ -73,7 +73,7 @@ function CartPageInner() {
 
   return (
     <div className="container-page py-8">
-      <h1 className="font-display text-3xl font-semibold">{t("cart.title")}</h1>
+      <h1 className="page-title">{t("cart.title")}</h1>
       {showCancelled && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           ยกเลิกการชำระเงินแล้ว — สินค้ายังอยู่ในตะกร้า
@@ -88,7 +88,48 @@ function CartPageInner() {
       )}
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_320px]">
-        <div className="card overflow-hidden">
+        <div className="space-y-4">
+          <div className="space-y-3 md:hidden">
+            {(data?.items ?? []).map((line) => (
+              <div key={line.id} className="card p-4">
+                <div className="flex gap-3">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-ink/5">
+                    {line.product.imageUrl && (
+                      <Image src={line.product.imageUrl} alt="" fill className="object-cover" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{line.product.name}</p>
+                    <p className="text-xs text-ink/50">{line.product.subtitle}</p>
+                    <p className="mt-1 price text-sm">{formatBaht(line.product.price)}</p>
+                  </div>
+                  <button className="text-red-500" onClick={() => remove.mutate(line.id)}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <div className="flex items-center rounded-md border border-ink/15">
+                    <button className="px-2 py-1" onClick={() => setQty.mutate({ id: line.id, quantity: line.quantity - 1 })}>
+                      <Minus size={12} />
+                    </button>
+                    <span className="w-8 text-center text-sm">{line.quantity}</span>
+                    <button className="px-2 py-1" onClick={() => setQty.mutate({ id: line.id, quantity: line.quantity + 1 })}>
+                      <Plus size={12} />
+                    </button>
+                  </div>
+                  <span className="price font-semibold">{formatBaht(line.lineTotal)}</span>
+                </div>
+              </div>
+            ))}
+            {!isLoading && (data?.items.length ?? 0) === 0 && (
+              <div className="card p-8 text-center text-sm text-ink/40">ตะกร้าว่างเปล่า</div>
+            )}
+            <Link href="/shop" className="btn-outline inline-flex">
+              <ChevronLeft size={16} /> {t("cart.continue")}
+            </Link>
+          </div>
+
+          <div className="card hidden overflow-hidden md:block">
           <table className="w-full text-sm">
             <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
               <tr>
@@ -148,6 +189,7 @@ function CartPageInner() {
             <Link href="/shop" className="btn-outline">
               <ChevronLeft size={16} /> {t("cart.continue")}
             </Link>
+          </div>
           </div>
         </div>
 

@@ -6,7 +6,8 @@ import { ShoppingBag, Store, Heart, Tag, ArrowRight } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
+import { ResponsiveTable } from "@/components/responsive-table";
 import { formatBaht, formatDate } from "@/lib/format";
 
 interface Me {
@@ -42,16 +43,13 @@ export default function AccountPage() {
   ];
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-
+    <AccountLayout>
         <div className="space-y-6">
           <div className="border-b border-ink/10 pb-5">
             <p className="text-xs font-semibold tracking-[0.2em] text-gold uppercase">
               That Marketplace
             </p>
-            <h1 className="mt-1 font-display text-3xl font-semibold text-ink">
+            <h1 className="page-title mt-1 text-ink">
               {data?.displayName ?? "บัญชีของฉัน"}
             </h1>
             <p className="mt-1 text-sm text-ink/50">
@@ -94,6 +92,7 @@ export default function AccountPage() {
             </div>
 
             <div className="overflow-hidden rounded-xl border border-ink/10 bg-white shadow-card">
+              <ResponsiveTable>
               <table className="w-full text-sm">
                 <thead className="border-b border-ink/10 bg-ink/[0.02] text-left text-xs font-semibold uppercase tracking-wider text-ink/40">
                   <tr>
@@ -129,10 +128,10 @@ export default function AccountPage() {
                   )}
                 </tbody>
               </table>
+              </ResponsiveTable>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </AccountLayout>
   );
 }

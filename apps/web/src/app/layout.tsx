@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+import { SiteShell } from "@/components/site-shell";
 
 const display = Playfair_Display({
   subsets: ["latin"],
@@ -29,11 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           afterSignUpUrl="/account"
         >
           <Providers>
-          <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          </div>
+            <SiteShell>{children}</SiteShell>
           </Providers>
         </ClerkProvider>
       </body>

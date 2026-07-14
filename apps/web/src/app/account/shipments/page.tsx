@@ -8,7 +8,7 @@ import { io } from "socket.io-client";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { formatDate } from "@/lib/format";
 
@@ -96,10 +96,7 @@ export default function AccountShipmentsPage() {
   if (!session) return <DevLogin />;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+    <AccountLayout>
           <h1 className="font-display text-3xl font-semibold">พัสดุที่กำลังจัดส่ง</h1>
           <p className="mt-1 text-sm text-ink/50">
             สถานะอัปเดตอัตโนมัติเมื่อมีการจัดส่ง
@@ -143,8 +140,6 @@ export default function AccountShipmentsPage() {
               </Link>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+        </AccountLayout>
   );
 }

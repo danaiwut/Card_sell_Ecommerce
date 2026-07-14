@@ -7,7 +7,7 @@ import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { formatBaht, formatDate } from "@/lib/format";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 import Link from "next/link";
 
 const TOP_UP_PRESETS = [100, 500, 1000, 2000, 5000];
@@ -55,10 +55,7 @@ export default function WalletPage() {
   const topUpAmount = custom ? Number(custom) : amount;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+    <AccountLayout>
           <div className="border-b border-ink/10 pb-5">
             <p className="text-xs font-semibold tracking-[0.2em] text-gold uppercase">
               เครดิต
@@ -182,8 +179,6 @@ export default function WalletPage() {
               )}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </AccountLayout>
   );
 }

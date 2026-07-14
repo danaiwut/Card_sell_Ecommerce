@@ -1,46 +1,17 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NEWS_KIND } from "@cardverse/shared";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { formatBaht, formatDate } from "@/lib/format";
+import { ResponsiveTable } from "@/components/responsive-table";
 import { AdminProductForm } from "@/components/admin-product-form";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { ShipmentUpdateForm, type ShipmentUpdatePayload } from "@/components/shipment-update-form";
 import { TrackingTimeline } from "@/components/tracking-timeline";
-
-type Tab =
-  | "reports"
-  | "products"
-  | "catalog"
-  | "news"
-  | "shop-orders"
-  | "marketplace-orders"
-  | "shipping"
-  | "disputes"
-  | "users"
-  | "wallet"
-  | "settings"
-  | "listings";
-
-const VALID_TABS = new Set<Tab>([
-  "reports",
-  "products",
-  "catalog",
-  "news",
-  "shop-orders",
-  "marketplace-orders",
-  "shipping",
-  "disputes",
-  "users",
-  "wallet",
-  "settings",
-  "listings",
-]);
+import { useAdminTab } from "@/components/admin/admin-shell";
 
 interface AdminNewsPost {
   id: string;
@@ -61,7 +32,7 @@ interface AdminNewsPost {
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+    <Suspense fallback={<div className="py-10 text-sm text-ink/50">Loading…</div>}>
       <AdminPageInner />
     </Suspense>
   );
@@ -69,76 +40,27 @@ export default function AdminPage() {
 
 function AdminPageInner() {
   const { session } = useSession();
-  const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab") as Tab | null;
-  const [tab, setTab] = useState<Tab>(tabParam && VALID_TABS.has(tabParam) ? tabParam : "reports");
+  const activeTab = useAdminTab();
 
-  useEffect(() => {
-    if (tabParam && VALID_TABS.has(tabParam)) setTab(tabParam);
-  }, [tabParam]);
+  if (!session || session.role === "customer") return null;
 
-  if (!session || session.role === "customer") {
-    return (
-      <div className="container-page py-16 text-center">
-        <p className="text-ink/60">หน้านี้สำหรับ Manager และ Admin เท่านั้น</p>
-        <Link href="/sign-in" className="btn-primary mt-4">
-          เข้าสู่ระบบ
-        </Link>
-      </div>
-    );
-  }
-
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "reports", label: "Reports" },
-    { id: "products", label: "Products" },
-    { id: "listings", label: "Listings" },
-    { id: "catalog", label: "Catalog" },
-    { id: "news", label: "News" },
-    { id: "wallet", label: "Wallet" },
-    { id: "settings", label: "Settings" },
-    { id: "shop-orders", label: "Shop Orders" },
-    { id: "marketplace-orders", label: "Marketplace" },
-    { id: "shipping", label: "Shipping" },
-    { id: "disputes", label: "Disputes" },
-    { id: "users", label: "Users" },
-  ];
   const isStaff = session.role === "manager" || session.role === "admin";
   const canManageRoles = session.role === "admin";
 
   return (
-    <div className="container-page py-8">
-      <h1 className="font-display text-3xl font-semibold">
-        {session.role === "admin" ? "Admin" : "Manager"} Dashboard
-      </h1>
-
-      <div className="mt-4 flex gap-6 border-b border-ink/10 text-sm">
-        {tabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`pb-2 font-semibold uppercase tracking-wider ${
-                tab === t.id ? "border-b-2 border-gold text-ink" : "text-ink/50"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-      </div>
-
-      <div className="mt-6">
-        {tab === "reports" && <Reports />}
-        {tab === "products" && <Products />}
-        {tab === "listings" && <ListingsModeration />}
-        {tab === "catalog" && <Catalog />}
-        {tab === "news" && <NewsAdmin />}
-        {tab === "wallet" && <WalletAdmin />}
-        {tab === "settings" && <PlatformSettings />}
-        {tab === "shop-orders" && <ShopOrders />}
-        {tab === "marketplace-orders" && <MarketplaceOrders />}
-        {tab === "shipping" && <ShippingQueue />}
-        {tab === "disputes" && <Disputes canRefund={isStaff} />}
-        {tab === "users" && <Users canManageRoles={canManageRoles} />}
-      </div>
+    <div>
+      {activeTab === "reports" && <Reports />}
+      {activeTab === "products" && <Products />}
+      {activeTab === "listings" && <ListingsModeration />}
+      {activeTab === "catalog" && <Catalog />}
+      {activeTab === "news" && <NewsAdmin />}
+      {activeTab === "wallet" && <WalletAdmin />}
+      {activeTab === "settings" && <PlatformSettings />}
+      {activeTab === "shop-orders" && <ShopOrders />}
+      {activeTab === "marketplace-orders" && <MarketplaceOrders />}
+      {activeTab === "shipping" && <ShippingQueue />}
+      {activeTab === "disputes" && <Disputes canRefund={isStaff} />}
+      {activeTab === "users" && <Users canManageRoles={canManageRoles} />}
     </div>
   );
 }
@@ -149,23 +71,26 @@ function Reports() {
     queryFn: () => api.get<any>("/admin/reports", true),
   });
   const cards = [
-    { label: "Paid Orders", value: data?.paidOrders ?? 0 },
-    { label: "Shop Revenue", value: formatBaht(data?.shopRevenue ?? 0) },
-    { label: "Marketplace Fees", value: formatBaht(data?.marketplaceFeeRevenue ?? 0) },
-    { label: "Users", value: data?.users ?? 0 },
-    { label: "Active Listings", value: data?.activeListings ?? 0 },
-    { label: "Shop To Ship", value: data?.shopToShip ?? 0 },
-    { label: "Market To Ship", value: data?.marketplaceToShip ?? 0 },
-    { label: "Disputes", value: data?.disputes ?? 0 },
+    { label: "Paid Orders", value: data?.paidOrders ?? 0, hint: "ออเดอร์ที่ชำระแล้ว" },
+    { label: "Shop Revenue", value: formatBaht(data?.shopRevenue ?? 0), hint: "รายได้ร้านค้า" },
+    { label: "Marketplace Fees", value: formatBaht(data?.marketplaceFeeRevenue ?? 0), hint: "ค่าธรรมเนียม C2C" },
+    { label: "Users", value: data?.users ?? 0, hint: "ผู้ใช้ทั้งหมด" },
+    { label: "Active Listings", value: data?.activeListings ?? 0, hint: "ประกาศขายที่ active" },
+    { label: "Shop To Ship", value: data?.shopToShip ?? 0, hint: "รอจัดส่งร้านค้า" },
+    { label: "Market To Ship", value: data?.marketplaceToShip ?? 0, hint: "รอจัดส่ง marketplace" },
+    { label: "Disputes", value: data?.disputes ?? 0, hint: "ข้อพิพาทที่เปิดอยู่" },
   ];
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      {cards.map((c) => (
-        <div key={c.label} className="card p-4">
-          <p className="text-xs font-semibold tracking-wider text-ink/50">{c.label}</p>
-          <p className="mt-2 font-display text-2xl font-semibold">{c.value}</p>
-        </div>
-      ))}
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((c) => (
+          <div key={c.label} className="card p-5">
+            <p className="text-xs font-semibold tracking-wider text-ink/45">{c.label}</p>
+            <p className="mt-2 font-display text-2xl font-semibold">{c.value}</p>
+            <p className="mt-1 text-xs text-ink/40">{c.hint}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -195,6 +120,7 @@ function Products() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
       <div className="card overflow-hidden">
+        <ResponsiveTable>
         <table className="w-full text-sm">
           <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
             <tr>
@@ -231,6 +157,7 @@ function Products() {
             ))}
           </tbody>
         </table>
+        </ResponsiveTable>
       </div>
       <div className="space-y-4">
         {editing && (
@@ -593,6 +520,7 @@ function ShopOrders() {
   });
   return (
     <div className="card overflow-hidden">
+      <ResponsiveTable>
       <table className="w-full text-sm">
         <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
           <tr>
@@ -609,6 +537,7 @@ function ShopOrders() {
           ))}
         </tbody>
       </table>
+      </ResponsiveTable>
     </div>
   );
 }
@@ -786,6 +715,7 @@ function Users({ canManageRoles }: { canManageRoles: boolean }) {
   });
   return (
     <div className="card overflow-hidden">
+      <ResponsiveTable>
       <table className="w-full text-sm">
         <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
           <tr>
@@ -818,6 +748,7 @@ function Users({ canManageRoles }: { canManageRoles: boolean }) {
           ))}
         </tbody>
       </table>
+      </ResponsiveTable>
     </div>
   );
 }

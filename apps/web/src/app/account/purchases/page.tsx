@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 import { SuccessBanner } from "@/components/success-banner";
 import { formatBaht, formatDate } from "@/lib/format";
 
@@ -77,10 +77,7 @@ function PurchasesPageInner() {
   if (!session) return <DevLogin />;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+    <AccountLayout>
           <h1 className="font-display text-3xl font-semibold">Marketplace Purchases</h1>
           {showSuccess && (
             <div className="mt-4">
@@ -136,8 +133,6 @@ function PurchasesPageInner() {
             ))}
             {(data?.length ?? 0) === 0 && <p className="text-sm text-ink/40">ยังไม่มีรายการซื้อ</p>}
           </div>
-        </div>
-      </div>
-    </div>
+        </AccountLayout>
   );
 }

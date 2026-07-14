@@ -6,7 +6,7 @@ import { Heart, Trash2 } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 import { formatBaht } from "@/lib/format";
 
 interface WishlistItem {
@@ -42,10 +42,7 @@ export default function AccountWishlistPage() {
   if (!session) return <DevLogin />;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+    <AccountLayout>
           <div className="border-b border-ink/10 pb-5">
             <p className="text-xs font-semibold tracking-[0.2em] text-gold uppercase">
               Marketplace
@@ -104,8 +101,6 @@ export default function AccountWishlistPage() {
               </div>
             )}
           </div>
-        </div>
-      </div>
-    </div>
+        </AccountLayout>
   );
 }

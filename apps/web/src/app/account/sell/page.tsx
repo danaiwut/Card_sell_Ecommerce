@@ -12,7 +12,7 @@ import {
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 import { SuccessBanner } from "@/components/success-banner";
 import { formatBaht } from "@/lib/format";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
@@ -68,9 +68,7 @@ function SellPageInner() {
   if (!session) return <DevLogin />;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
+    <AccountLayout>
         <div className="space-y-8">
           {banner && (
             <SuccessBanner message={banner} onDismiss={() => setBanner(null)} />
@@ -125,8 +123,7 @@ function SellPageInner() {
             </div>
           </section>
         </div>
-      </div>
-    </div>
+    </AccountLayout>
   );
 }
 

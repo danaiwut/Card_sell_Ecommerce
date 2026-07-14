@@ -90,11 +90,11 @@ export default function HomePage() {
           className="object-cover opacity-40 transition-opacity duration-500"
           priority
         />
-        <div className="relative flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div className="relative flex flex-col items-center justify-center px-4 py-14 text-center sm:px-6 sm:py-20">
           <p className="text-xs font-semibold tracking-[0.3em] text-white/70">
             {t(slide.presentsKey)}
           </p>
-          <h1 className="mt-3 font-display text-5xl font-semibold md:text-6xl">
+          <h1 className="mt-3 font-display text-3xl font-semibold sm:text-4xl md:text-5xl lg:text-6xl">
             {t(slide.titleKey)}
           </h1>
           <p className="mt-3 max-w-xl text-sm text-white/80">{t(slide.subtitleKey)}</p>

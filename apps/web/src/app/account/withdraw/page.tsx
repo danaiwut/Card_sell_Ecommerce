@@ -7,7 +7,7 @@ import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { formatBaht, formatDate } from "@/lib/format";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 import Link from "next/link";
 
 const STATUS_ICON: Record<string, typeof Clock> = {
@@ -70,10 +70,7 @@ export default function WithdrawPage() {
   if (!session) return <DevLogin />;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+    <AccountLayout>
           <div className="border-b border-ink/10 pb-5">
             <p className="text-xs font-semibold tracking-[0.2em] text-gold uppercase">
               ผู้ขาย
@@ -186,8 +183,6 @@ export default function WithdrawPage() {
               )}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </AccountLayout>
   );
 }

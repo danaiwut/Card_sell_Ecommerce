@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 
 export default function SettingsPage() {
   const { session } = useSession();
@@ -27,10 +27,7 @@ export default function SettingsPage() {
   if (!session) return <DevLogin />;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+    <AccountLayout>
           <h1 className="font-display text-3xl font-semibold">Settings</h1>
           <div className="card mt-5 max-w-md p-5">
             <label className="text-xs font-semibold tracking-wider text-ink/50">ชื่อที่แสดง</label>
@@ -39,8 +36,6 @@ export default function SettingsPage() {
               {save.isSuccess ? "บันทึกแล้ว ✓" : "บันทึก"}
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+        </AccountLayout>
   );
 }
