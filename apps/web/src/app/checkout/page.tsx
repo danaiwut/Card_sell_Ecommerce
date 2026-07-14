@@ -61,6 +61,8 @@ export default function CheckoutPage() {
     isDefault: true,
   });
   const [paymentState, setPaymentState] = useState<"idle" | "processing" | "success" | "error">("idle");
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
   const { data: cart } = useQuery({
     queryKey: ["cart", session?.userId],
@@ -71,6 +73,12 @@ export default function CheckoutPage() {
   const { data: addresses } = useQuery({
     queryKey: ["addresses", session?.userId],
     queryFn: () => api.get<Address[]>("/users/me/addresses", true),
+    enabled: Boolean(session),
+  });
+
+  const { data: wallet } = useQuery({
+    queryKey: ["wallet", session?.userId],
+    queryFn: () => api.get<{ balance: number }>("/wallet", true),
     enabled: Boolean(session),
   });
 
@@ -86,13 +94,19 @@ export default function CheckoutPage() {
     mutationFn: (addressId: string) =>
       api.post<{ url: string | null; orderNumber: string; orderId: string }>(
         "/orders/checkout",
-        { addressId },
+        {
+          addressId,
+          couponCode: appliedCoupon ?? undefined,
+          shipping: shippingFee,
+          payWithCredit: true,
+        },
       ),
     onMutate: () => setPaymentState("processing"),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["cart"] });
       qc.invalidateQueries({ queryKey: ["cart-count"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
       if (res.url) {
         window.location.href = res.url;
         return;
@@ -108,7 +122,11 @@ export default function CheckoutPage() {
 
   const shippingFee =
     SHIPPING_OPTIONS.find((o) => o.id === shippingMethod)?.price ?? 0;
-  const total = (cart?.subtotal ?? 0) + shippingFee;
+  const subtotal = cart?.subtotal ?? 0;
+  const discount = appliedCoupon === "WELCOME10" ? Math.round(subtotal * 0.1) : 0;
+  const total = Math.max(0, subtotal - discount) + shippingFee;
+  const creditBalance = wallet?.balance ?? 0;
+  const canPay = creditBalance >= total;
 
   const activeAddressId =
     selectedAddressId ?? addresses?.find((a) => a.isDefault)?.id ?? addresses?.[0]?.id;
@@ -277,10 +295,18 @@ export default function CheckoutPage() {
                 {paymentState === "idle" && (
                   <div className="text-center">
                     <Package size={40} className="mx-auto text-ink/20" />
-                    <p className="mt-3 font-medium">พร้อมชำระเงิน</p>
+                    <p className="mt-3 font-medium">ชำระด้วยเครดิต</p>
                     <p className="mt-1 text-sm text-ink/50">
-                      ยอดรวม {formatBaht(total)} — กดปุ่มด้านล่างเพื่อดำเนินการ
+                      ยอดรวม {formatBaht(total)} — เครดิตคงเหลือ {formatBaht(creditBalance)}
                     </p>
+                    {!canPay && (
+                      <p className="mt-2 text-sm text-red-600">
+                        เครดิตไม่พอ —{" "}
+                        <Link href="/account/wallet" className="underline">
+                          เติมเครดิต
+                        </Link>
+                      </p>
+                    )}
                   </div>
                 )}
                 {paymentState === "processing" && (
@@ -302,10 +328,10 @@ export default function CheckoutPage() {
                 </button>
                 <button
                   className="btn-primary flex-1"
-                  disabled={checkout.isPending || !activeAddressId}
+                  disabled={checkout.isPending || !activeAddressId || !canPay}
                   onClick={() => activeAddressId && checkout.mutate(activeAddressId)}
                 >
-                  {checkout.isPending ? "กำลังชำระ…" : `ชำระ ${formatBaht(total)}`}
+                  {checkout.isPending ? "กำลังชำระ…" : `ชำระเครดิต ${formatBaht(total)}`}
                 </button>
               </div>
             </div>
@@ -330,11 +356,35 @@ export default function CheckoutPage() {
           <div className="mt-4 space-y-1 border-t border-ink/10 pt-3 text-sm">
             <div className="flex justify-between text-ink/60">
               <span>ยอดสินค้า</span>
-              <span>{formatBaht(cart?.subtotal ?? 0)}</span>
+              <span>{formatBaht(subtotal)}</span>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>ส่วนลด ({appliedCoupon})</span>
+                <span>-{formatBaht(discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-ink/60">
               <span>ค่าจัดส่ง</span>
               <span>{shippingFee === 0 ? "ฟรี" : formatBaht(shippingFee)}</span>
+            </div>
+            <div className="mt-3 border-t border-ink/10 pt-3">
+              <label className="text-xs font-medium text-ink/50">คูปอง</label>
+              <div className="mt-1 flex gap-2">
+                <input
+                  className="input flex-1 text-sm"
+                  placeholder="เช่น WELCOME10"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                />
+                <button
+                  type="button"
+                  className="btn-outline text-xs"
+                  onClick={() => setAppliedCoupon(couponCode || null)}
+                >
+                  ใช้
+                </button>
+              </div>
             </div>
             <div className="flex justify-between pt-2 font-semibold">
               <span>รวม</span>

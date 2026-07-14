@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from "@nestjs/comm
 import { PrismaService } from "../prisma/prisma.service";
 import { StripeService } from "../payments/stripe.service";
 import { QueueService } from "../queue/queue.service";
+import { WalletService } from "../wallet/wallet.service";
 import { toBaht } from "../common/serializers";
 
 @Injectable()
@@ -10,13 +11,22 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly stripe: StripeService,
     private readonly queue: QueueService,
+    private readonly wallet: WalletService,
   ) {}
 
   private orderNumber() {
     return `#${Math.floor(100000 + Math.random() * 900000)}`;
   }
 
-  async checkout(userId: string, params: { addressId?: string; couponCode?: string }) {
+  async checkout(
+    userId: string,
+    params: {
+      addressId?: string;
+      couponCode?: string;
+      shipping?: number;
+      payWithCredit?: boolean;
+    },
+  ) {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
       include: { items: { include: { product: true } } },
@@ -46,7 +56,7 @@ export class OrdersService {
       }
     }
 
-    const shipping = 0;
+    const shipping = Math.round(Number(params.shipping ?? 0) * 100) || 0;
     const total = Math.max(0, subtotal - discount) + shipping;
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -74,9 +84,16 @@ export class OrdersService {
       include: { items: true },
     });
 
-    if (!this.stripe.enabled) {
+    if (params.payWithCredit || !this.stripe.enabled) {
+      await this.wallet.payShopOrder(userId, order.id, total);
       await this.markPaid(order.id, null);
-      return { orderId: order.id, orderNumber: order.orderNumber, mock: true, url: null };
+      return {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        mock: true,
+        paidWithCredit: true,
+        url: null,
+      };
     }
 
     const session = await this.stripe.createCheckoutSession({

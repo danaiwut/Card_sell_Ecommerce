@@ -97,6 +97,16 @@ export class AdminController {
     return this.admin.suspendListing(id);
   }
 
+  @Get("listings")
+  listings() {
+    return this.admin.listActiveListings();
+  }
+
+  @Post("shop-orders/:id/refund")
+  refundShopOrder(@Param("id") id: string) {
+    return this.admin.refundShopOrder(id);
+  }
+
   @Get("disputes")
   disputes() {
     return this.admin.listDisputes();

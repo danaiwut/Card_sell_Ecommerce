@@ -22,7 +22,10 @@ type Tab =
   | "marketplace-orders"
   | "shipping"
   | "disputes"
-  | "users";
+  | "users"
+  | "wallet"
+  | "settings"
+  | "listings";
 
 const VALID_TABS = new Set<Tab>([
   "reports",
@@ -34,6 +37,9 @@ const VALID_TABS = new Set<Tab>([
   "shipping",
   "disputes",
   "users",
+  "wallet",
+  "settings",
+  "listings",
 ]);
 
 interface AdminNewsPost {
@@ -85,8 +91,11 @@ function AdminPageInner() {
   const tabs: { id: Tab; label: string }[] = [
     { id: "reports", label: "Reports" },
     { id: "products", label: "Products" },
+    { id: "listings", label: "Listings" },
     { id: "catalog", label: "Catalog" },
     { id: "news", label: "News" },
+    { id: "wallet", label: "Wallet" },
+    { id: "settings", label: "Settings" },
     { id: "shop-orders", label: "Shop Orders" },
     { id: "marketplace-orders", label: "Marketplace" },
     { id: "shipping", label: "Shipping" },
@@ -119,8 +128,11 @@ function AdminPageInner() {
       <div className="mt-6">
         {tab === "reports" && <Reports />}
         {tab === "products" && <Products />}
+        {tab === "listings" && <ListingsModeration />}
         {tab === "catalog" && <Catalog />}
         {tab === "news" && <NewsAdmin />}
+        {tab === "wallet" && <WalletAdmin />}
+        {tab === "settings" && <PlatformSettings />}
         {tab === "shop-orders" && <ShopOrders />}
         {tab === "marketplace-orders" && <MarketplaceOrders />}
         {tab === "shipping" && <ShippingQueue />}
@@ -159,9 +171,25 @@ function Reports() {
 }
 
 function Products() {
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState<any | null>(null);
   const { data } = useQuery({
     queryKey: ["admin-products"],
     queryFn: () => api.get<any[]>("/admin/products", true),
+  });
+
+  const update = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: any }) =>
+      api.patch(`/admin/products/${id}`, payload, true),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      setEditing(null);
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => api.del(`/admin/products/${id}`, true),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-products"] }),
   });
 
   return (
@@ -171,12 +199,9 @@ function Products() {
           <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
             <tr>
               <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Catalog</th>
-              <th className="px-4 py-3">Type</th>
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Stock</th>
-              <th className="px-4 py-3">Flags</th>
-              <th className="px-4 py-3">Sold</th>
+              <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -184,24 +209,70 @@ function Products() {
               <tr key={p.id} className="border-b border-ink/5">
                 <td className="px-4 py-3">
                   <p className="font-medium">{p.name}</p>
-                  <p className="text-xs text-ink/45">{p.subtitle ?? "ไม่มี subtitle"}</p>
+                  <p className="text-xs text-ink/45">{p.type}</p>
                 </td>
-                <td className="px-4 py-3 text-ink/60">{p.catalogItem?.name ?? "—"}</td>
-                <td className="px-4 py-3 text-ink/60">{p.type}</td>
                 <td className="px-4 py-3 price">{formatBaht(p.price)}</td>
                 <td className="px-4 py-3">{p.stock}</td>
-                <td className="px-4 py-3 text-xs text-ink/50">
-                  {[p.isPreOrder && "Pre", p.isFeatured && "Featured", p.isTrending && "Trend", p.isNewArrival && "New"]
-                    .filter(Boolean)
-                    .join(" / ") || "—"}
+                <td className="px-4 py-3">
+                  <div className="flex gap-2">
+                    <button className="btn-outline text-xs" onClick={() => setEditing(p)}>
+                      Edit
+                    </button>
+                    <button
+                      className="btn-outline text-xs text-red-600"
+                      disabled={remove.isPending}
+                      onClick={() => confirm("ลบสินค้านี้?") && remove.mutate(p.id)}
+                    >
+                      Del
+                    </button>
+                  </div>
                 </td>
-                <td className="px-4 py-3">{p.soldCount}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <AdminProductForm />
+      <div className="space-y-4">
+        {editing && (
+          <div className="card p-4">
+            <p className="text-sm font-semibold">แก้ไข: {editing.name}</p>
+            <div className="mt-3 grid gap-2">
+              <input
+                className="input"
+                type="number"
+                placeholder="Price (฿)"
+                defaultValue={editing.price}
+                id="edit-price"
+              />
+              <input
+                className="input"
+                type="number"
+                placeholder="Stock"
+                defaultValue={editing.stock}
+                id="edit-stock"
+              />
+              <button
+                className="btn-primary"
+                disabled={update.isPending}
+                onClick={() => {
+                  const price = (document.getElementById("edit-price") as HTMLInputElement).value;
+                  const stock = (document.getElementById("edit-stock") as HTMLInputElement).value;
+                  update.mutate({
+                    id: editing.id,
+                    payload: { price: Number(price), stock: Number(stock) },
+                  });
+                }}
+              >
+                บันทึก
+              </button>
+              <button className="btn-outline" onClick={() => setEditing(null)}>
+                ยกเลิก
+              </button>
+            </div>
+          </div>
+        )}
+        <AdminProductForm />
+      </div>
     </div>
   );
 }
@@ -547,6 +618,10 @@ function ShopOrderRow({ order, onChange }: { order: any; onChange: () => void })
     mutationFn: (payload: ShipmentUpdatePayload) => api.post(`/shipping/orders/${order.id}`, payload),
     onSuccess: onChange,
   });
+  const refund = useMutation({
+    mutationFn: () => api.post(`/admin/shop-orders/${order.id}/refund`, undefined, true),
+    onSuccess: onChange,
+  });
   return (
     <tr className="border-b border-ink/5">
       <td className="px-4 py-3 font-medium">{order.orderNumber}</td>
@@ -566,6 +641,15 @@ function ShopOrderRow({ order, onChange }: { order: any; onChange: () => void })
             initialStatus={order.shipment?.status ?? "IN_TRANSIT"}
             onSubmit={(payload) => ship.mutate(payload)}
           />
+          {["PAID", "PROCESSING"].includes(order.status) && (
+            <button
+              className="btn-outline text-xs"
+              disabled={refund.isPending}
+              onClick={() => refund.mutate()}
+            >
+              คืนเครดิต
+            </button>
+          )}
         </div>
       </td>
     </tr>
@@ -734,6 +818,201 @@ function Users({ canManageRoles }: { canManageRoles: boolean }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function ListingsModeration() {
+  const qc = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["admin-listings"],
+    queryFn: () => api.get<any[]>("/admin/listings", true),
+  });
+  const suspend = useMutation({
+    mutationFn: (id: string) => api.post(`/admin/listings/${id}/suspend`, undefined, true),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-listings"] }),
+  });
+  return (
+    <div className="space-y-3">
+      {(data ?? []).map((l) => (
+        <div key={l.id} className="card flex items-center justify-between p-4 text-sm">
+          <div>
+            <p className="font-medium">{l.catalogItem.name}</p>
+            <p className="text-xs text-ink/50">
+              {l.seller.displayName} • {formatBaht(l.price)} • {l.condition}
+            </p>
+          </div>
+          <button
+            className="btn-outline text-xs"
+            disabled={suspend.isPending}
+            onClick={() => suspend.mutate(l.id)}
+          >
+            Suspend
+          </button>
+        </div>
+      ))}
+      {(data?.length ?? 0) === 0 && <p className="text-sm text-ink/40">ไม่มี listing ที่ active</p>}
+    </div>
+  );
+}
+
+function WalletAdmin() {
+  const qc = useQueryClient();
+  const [grantUserId, setGrantUserId] = useState("");
+  const [grantAmount, setGrantAmount] = useState("1000");
+  const { data: wallets } = useQuery({
+    queryKey: ["admin-wallets"],
+    queryFn: () => api.get<any[]>("/wallet/admin/all", true),
+  });
+  const { data: withdrawals } = useQuery({
+    queryKey: ["admin-withdrawals"],
+    queryFn: () => api.get<any[]>("/wallet/admin/withdrawals", true),
+  });
+  const { data: users } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: () => api.get<any[]>("/admin/users", true),
+  });
+  const grant = useMutation({
+    mutationFn: () =>
+      api.post("/wallet/admin/grant", {
+        userId: grantUserId,
+        amount: Number(grantAmount),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-wallets"] });
+      setGrantUserId("");
+    },
+  });
+  const approve = useMutation({
+    mutationFn: (id: string) => api.post(`/wallet/admin/withdrawals/${id}/approve`, {}, true),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-withdrawals"] }),
+  });
+  const reject = useMutation({
+    mutationFn: (id: string) => api.post(`/wallet/admin/withdrawals/${id}/reject`, {}, true),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-withdrawals"] }),
+  });
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <section className="card p-5">
+        <p className="font-semibold">เติมเครดิตให้ผู้ใช้</p>
+        <div className="mt-3 grid gap-2">
+          <select
+            className="input"
+            value={grantUserId}
+            onChange={(e) => setGrantUserId(e.target.value)}
+          >
+            <option value="">เลือกผู้ใช้</option>
+            {(users ?? []).map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.displayName} ({u.email})
+              </option>
+            ))}
+          </select>
+          <input
+            className="input"
+            type="number"
+            value={grantAmount}
+            onChange={(e) => setGrantAmount(e.target.value)}
+            placeholder="จำนวน (฿)"
+          />
+          <button
+            className="btn-primary"
+            disabled={!grantUserId || grant.isPending}
+            onClick={() => grant.mutate()}
+          >
+            ให้เครดิต ฿{Number(grantAmount).toLocaleString()}
+          </button>
+        </div>
+        <div className="mt-6 max-h-64 overflow-auto text-sm">
+          {(wallets ?? []).map((w) => (
+            <div key={w.userId} className="flex justify-between border-b border-ink/5 py-2">
+              <span>{w.displayName}</span>
+              <span className="font-medium text-gold">{formatBaht(w.balance)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="card p-5">
+        <p className="font-semibold">คำขอถอนเครดิต (รออนุมัติ)</p>
+        <div className="mt-4 space-y-3">
+          {(withdrawals ?? []).map((w) => (
+            <div key={w.id} className="rounded-lg border border-ink/10 p-4 text-sm">
+              <p className="font-medium">{w.user.displayName} — {formatBaht(w.amount)}</p>
+              {w.note && <p className="text-xs text-ink/50">{w.note}</p>}
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="btn-primary text-xs"
+                  disabled={approve.isPending}
+                  onClick={() => approve.mutate(w.id)}
+                >
+                  อนุมัติ (โอนเงินสดแล้ว)
+                </button>
+                <button
+                  className="btn-outline text-xs"
+                  disabled={reject.isPending}
+                  onClick={() => reject.mutate(w.id)}
+                >
+                  ปฏิเสธ
+                </button>
+              </div>
+            </div>
+          ))}
+          {(withdrawals?.length ?? 0) === 0 && (
+            <p className="text-sm text-ink/40">ไม่มีคำขอถอนรอดำเนินการ</p>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PlatformSettings() {
+  const qc = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["admin-settings"],
+    queryFn: () => api.get<any>("/admin/settings", true),
+  });
+  const [fee, setFee] = useState("");
+  const [escrowDays, setEscrowDays] = useState("");
+  const save = useMutation({
+    mutationFn: async () => {
+      if (fee) await api.post("/admin/settings", { key: "feePercent", value: Number(fee) }, true);
+      if (escrowDays)
+        await api.post("/admin/settings", { key: "escrowAutoReleaseDays", value: Number(escrowDays) }, true);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-settings"] }),
+  });
+  return (
+    <div className="card max-w-md p-6">
+      <p className="font-semibold">Platform Settings</p>
+      <div className="mt-4 grid gap-3">
+        <div>
+          <label className="text-xs text-ink/50">Marketplace Fee (%)</label>
+          <input
+            className="input mt-1"
+            type="number"
+            placeholder={String(data?.feePercent ?? 8)}
+            value={fee}
+            onChange={(e) => setFee(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="text-xs text-ink/50">Escrow Auto-Release (days)</label>
+          <input
+            className="input mt-1"
+            type="number"
+            placeholder={String(data?.escrowAutoReleaseDays ?? 7)}
+            value={escrowDays}
+            onChange={(e) => setEscrowDays(e.target.value)}
+          />
+        </div>
+        <button className="btn-primary" disabled={save.isPending} onClick={() => save.mutate()}>
+          บันทึก
+        </button>
+      </div>
+      <p className="mt-4 text-xs text-ink/40">
+        ปัจจุบัน: fee {data?.feePercent ?? 8}% • escrow {data?.escrowAutoReleaseDays ?? 7} วัน
+      </p>
     </div>
   );
 }

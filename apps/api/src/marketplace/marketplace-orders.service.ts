@@ -16,6 +16,7 @@ import {
   serializeTrade,
   toBaht,
 } from "../common/serializers";
+import { WalletService } from "../wallet/wallet.service";
 
 const FEE_PERCENT = Number(process.env.MARKETPLACE_FEE_PERCENT ?? 8);
 const AUTO_RELEASE_DAYS = Number(process.env.ESCROW_AUTO_RELEASE_DAYS ?? 7);
@@ -30,6 +31,7 @@ export class MarketplaceOrdersService {
     private readonly realtime: RealtimeGateway,
     private readonly queue: QueueService,
     private readonly market: MarketService,
+    private readonly wallet: WalletService,
   ) {}
 
   /** Step 1: buyer initiates purchase; escrow PaymentIntent is created. */
@@ -65,9 +67,9 @@ export class MarketplaceOrdersService {
     });
 
     if (!this.stripe.enabled) {
-      // MOCK mode: treat payment as instantly captured so the demo flow works.
+      await this.wallet.holdEscrow(buyerId, order.id, amount);
       await this.markPaid(order.id, null);
-      return { orderId: order.id, mock: true, clientSecret: null };
+      return { orderId: order.id, mock: true, paidWithCredit: true, clientSecret: null };
     }
 
     const intent = await this.stripe.createEscrowPaymentIntent({
@@ -146,7 +148,7 @@ export class MarketplaceOrdersService {
       throw new BadRequestException("สถานะคำสั่งซื้อไม่ถูกต้องสำหรับการปล่อยเงิน");
     }
 
-    // Transfer funds to the seller (live mode only).
+    // Transfer funds to the seller (live Stripe or credit wallet in demo).
     let transferId: string | null = null;
     if (this.stripe.enabled && order.seller.stripeConnectAccountId) {
       const transfer = await this.stripe.transferToSeller({
@@ -156,6 +158,14 @@ export class MarketplaceOrdersService {
         sourceChargeId: order.stripeChargeId ?? undefined,
       });
       transferId = transfer.id;
+    } else {
+      await this.wallet.releaseEscrow(
+        order.buyerId,
+        order.sellerId,
+        order.id,
+        order.amount,
+        order.sellerPayout,
+      );
     }
 
     const soldAt = new Date();
@@ -265,6 +275,8 @@ export class MarketplaceOrdersService {
     if (!order) throw new NotFoundException("Order not found");
     if (this.stripe.enabled && order.stripePaymentIntentId) {
       await this.stripe.refund(order.stripePaymentIntentId);
+    } else if (["PAID_HELD", "SHIPPED", "DELIVERED", "DISPUTED"].includes(order.status)) {
+      await this.wallet.refundEscrow(order.buyerId, order.id, order.amount);
     }
     await this.prisma.$transaction([
       this.prisma.marketplaceOrder.update({

@@ -242,10 +242,64 @@ async function seedCoupons() {
   });
 }
 
+async function seedDemoWallets() {
+  console.log("Seeding demo wallets...");
+  const demoUsers = [
+    { email: "customer@cardverse.demo", clerkId: "dev_customer", displayName: "Demo Customer", role: "customer" as const, balance: baht(5000) },
+    { email: "manager@cardverse.demo", clerkId: "dev_manager", displayName: "Demo Manager", role: "manager" as const, balance: baht(10000) },
+    { email: "admin@cardverse.demo", clerkId: "dev_admin", displayName: "Demo Admin", role: "admin" as const, balance: baht(50000) },
+  ];
+  for (const u of demoUsers) {
+    const user = await prisma.user.upsert({
+      where: { email: u.email },
+      update: { role: u.role },
+      create: {
+        clerkId: u.clerkId,
+        email: u.email,
+        displayName: u.displayName,
+        role: u.role,
+      },
+    });
+    const wallet = await prisma.wallet.upsert({
+      where: { userId: user.id },
+      update: { balance: u.balance },
+      create: { userId: user.id, balance: u.balance },
+    });
+    const txCount = await prisma.walletTransaction.count({ where: { walletId: wallet.id } });
+    if (txCount === 0) {
+      await prisma.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: "ADMIN_GRANT",
+          amount: u.balance,
+          balanceAfter: u.balance,
+          description: "เครดิตเริ่มต้น Demo",
+          referenceType: "seed",
+        },
+      });
+    }
+  }
+  // Give demo sellers some wallet balance too
+  const sellers = await prisma.user.findMany({
+    where: { email: { endsWith: "@cardverse.demo" }, displayName: { startsWith: "Trader" } },
+  });
+  for (const seller of sellers) {
+    await prisma.wallet.upsert({
+      where: { userId: seller.id },
+      update: {},
+      create: {
+        userId: seller.id,
+        balance: baht(2000),
+      },
+    });
+  }
+}
+
 async function main() {
   await seedTaxonomy();
   await seedCatalogAndProducts();
   await seedDemoSellersAndTrades();
+  await seedDemoWallets();
   await seedNews();
   await seedCoupons();
   console.log("Seed complete.");

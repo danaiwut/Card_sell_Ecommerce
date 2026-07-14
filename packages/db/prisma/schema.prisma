@@ -113,6 +113,26 @@ enum NotificationType {
   PRICE_ALERT
   PAYOUT
   SYSTEM
+  CREDIT
+  WITHDRAWAL
+}
+
+enum WalletTransactionType {
+  TOP_UP
+  ADMIN_GRANT
+  PURCHASE
+  ESCROW_HOLD
+  ESCROW_RELEASE
+  WITHDRAWAL
+  WITHDRAWAL_REFUND
+  REFUND
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
 }
 
 // ---------------------------------------------------------------------------
@@ -151,11 +171,62 @@ model User {
   reviewsWritten   SellerReview[]     @relation("ReviewAuthor")
   reviewsReceived  SellerReview[]     @relation("ReviewSeller")
   newsPosts        NewsPost[]
+  wallet           Wallet?
+  withdrawals      WithdrawalRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([role])
+}
+
+model Wallet {
+  id          String @id @default(cuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance     Int    @default(0) // satang, available credits
+  heldBalance Int    @default(0) // satang, locked in marketplace escrow
+
+  transactions WalletTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WalletTransaction {
+  id            String              @id @default(cuid())
+  walletId      String
+  wallet        Wallet              @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type          WalletTransactionType
+  amount        Int // positive = credit in, negative = debit out
+  balanceAfter  Int
+  description   String?
+  referenceType String? // order | marketplace_order | withdrawal | topup
+  referenceId   String?
+  createdById   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([referenceType, referenceId])
+}
+
+model WithdrawalRequest {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Int // satang
+  status        WithdrawalStatus @default(PENDING)
+  note          String?
+  managerNote   String?
+  processedById String?
+  processedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
 
 model Address {

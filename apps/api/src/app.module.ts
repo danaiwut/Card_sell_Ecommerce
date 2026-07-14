@@ -19,6 +19,7 @@ import { CollectionModule } from "./collection/collection.module";
 import { UsersModule } from "./users/users.module";
 import { AdminModule } from "./admin/admin.module";
 import { StorageModule } from "./storage/storage.module";
+import { WalletModule } from "./wallet/wallet.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -47,6 +48,7 @@ import { HealthController } from "./health.controller";
     UsersModule,
     StorageModule,
     AdminModule,
+    WalletModule,
   ],
   controllers: [HealthController],
 })

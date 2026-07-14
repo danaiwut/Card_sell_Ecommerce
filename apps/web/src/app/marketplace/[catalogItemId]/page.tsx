@@ -118,9 +118,19 @@ export default function CatalogDetailPage({
       ),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["catalog-listings", catalogItemId] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
       router.push(`/account/purchases/${res.orderId}`);
     },
   });
+
+  const { data: wallet } = useQuery({
+    queryKey: ["wallet", session?.userId],
+    queryFn: () => api.get<{ balance: number }>("/wallet", true),
+    enabled: Boolean(session),
+  });
+
+  const listingPrice = activeListing?.price ?? 0;
+  const canBuyWithCredit = (wallet?.balance ?? 0) >= listingPrice;
 
   if (!item) return <div className="container-page py-10">Loading…</div>;
 
@@ -222,15 +232,23 @@ export default function CatalogDetailPage({
             <button
               type="button"
               className="btn-primary flex-1"
-              disabled={!activeListing || buy.isPending}
+              disabled={!activeListing || buy.isPending || Boolean(session && !canBuyWithCredit)}
               onClick={() => {
                 if (!session) return router.push("/sign-in");
                 if (activeListing) buy.mutate();
               }}
             >
               <ShoppingCart size={16} />
-              {buy.isPending ? "…" : t("common.buyNow")}
+              {buy.isPending ? "…" : `ซื้อด้วยเครดิต ${formatBaht(listingPrice)}`}
             </button>
+            {session && !canBuyWithCredit && activeListing && (
+              <p className="text-sm text-red-600 sm:basis-full">
+                เครดิตไม่พอ ({formatBaht(wallet?.balance ?? 0)}) —{" "}
+                <Link href="/account/wallet" className="underline">
+                  เติมเครดิต
+                </Link>
+              </p>
+            )}
             <WishlistButton catalogItemId={catalogItemId} />
             <Link href="/account/sell" className="btn-outline flex-1">
               Make an Offer
