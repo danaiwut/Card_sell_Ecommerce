@@ -13,7 +13,8 @@
     "@cardverse/db": "workspace:*",
     "@cardverse/shared": "workspace:*",
     "bullmq": "^5.34.5",
-    "ioredis": "5.11.1"
+    "ioredis": "5.11.1",
+    "rss-parser": "^3.13.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
