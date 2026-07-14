@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { isClerkEnabled } from "@/lib/clerk-config";
 
 const COLUMNS = [
   {
@@ -8,13 +11,15 @@ const COLUMNS = [
       { label: "All Cards", href: "/shop" },
       { label: "Marketplace", href: "/marketplace" },
       { label: "Track Order", href: "/account/orders" },
+      { label: "Shipments", href: "/account/shipments" },
     ],
   },
   {
     title: "Account",
     links: [
-      { label: "Login", href: "/account" },
-      { label: "Register", href: "/account" },
+      { label: "Login", href: isClerkEnabled() ? "/sign-in" : "/account" },
+      { label: "Register", href: isClerkEnabled() ? "/sign-up" : "/account" },
+      { label: "Wishlist", href: "/account/wishlist" },
       { label: "Settings", href: "/account/settings" },
     ],
   },
@@ -30,7 +35,7 @@ const COLUMNS = [
 export function Footer() {
   return (
     <footer className="mt-16 border-t border-ink/10 bg-cream">
-      <div className="container-page grid grid-cols-2 gap-8 py-12 md:grid-cols-4">
+      <div className="container-page grid grid-cols-1 gap-8 py-10 sm:grid-cols-2 md:grid-cols-4 sm:py-12">
         <div className="col-span-2 md:col-span-1">
           <Link href="/" className="flex items-center gap-2">
             <Image

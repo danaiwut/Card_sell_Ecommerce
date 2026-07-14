@@ -89,7 +89,7 @@ function MarketplaceInner() {
                 {(data?.items ?? []).map((l) => (
                   <Link
                     key={l.id}
-                    href={`/marketplace/${l.catalogItem.id}`}
+                    href={`/marketplace/${l.catalogItem.id}?listing=${l.id}`}
                     className="group card overflow-hidden transition hover:border-gold hover:shadow-md"
                   >
                     {/* Card Image */}

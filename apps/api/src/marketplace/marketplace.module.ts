@@ -4,9 +4,10 @@ import { MarketService } from "./market.service";
 import { MarketplaceOrdersService } from "./marketplace-orders.service";
 import { MarketplaceController } from "./marketplace.controller";
 import { PaymentsModule } from "../payments/payments.module";
+import { WalletModule } from "../wallet/wallet.module";
 
 @Module({
-  imports: [PaymentsModule],
+  imports: [PaymentsModule, WalletModule],
   controllers: [MarketplaceController],
   providers: [ListingsService, MarketService, MarketplaceOrdersService],
   exports: [MarketService, MarketplaceOrdersService],

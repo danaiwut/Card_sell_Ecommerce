@@ -9,6 +9,7 @@ import type { ProductDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { ProductCard } from "@/components/product-card";
+import { PremiumProductCard } from "@/components/premium-product-card";
 import { SectionHeader } from "@/components/section";
 
 interface HomePayload {
@@ -17,6 +18,8 @@ interface HomePayload {
   newArrival: ProductDto[];
   preOrder: ProductDto[];
   featured: ProductDto[];
+  topExpensive: ProductDto[];
+  topSelling: ProductDto[];
 }
 
 interface HeroSlide {
@@ -90,7 +93,6 @@ export default function HomePage() {
           priority
           unoptimized
         />
-
         {/* Gradient overlay ทับรูป */}
         <div className={`absolute inset-0 bg-gradient-to-r ${slide.overlayClass}`} />
 
@@ -105,7 +107,7 @@ export default function HomePage() {
           <p className="text-xs font-semibold tracking-[0.35em] text-gold/80 uppercase">
             {t(slide.presentsKey)}
           </p>
-          <h1 className="mt-3 font-display text-5xl font-semibold drop-shadow-lg md:text-6xl">
+          <h1 className="mt-3 font-display text-3xl font-semibold sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-lg">
             {t(slide.titleKey)}
           </h1>
           <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/75">
@@ -185,6 +187,28 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Premium & Best Seller highlights */}
+      {((data?.topExpensive?.length ?? 0) > 0 || (data?.topSelling?.length ?? 0) > 0) && (
+        <section className="py-8">
+          <div className="mb-6 text-center">
+            <p className="text-xs font-semibold tracking-[0.3em] text-gold uppercase">
+              Exclusive Picks
+            </p>
+            <h2 className="mt-2 font-display text-2xl font-semibold">
+              สินค้าพรีเมียม &amp; ขายดีสุด
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+            {(data?.topExpensive ?? []).map((p) => (
+              <PremiumProductCard key={`exp-${p.id}`} product={p} variant="premium" />
+            ))}
+            {(data?.topSelling ?? []).map((p) => (
+              <PremiumProductCard key={`sell-${p.id}`} product={p} variant="bestseller" />
+            ))}
+          </div>
+        </section>
+      )}
 
       <ProductRow title={t("home.featured")}   href="/shop?sort=popular" products={data?.featured} />
       <ProductRow title={t("home.trending")}   href="/shop?sort=popular" products={data?.trending} />

@@ -81,12 +81,15 @@ export class ProductsService {
   }
 
   async home() {
-    const [trending, newArrival, preOrder, featured] = await Promise.all([
-      this.products({ isTrending: true }),
-      this.products({ isNewArrival: true }),
-      this.products({ isPreOrder: true }),
-      this.products({ isFeatured: true }),
-    ]);
+    const [trending, newArrival, preOrder, featured, topExpensive, topSelling] =
+      await Promise.all([
+        this.products({ isTrending: true }),
+        this.products({ isNewArrival: true }),
+        this.products({ isPreOrder: true }),
+        this.products({ isFeatured: true }),
+        this.topProducts({ orderBy: { price: "desc" as const }, take: 2 }),
+        this.topProducts({ orderBy: { soldCount: "desc" as const }, take: 2 }),
+      ]);
     const categories = await this.prisma.category.findMany({
       orderBy: { sortOrder: "asc" },
       take: 8,
@@ -103,7 +106,19 @@ export class ProductsService {
       newArrival,
       preOrder,
       featured,
+      topExpensive,
+      topSelling,
     };
+  }
+
+  private async topProducts(opts: { orderBy: Record<string, "asc" | "desc">; take: number }) {
+    const items = await this.prisma.product.findMany({
+      where: { stock: { gt: 0 } },
+      include: { catalogItem: { include: catalogItemInclude } },
+      orderBy: opts.orderBy,
+      take: opts.take,
+    });
+    return items.map(serializeProduct);
   }
 
   private async products(where: any) {

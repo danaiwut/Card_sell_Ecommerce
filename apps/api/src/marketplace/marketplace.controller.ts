@@ -85,6 +85,15 @@ export class MarketplaceController {
     return this.orders.dispute(userId, id, body.reason ?? "ไม่ได้รับสินค้า");
   }
 
+  @Post("orders/:id/review")
+  review(
+    @CurrentUser("id") userId: string,
+    @Param("id") id: string,
+    @Body() body: { rating: number; comment?: string },
+  ) {
+    return this.orders.submitReview(userId, id, body);
+  }
+
   @Get("purchases")
   purchases(@CurrentUser("id") userId: string) {
     return this.orders.purchases(userId);

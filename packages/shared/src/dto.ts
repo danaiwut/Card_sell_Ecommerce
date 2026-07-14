@@ -40,6 +40,7 @@ export interface ProductDto {
   images: string[];
   isPreOrder: boolean;
   rarity: Rarity | null;
+  soldCount?: number;
   catalogItem: CatalogItemDto | null;
 }
 

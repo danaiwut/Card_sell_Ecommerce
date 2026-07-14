@@ -7,7 +7,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
   Handshake,
-  Heart,
   Info,
   Minus,
   Plus,
@@ -27,6 +26,7 @@ import {
   TrustBadges,
   VerifiedBadge,
 } from "@/components/detail-layout";
+import { WishlistButton } from "@/components/wishlist-button";
 
 interface DetailPayload {
   product: ProductDto;
@@ -45,12 +45,12 @@ const PRODUCT_TYPE_LABEL: Record<string, string> = {
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const { t } = useI18n();
-  const { session } = useSession();
+  const { session, isLoaded } = useSession();
   const router = useRouter();
   const qc = useQueryClient();
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
-  const [wishlisted, setWishlisted] = useState(false);
+  const [cartError, setCartError] = useState<string | null>(null);
 
   const { data } = useQuery({
     queryKey: ["product", slug],
@@ -61,20 +61,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     mutationFn: () =>
       api.post("/cart/items", { productId: data!.product.id, quantity: qty }),
     onSuccess: () => {
+      setCartError(null);
       qc.invalidateQueries({ queryKey: ["cart-count"] });
       router.push("/cart");
     },
-  });
-
-  // toggle wishlist — endpoint เดียวกับหน้า collection
-  const toggleWishlist = useMutation({
-    mutationFn: (catalogItemId: string) =>
-      api.post("/collection/wishlist/toggle", { catalogItemId }),
-    onSuccess: () => {
-      setWishlisted((prev) => !prev);
-      qc.invalidateQueries({ queryKey: ["wishlist"] });
+    onError: (err) => {
+      setCartError(err instanceof Error ? err.message : "ไม่สามารถเพิ่มลงตะกร้าได้");
     },
   });
+
+
 
   if (!data) return <div className="container-page py-10">Loading…</div>;
 
@@ -205,37 +201,33 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             <button
               type="button"
               className="btn-primary flex-1"
-              disabled={!product.stock || addToCart.isPending}
+              disabled={!product.stock || addToCart.isPending || !isLoaded}
               onClick={() => {
-                if (!session) return router.push("/account");
+                if (!isLoaded) return;
+                if (!session) {
+                  router.push(`/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`);
+                  return;
+                }
+                setCartError(null);
                 addToCart.mutate();
               }}
             >
               <ShoppingCart size={16} />
-              {t("common.addToCart")}
+              {addToCart.isPending ? "Adding…" : t("common.addToCart")}
             </button>
             <button type="button" className="btn-outline flex-1">
               <Handshake size={16} />
               Make an Offer
             </button>
-            {/* ปุ่ม wishlist — กดแล้วเพิ่ม/ลบออกจาก collection */}
-            <button
-              type="button"
-              className="btn-outline sm:w-auto"
-              disabled={toggleWishlist.isPending}
-              onClick={() => {
-                if (!session) return router.push("/account");
-                const catalogItemId = product.catalogItem?.id;
-                if (catalogItemId) toggleWishlist.mutate(catalogItemId);
-              }}
-            >
-              <Heart
-                size={16}
-                className={wishlisted ? "fill-gold text-gold" : ""}
+            {product.catalogItem?.id && (
+              <WishlistButton
+                catalogItemId={product.catalogItem.id}
+                className="sm:w-auto sm:flex-none"
+                label=""
               />
-              <span className="sr-only">{t("common.wishlist")}</span>
-            </button>
+            )}
           </div>
+          {cartError && <p className="mt-2 text-sm text-red-600">{cartError}</p>}
 
           <TrustBadges />
         </div>

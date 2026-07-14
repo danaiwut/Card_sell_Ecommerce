@@ -22,17 +22,35 @@ export function setDevSession(session: DevSession | null) {
   window.dispatchEvent(new Event("cv-session-change"));
 }
 
+type TokenProvider = () => Promise<string | null>;
+
+let authTokenProvider: TokenProvider | null = null;
+
+/** Register Clerk getToken from a React component (preferred over window.Clerk). */
+export function setAuthTokenProvider(provider: TokenProvider | null) {
+  authTokenProvider = provider;
+}
+
 async function authHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
-  // Prefer a real Clerk session token if Clerk is loaded.
   if (typeof window !== "undefined") {
-    const clerk = (window as any).Clerk;
-    if (clerk?.session) {
+    if (authTokenProvider) {
       try {
-        const token = await clerk.session.getToken();
+        const token = await authTokenProvider();
         if (token) headers.Authorization = `Bearer ${token}`;
       } catch {
         /* ignore */
+      }
+    }
+    if (!headers.Authorization) {
+      const clerk = (window as any).Clerk;
+      if (clerk?.session) {
+        try {
+          const token = await clerk.session.getToken();
+          if (token) headers.Authorization = `Bearer ${token}`;
+        } catch {
+          /* ignore */
+        }
       }
     }
     // Dev fallback session only when Clerk is not configured.

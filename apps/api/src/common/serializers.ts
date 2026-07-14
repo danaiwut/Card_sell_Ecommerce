@@ -49,6 +49,7 @@ export function serializeProduct(p: any): ProductDto {
     images: p.images ?? [],
     isPreOrder: p.isPreOrder,
     rarity: p.rarity ?? null,
+    soldCount: p.soldCount ?? 0,
     catalogItem: p.catalogItem ? serializeCatalogItem(p.catalogItem) : null,
   };
 }

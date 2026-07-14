@@ -97,6 +97,16 @@ export class AdminController {
     return this.admin.suspendListing(id);
   }
 
+  @Get("listings")
+  listings() {
+    return this.admin.listActiveListings();
+  }
+
+  @Post("shop-orders/:id/refund")
+  refundShopOrder(@Param("id") id: string) {
+    return this.admin.refundShopOrder(id);
+  }
+
   @Get("disputes")
   disputes() {
     return this.admin.listDisputes();
@@ -107,8 +117,6 @@ export class AdminController {
     return this.admin.reports();
   }
 
-  // --- Admin only ---
-  @Roles("admin")
   @Get("users")
   users() {
     return this.admin.listUsers();
@@ -120,19 +128,16 @@ export class AdminController {
     return this.admin.setUserRole(id, body.role);
   }
 
-  @Roles("admin")
   @Post("orders/:id/refund")
   refund(@Param("id") id: string) {
     return this.admin.refundMarketplaceOrder(id);
   }
 
-  @Roles("admin")
   @Get("settings")
   settings() {
     return this.admin.getSettings();
   }
 
-  @Roles("admin")
   @Post("settings")
   setSetting(@Body() body: { key: string; value: unknown }) {
     return this.admin.setSetting(body.key, body.value);

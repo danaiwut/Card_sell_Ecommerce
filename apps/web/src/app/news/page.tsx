@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/format";
@@ -52,7 +53,27 @@ function getPlaceholder(post: NewsPost): string {
 }
 
 export default function NewsPage() {
-  const [tab, setTab] = useState<(typeof TABS)[number]>("ALL");
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <NewsPageInner />
+    </Suspense>
+  );
+}
+
+function NewsPageInner() {
+  const searchParams = useSearchParams();
+  const kindParam = searchParams.get("kind");
+  const initialTab =
+    kindParam && TABS.includes(kindParam as (typeof TABS)[number])
+      ? (kindParam as (typeof TABS)[number])
+      : "ALL";
+  const [tab, setTab] = useState<(typeof TABS)[number]>(initialTab);
+
+  useEffect(() => {
+    if (kindParam && TABS.includes(kindParam as (typeof TABS)[number])) {
+      setTab(kindParam as (typeof TABS)[number]);
+    }
+  }, [kindParam]);
 
   const { data: posts } = useQuery({
     queryKey: ["news", tab],
@@ -86,7 +107,7 @@ export default function NewsPage() {
         <div className="space-y-4">
           {(posts ?? []).map((p) => (
             <Link key={p.id} href={`/news/${p.slug}`} className="block">
-              <article className="card flex gap-4 p-4 transition hover:shadow-md">
+              <article className="card flex gap-4 p-4 transition hover:shadow-md hover:border-gold/30">
                 {/* รูปขนาด 80x80 — ถ้าไม่มี imageUrl ใช้ placeholder ตาม source/kind */}
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-ink/5">
                   <Image

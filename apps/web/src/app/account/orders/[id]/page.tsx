@@ -4,7 +4,7 @@ import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
 import { DevLogin } from "@/components/dev-login";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { TrackingTimeline, type ShipmentEventView } from "@/components/tracking-timeline";
@@ -84,10 +84,8 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
   const canCancel = CANCELLABLE.includes(data.status);
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+    <>
+      <AccountLayout>
           <Link href="/account/orders" className="text-sm text-ink/50 hover:text-ink">
             ← กลับไป My Orders
           </Link>
@@ -165,8 +163,7 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
+        </AccountLayout>
 
       {/* Cancel confirmation dialog */}
       {confirmOpen && (
@@ -204,7 +201,7 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

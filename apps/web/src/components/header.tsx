@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Heart, ShoppingCart, User } from "lucide-react";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { Bell, Heart, Menu, ShoppingCart, User, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
+import { isClerkEnabled } from "@/lib/clerk-config";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/format";
 
@@ -21,6 +24,7 @@ export function Header() {
   const { t, locale, setLocale } = useI18n();
   const { session } = useSession();
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const { data: cart } = useQuery({
     queryKey: ["cart-count", session?.userId],
@@ -28,13 +32,29 @@ export function Header() {
     enabled: Boolean(session),
   });
 
+  const { data: notifications } = useQuery({
+    queryKey: ["notifications", session?.userId],
+    queryFn: () => api.get<{ unread: number }>("/notifications", true),
+    enabled: Boolean(session),
+    refetchInterval: 30_000,
+  });
+
+  const unreadCount = notifications?.unread ?? 0;
   const cartCount = cart?.items?.length ?? 0;
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink/10 bg-cream/90 backdrop-blur">
-      <div className="container-page flex h-16 items-center justify-between gap-4">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2">
+      <div className="container-page flex h-14 items-center justify-between gap-3 sm:h-16 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-8">
+          <button
+            type="button"
+            className="rounded-md p-2 text-ink/60 hover:bg-ink/5 md:hidden"
+            aria-label="เปิดเมนู"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu size={20} />
+          </button>
+          <Link href="/" className="flex min-w-0 items-center gap-2">
             <Image
               src="/logo.png"
               alt="Cardivers Logo"
@@ -43,7 +63,9 @@ export function Header() {
               className="rounded-lg object-contain"
               priority
             />
-            <span className="font-display text-xl font-semibold tracking-tight">CardVerse</span>
+            <span className="truncate font-display text-lg font-semibold tracking-tight sm:text-xl">
+              CardVerse
+            </span>
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
             {NAV.map((item) => {
@@ -65,17 +87,28 @@ export function Header() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <button
             onClick={() => setLocale(locale === "th" ? "en" : "th")}
-            className="text-xs font-semibold tracking-wider text-ink/60 hover:text-ink"
+            className="hidden text-xs font-semibold tracking-wider text-ink/60 hover:text-ink sm:inline"
           >
             {locale === "th" ? "TH | en" : "th | EN"}
           </button>
-          <Link href="/notifications" className="text-ink/60 hover:text-ink">
+          <Link href="/notifications" className="relative text-ink/60 hover:text-ink">
             <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </Link>
-          <Link href="/collection" className="text-ink/60 hover:text-ink">
+          <Link
+            href="/account/wishlist"
+            className={cn(
+              "text-ink/60 hover:text-ink",
+              pathname.startsWith("/account/wishlist") && "text-gold",
+            )}
+          >
             <Heart size={18} />
           </Link>
           <Link href="/cart" className="relative text-ink/60 hover:text-ink">
@@ -86,14 +119,112 @@ export function Header() {
               </span>
             )}
           </Link>
-          <Link
-            href="/account"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/5 text-ink/70 hover:bg-ink/10"
-          >
-            <User size={16} />
-          </Link>
+          {isClerkEnabled() ? (
+            <AuthControls />
+          ) : (
+            <Link
+              href="/account"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/5 text-ink/70 hover:bg-ink/10"
+            >
+              <User size={16} />
+            </Link>
+          )}
         </div>
       </div>
+
+      {mobileOpen && (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-ink/40 md:hidden"
+            aria-label="ปิดเมนู"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 z-50 flex w-[min(85vw,320px)] flex-col bg-white shadow-xl md:hidden">
+            <div className="flex items-center justify-between border-b border-ink/10 px-4 py-4">
+              <span className="font-display text-lg font-semibold">เมนู</span>
+              <button
+                type="button"
+                className="rounded-md p-2 text-ink/50 hover:bg-ink/5"
+                onClick={() => setMobileOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+              {NAV.map((item) => {
+                const active =
+                  item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "block rounded-lg px-4 py-3 text-sm font-medium",
+                      active ? "bg-ink text-white" : "text-ink/70 hover:bg-ink/5",
+                    )}
+                  >
+                    {t(item.key)}
+                  </Link>
+                );
+              })}
+              <Link
+                href="/cart"
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-lg px-4 py-3 text-sm font-medium text-ink/70 hover:bg-ink/5"
+              >
+                {t("cart.title") ?? "Cart"}
+              </Link>
+              <Link
+                href="/account"
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-lg px-4 py-3 text-sm font-medium text-ink/70 hover:bg-ink/5"
+              >
+                บัญชี
+              </Link>
+            </nav>
+            <div className="border-t border-ink/10 p-4">
+              <button
+                onClick={() => setLocale(locale === "th" ? "en" : "th")}
+                className="w-full rounded-lg border border-ink/10 px-4 py-2.5 text-sm font-semibold text-ink/70"
+              >
+                {locale === "th" ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </header>
+  );
+}
+
+function AuthControls() {
+  return (
+    <>
+      <SignedOut>
+        <SignInButton mode="modal">
+          <button className="hidden text-xs font-semibold tracking-wider text-ink/60 hover:text-ink sm:inline">
+            Sign in
+          </button>
+        </SignInButton>
+        <SignUpButton mode="modal">
+          <button className="btn-primary h-8 px-3 text-xs">Sign up</button>
+        </SignUpButton>
+      </SignedOut>
+      <SignedIn>
+        <Link
+          href="/account"
+          className="hidden text-xs font-semibold tracking-wider text-ink/60 hover:text-ink sm:block"
+        >
+          บัญชี
+        </Link>
+        <UserButton
+          afterSignOutUrl="/"
+          userProfileUrl="/account"
+          appearance={{ elements: { avatarBox: "h-8 w-8" } }}
+        />
+      </SignedIn>
+    </>
   );
 }

@@ -1,10 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { QueueService } from "../queue/queue.service";
 import { catalogItemInclude, serializeCatalogItem } from "../common/serializers";
 
 @Injectable()
 export class CollectionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly queue: QueueService,
+  ) {}
 
   /** Per-category "owned / total available" overview. */
   async overview(userId: string) {
@@ -82,7 +86,25 @@ export class CollectionService {
       await this.prisma.wishlistItem.delete({ where: { id: existing.id } });
       return { wishlisted: false };
     }
+    const item = await this.prisma.catalogItem.findUnique({
+      where: { id: catalogItemId },
+      select: { name: true },
+    });
     await this.prisma.wishlistItem.create({ data: { userId, catalogItemId } });
+    await this.queue.enqueueNotification({
+      userId,
+      type: "SYSTEM",
+      title: "เพิ่มในรายการโปรดแล้ว",
+      body: item?.name ? `${item.name} ถูกบันทึกใน Wishlist` : undefined,
+      link: "/account/wishlist",
+    });
     return { wishlisted: true };
+  }
+
+  async isWishlisted(userId: string, catalogItemId: string) {
+    const existing = await this.prisma.wishlistItem.findUnique({
+      where: { userId_catalogItemId: { userId, catalogItemId } },
+    });
+    return { wishlisted: Boolean(existing) };
   }
 }

@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
+import { SuccessBanner } from "@/components/success-banner";
 import { formatBaht, formatDate } from "@/lib/format";
 import { XCircle, PackageSearch, ChevronRight } from "lucide-react";
 
@@ -110,10 +112,22 @@ function CancelDialog({
 }
 
 export default function OrdersPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <OrdersPageInner />
+    </Suspense>
+  );
+}
+
+function OrdersPageInner() {
   const { session } = useSession();
   const qc = useQueryClient();
   const [cancelTarget, setCancelTarget] = useState<OrderRow | null>(null);
   const [cancelError, setCancelError] = useState("");
+  const searchParams = useSearchParams();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const successOrder = searchParams.get("order");
+  const isSuccess = searchParams.get("status") === "success";
 
   const { data } = useQuery({
     queryKey: ["orders", session?.userId],
@@ -131,15 +145,27 @@ export default function OrdersPage() {
     onError: (err: any) => setCancelError(err?.message ?? "เกิดข้อผิดพลาด"),
   });
 
+  useEffect(() => {
+    if (isSuccess) setShowSuccess(true);
+  }, [isSuccess]);
+
   if (!session) return <DevLogin />;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
-        <div>
+    <AccountLayout>
           <h1 className="font-display text-3xl font-semibold">My Orders</h1>
-
+          {showSuccess && (
+            <div className="mt-4">
+              <SuccessBanner
+                message={
+                  successOrder
+                    ? `ชำระเงินสำเร็จ! คำสั่งซื้อ ${successOrder} กำลังเตรียมจัดส่ง`
+                    : "ชำระเงินสำเร็จ! คำสั่งซื้อของคุณกำลังเตรียมจัดส่ง"
+                }
+                onDismiss={() => setShowSuccess(false)}
+              />
+            </div>
+          )}
           <div className="mt-5 space-y-4">
             {(data ?? []).length === 0 && (
               <div className="card flex flex-col items-center gap-4 py-16 text-center">
@@ -197,18 +223,15 @@ export default function OrdersPage() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      {cancelTarget && (
-        <CancelDialog
-          order={cancelTarget}
-          onClose={() => { setCancelTarget(null); setCancelError(""); }}
-          onConfirm={() => cancel.mutate(cancelTarget.id)}
-          isPending={cancel.isPending}
-          error={cancelError}
-        />
-      )}
-    </div>
+          {cancelTarget && (
+            <CancelDialog
+              order={cancelTarget}
+              onClose={() => { setCancelTarget(null); setCancelError(""); }}
+              onConfirm={() => cancel.mutate(cancelTarget.id)}
+              isPending={cancel.isPending}
+              error={cancelError}
+            />
+          )}
+        </AccountLayout>
   );
 }

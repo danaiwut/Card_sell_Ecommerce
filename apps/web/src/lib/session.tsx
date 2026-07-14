@@ -8,8 +8,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ClerkProvider, useAuth, useUser } from "@clerk/nextjs";
-import { getDevSession, setDevSession, type DevSession, api } from "./api";
+import { useAuth, useUser } from "@clerk/nextjs";
+import { getDevSession, setDevSession, setAuthTokenProvider, type DevSession, api } from "./api";
 import { isClerkEnabled } from "./clerk-config";
 
 export type SessionRole = DevSession["role"];
@@ -74,13 +74,22 @@ function DevSessionProvider({ children }: { children: React.ReactNode }) {
 }
 
 function ClerkSessionBridge({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn, userId, signOut } = useAuth();
+  const { isLoaded, isSignedIn, userId, signOut, getToken } = useAuth();
   const { user } = useUser();
   const [profile, setProfile] = useState<{
     id: string;
     role: SessionRole;
     displayName: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      setAuthTokenProvider(null);
+      return;
+    }
+    setAuthTokenProvider(() => getToken());
+    return () => setAuthTokenProvider(null);
+  }, [getToken, isSignedIn]);
 
   useEffect(() => {
     if (!isSignedIn || !userId) {
@@ -139,16 +148,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     return <DevSessionProvider>{children}</DevSessionProvider>;
   }
 
-  return (
-    <ClerkProvider
-      signInUrl="/sign-in"
-      signUpUrl="/sign-up"
-      afterSignInUrl="/account"
-      afterSignUpUrl="/account"
-    >
-      <ClerkSessionBridge>{children}</ClerkSessionBridge>
-    </ClerkProvider>
-  );
+  return <ClerkSessionBridge>{children}</ClerkSessionBridge>;
 }
 
 export const useSession = () => useContext(SessionContext);

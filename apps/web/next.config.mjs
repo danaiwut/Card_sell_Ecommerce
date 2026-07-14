@@ -19,6 +19,14 @@ const nextConfig = {
       { source: "/socket.io/:path*", destination: `${apiOrigin}/socket.io/:path*` },
     ];
   },
+  async redirects() {
+    return [
+      { source: "/collection", destination: "/account/wishlist", permanent: true },
+      { source: "/account/sales", destination: "/account/sell", permanent: true },
+      { source: "/account/sales/:id", destination: "/account/purchases/:id", permanent: true },
+      { source: "/admin/products", destination: "/admin?tab=products", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

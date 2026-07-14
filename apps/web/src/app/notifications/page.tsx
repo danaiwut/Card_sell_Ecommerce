@@ -13,7 +13,7 @@ interface NotificationItem {
   title: string;
   body: string | null;
   read: boolean;
-  link: string | null; // เช่น "/account/orders", "/account/sales/xyz"
+  link: string | null; // เช่น "/account/orders", "/account/purchases/[id]"
   createdAt: string;
 }
 

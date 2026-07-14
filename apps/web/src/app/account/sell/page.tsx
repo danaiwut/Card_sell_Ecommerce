@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CARD_CONDITIONS,
@@ -11,15 +12,34 @@ import {
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
-import { AccountSidebar } from "@/components/account-sidebar";
+import { AccountLayout } from "@/components/account-layout";
+import { SuccessBanner } from "@/components/success-banner";
 import { formatBaht } from "@/lib/format";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { ShipmentUpdateForm, type ShipmentUpdatePayload } from "@/components/shipment-update-form";
 import { TrackingTimeline } from "@/components/tracking-timeline";
 
 export default function SellPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <SellPageInner />
+    </Suspense>
+  );
+}
+
+function SellPageInner() {
   const { session } = useSession();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
+  const [banner, setBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get("onboarded") === "1") {
+      setBanner("เชื่อมต่อบัญชีรับเงินสำเร็จ! พร้อมลงขายแล้ว");
+    } else if (searchParams.get("refresh") === "1") {
+      setBanner("กรุณาเชื่อมต่อบัญชีรับเงินให้เสร็จก่อนลงขาย");
+    }
+  }, [searchParams]);
 
   const { data: status } = useQuery({
     queryKey: ["connect-status", session?.userId],
@@ -48,10 +68,11 @@ export default function SellPage() {
   if (!session) return <DevLogin />;
 
   return (
-    <div className="container-page py-8">
-      <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-        <AccountSidebar />
+    <AccountLayout>
         <div className="space-y-8">
+          {banner && (
+            <SuccessBanner message={banner} onDismiss={() => setBanner(null)} />
+          )}
           <div>
             <h1 className="font-display text-3xl font-semibold">ลงขายในมาร์เก็ตเพลส</h1>
             {!status?.onboarded ? (
@@ -102,8 +123,7 @@ export default function SellPage() {
             </div>
           </section>
         </div>
-      </div>
-    </div>
+    </AccountLayout>
   );
 }
 

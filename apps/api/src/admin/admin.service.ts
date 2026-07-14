@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import type { Role } from "@cardverse/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { MarketplaceOrdersService } from "../marketplace/marketplace-orders.service";
@@ -258,6 +258,74 @@ export class AdminService {
 
   async suspendListing(id: string) {
     await this.prisma.listing.update({ where: { id }, data: { status: "SUSPENDED" } });
+    return { ok: true };
+  }
+
+  async listActiveListings() {
+    const listings = await this.prisma.listing.findMany({
+      where: { status: "ACTIVE" },
+      include: {
+        seller: true,
+        catalogItem: { include: catalogItemInclude },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    return listings.map((l) => ({
+      id: l.id,
+      price: toBaht(l.price),
+      condition: l.condition,
+      status: l.status,
+      seller: { id: l.seller.id, displayName: l.seller.displayName },
+      catalogItem: serializeCatalogItem(l.catalogItem),
+      createdAt: l.createdAt.toISOString(),
+    }));
+  }
+
+  async refundShopOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (!["PAID", "PROCESSING", "SHIPPED"].includes(order.status)) {
+      throw new BadRequestException("ไม่สามารถคืนเงินคำสั่งซื้อนี้ได้");
+    }
+    const wallet = await this.prisma.wallet.findUnique({ where: { userId: order.userId } });
+    if (wallet) {
+      await this.prisma.$transaction(async (tx) => {
+        const w = await tx.wallet.update({
+          where: { id: wallet.id },
+          data: { balance: { increment: order.total } },
+        });
+        await tx.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            type: "REFUND",
+            amount: order.total,
+            balanceAfter: w.balance,
+            description: `คืนเครดิตคำสั่งซื้อ ${order.orderNumber}`,
+            referenceType: "order",
+            referenceId: order.id,
+          },
+        });
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: "REFUNDED" },
+        });
+        for (const item of order.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      });
+    } else {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: "REFUNDED" },
+      });
+    }
     return { ok: true };
   }
 

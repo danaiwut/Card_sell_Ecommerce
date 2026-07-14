@@ -104,3 +104,23 @@ export type Carrier = (typeof CARRIERS)[number];
 
 export const NEWS_KIND = ["NEWS", "EVENT", "SET_RELEASE", "PRICE_UPDATE"] as const;
 export type NewsKind = (typeof NEWS_KIND)[number];
+
+export const WALLET_TRANSACTION_TYPES = [
+  "TOP_UP",
+  "ADMIN_GRANT",
+  "PURCHASE",
+  "ESCROW_HOLD",
+  "ESCROW_RELEASE",
+  "WITHDRAWAL",
+  "WITHDRAWAL_REFUND",
+  "REFUND",
+] as const;
+export type WalletTransactionType = (typeof WALLET_TRANSACTION_TYPES)[number];
+
+export const WITHDRAWAL_STATUS = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "COMPLETED",
+] as const;
+export type WithdrawalStatus = (typeof WITHDRAWAL_STATUS)[number];

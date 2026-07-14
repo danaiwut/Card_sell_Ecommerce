@@ -43,4 +43,13 @@ body {
   .label-xs {
     @apply block text-xs font-semibold tracking-wider text-ink/50;
   }
+  .table-scroll {
+    @apply -mx-1 overflow-x-auto px-1;
+  }
+  .table-scroll table {
+    @apply min-w-[640px] w-full;
+  }
+  .page-title {
+    @apply font-display text-2xl font-semibold sm:text-3xl;
+  }
 }

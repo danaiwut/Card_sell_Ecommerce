@@ -16,6 +16,7 @@ import {
   serializeTrade,
   toBaht,
 } from "../common/serializers";
+import { WalletService } from "../wallet/wallet.service";
 
 const FEE_PERCENT = Number(process.env.MARKETPLACE_FEE_PERCENT ?? 8);
 const AUTO_RELEASE_DAYS = Number(process.env.ESCROW_AUTO_RELEASE_DAYS ?? 7);
@@ -30,6 +31,7 @@ export class MarketplaceOrdersService {
     private readonly realtime: RealtimeGateway,
     private readonly queue: QueueService,
     private readonly market: MarketService,
+    private readonly wallet: WalletService,
   ) {}
 
   /** Step 1: buyer initiates purchase; escrow PaymentIntent is created. */
@@ -65,9 +67,9 @@ export class MarketplaceOrdersService {
     });
 
     if (!this.stripe.enabled) {
-      // MOCK mode: treat payment as instantly captured so the demo flow works.
+      await this.wallet.holdEscrow(buyerId, order.id, amount);
       await this.markPaid(order.id, null);
-      return { orderId: order.id, mock: true, clientSecret: null };
+      return { orderId: order.id, mock: true, paidWithCredit: true, clientSecret: null };
     }
 
     const intent = await this.stripe.createEscrowPaymentIntent({
@@ -110,7 +112,14 @@ export class MarketplaceOrdersService {
       type: "MARKETPLACE_SALE",
       title: "มีคนซื้อการ์ดของคุณ",
       body: "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
-      link: `/account/sales/${orderId}`,
+      link: `/account/sell`,
+    });
+    await this.queue.enqueueNotification({
+      userId: order.buyerId,
+      type: "ORDER_UPDATE",
+      title: "ชำระเงินสำเร็จ",
+      body: "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+      link: `/account/purchases/${orderId}`,
     });
   }
 
@@ -139,7 +148,7 @@ export class MarketplaceOrdersService {
       throw new BadRequestException("สถานะคำสั่งซื้อไม่ถูกต้องสำหรับการปล่อยเงิน");
     }
 
-    // Transfer funds to the seller (live mode only).
+    // Transfer funds to the seller (live Stripe or credit wallet in demo).
     let transferId: string | null = null;
     if (this.stripe.enabled && order.seller.stripeConnectAccountId) {
       const transfer = await this.stripe.transferToSeller({
@@ -149,6 +158,14 @@ export class MarketplaceOrdersService {
         sourceChargeId: order.stripeChargeId ?? undefined,
       });
       transferId = transfer.id;
+    } else {
+      await this.wallet.releaseEscrow(
+        order.buyerId,
+        order.sellerId,
+        order.id,
+        order.amount,
+        order.sellerPayout,
+      );
     }
 
     const soldAt = new Date();
@@ -184,7 +201,68 @@ export class MarketplaceOrdersService {
       type: "PAYOUT",
       title: "ได้รับเงินจากการขาย",
       body: `ยอดสุทธิ ฿${toBaht(order.sellerPayout).toLocaleString()}`,
-      link: `/account/sales/${orderId}`,
+      link: `/account/sell`,
+    });
+    await this.queue.enqueueNotification({
+      userId: order.buyerId,
+      type: "ORDER_UPDATE",
+      title: "ยืนยันรับสินค้าแล้ว",
+      body: "กรุณาให้คะแนนผู้ขายเพื่อช่วยชุมชน",
+      link: `/account/purchases/${orderId}?review=1`,
+    });
+
+    return { ok: true, needsReview: true };
+  }
+
+  async submitReview(
+    buyerId: string,
+    orderId: string,
+    data: { rating: number; comment?: string },
+  ) {
+    if (data.rating < 1 || data.rating > 5) {
+      throw new BadRequestException("คะแนนต้องอยู่ระหว่าง 1–5");
+    }
+    const order = await this.prisma.marketplaceOrder.findUnique({
+      where: { id: orderId },
+      include: { review: true, seller: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (order.buyerId !== buyerId) throw new ForbiddenException();
+    if (order.status !== "COMPLETED") {
+      throw new BadRequestException("สามารถรีวิวได้หลังยืนยันรับสินค้าแล้วเท่านั้น");
+    }
+    if (order.review) throw new BadRequestException("คุณรีวิวคำสั่งซื้อนี้แล้ว");
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.sellerReview.create({
+        data: {
+          orderId,
+          authorId: buyerId,
+          sellerId: order.sellerId,
+          rating: data.rating,
+          comment: data.comment,
+        },
+      });
+      const agg = await tx.sellerReview.aggregate({
+        where: { sellerId: order.sellerId },
+        _avg: { rating: true },
+        _count: true,
+      });
+      await tx.user.update({
+        where: { id: order.sellerId },
+        data: {
+          sellerRating: agg._avg.rating ?? 0,
+          sellerRatingCount: agg._count,
+        },
+      });
+    });
+
+    await this.queue.enqueueNotification({
+      userId: order.sellerId,
+      type: "SYSTEM",
+      title: "ได้รับรีวิวใหม่",
+      body: `คะแนน ${data.rating}/5 จากผู้ซื้อ`,
+      link: `/account/sell`,
     });
 
     return { ok: true };
@@ -197,6 +275,8 @@ export class MarketplaceOrdersService {
     if (!order) throw new NotFoundException("Order not found");
     if (this.stripe.enabled && order.stripePaymentIntentId) {
       await this.stripe.refund(order.stripePaymentIntentId);
+    } else if (["PAID_HELD", "SHIPPED", "DELIVERED", "DISPUTED"].includes(order.status)) {
+      await this.wallet.refundEscrow(order.buyerId, order.id, order.amount);
     }
     await this.prisma.$transaction([
       this.prisma.marketplaceOrder.update({
@@ -246,6 +326,7 @@ export class MarketplaceOrdersService {
       include: {
         buyer: true,
         seller: true,
+        review: true,
         listing: { include: { catalogItem: { include: catalogItemInclude }, seller: true } },
         shipment: { include: { events: true } },
       },
@@ -317,6 +398,13 @@ export class MarketplaceOrdersService {
               accepted: e.accepted,
               ignoredReason: e.ignoredReason,
             })),
+          }
+        : null,
+      review: order.review
+        ? {
+            rating: order.review.rating,
+            comment: order.review.comment,
+            createdAt: order.review.createdAt.toISOString(),
           }
         : null,
     };

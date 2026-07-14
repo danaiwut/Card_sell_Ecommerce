@@ -1,6 +1,7 @@
 import { Injectable, OnModuleDestroy, Logger } from "@nestjs/common";
 import { Queue } from "bullmq";
 import IORedis, { type Redis } from "ioredis";
+import { prisma } from "@cardverse/db";
 import { QUEUE_NAMES } from "@cardverse/shared";
 
 @Injectable()
@@ -51,8 +52,20 @@ export class QueueService implements OnModuleDestroy {
     body?: string;
     link?: string;
   }) {
-    await this.queue(QUEUE_NAMES.NOTIFICATIONS)?.add("notify", payload, {
-      removeOnComplete: 200,
+    const q = this.queue(QUEUE_NAMES.NOTIFICATIONS);
+    if (q) {
+      await q.add("notify", payload, { removeOnComplete: 200 });
+      return;
+    }
+    // Fallback: persist directly when Redis/worker is unavailable.
+    await prisma.notification.create({
+      data: {
+        userId: payload.userId,
+        type: payload.type as any,
+        title: payload.title,
+        body: payload.body,
+        link: payload.link,
+      },
     });
   }
 

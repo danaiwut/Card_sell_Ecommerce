@@ -9,7 +9,13 @@ export class OrdersController {
   @Post("checkout")
   checkout(
     @CurrentUser("id") userId: string,
-    @Body() body: { addressId?: string; couponCode?: string },
+    @Body()
+    body: {
+      addressId?: string;
+      couponCode?: string;
+      shipping?: number;
+      payWithCredit?: boolean;
+    },
   ) {
     return this.orders.checkout(userId, body);
   }
