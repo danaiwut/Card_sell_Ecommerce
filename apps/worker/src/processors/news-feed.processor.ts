@@ -77,7 +77,7 @@ async function fetchAndIngestFeed(feed: FeedSource) {
     const payload: IngestPayload = {
       sourceUrl: link,
       sourceName: feed.name,
-      externalId: item.guid ?? item.id ?? null,
+      externalId: item.guid ?? (item as any).id ?? null,
       kind: detectKind(title, item.categories, feed.kind),
       title: title.slice(0, 200),
       excerpt: extractExcerpt(item.contentSnippet ?? item.content ?? null),
