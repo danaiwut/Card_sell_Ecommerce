@@ -704,51 +704,138 @@ function Disputes({ canRefund }: { canRefund: boolean }) {
 
 function Users({ canManageRoles }: { canManageRoles: boolean }) {
   const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 15;
+
   const { data } = useQuery({
-    queryKey: ["admin-users"],
-    queryFn: () => api.get<any[]>("/admin/users", true),
+    queryKey: ["admin-users", search, roleFilter, page],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+      });
+      if (search.trim()) params.set("q", search.trim());
+      if (roleFilter) params.set("role", roleFilter);
+      return api.get<{
+        items: Array<{ id: string; displayName: string; email: string; role: string }>;
+        page: number;
+        pageSize: number;
+        total: number;
+        totalPages: number;
+      }>(`/admin/users?${params}`, true);
+    },
   });
+
   const setRole = useMutation({
     mutationFn: ({ id, role }: { id: string; role: string }) =>
       api.patch(`/admin/users/${id}/role`, { role }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
+
+  const users = data?.items ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
   return (
-    <div className="card overflow-hidden">
-      <ResponsiveTable>
-      <table className="w-full text-sm">
-        <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
-          <tr>
-            <th className="px-4 py-3">User</th>
-            <th className="px-4 py-3">Email</th>
-            <th className="px-4 py-3">Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(data ?? []).map((u) => (
-            <tr key={u.id} className="border-b border-ink/5">
-              <td className="px-4 py-3 font-medium">{u.displayName}</td>
-              <td className="px-4 py-3 text-ink/60">{u.email}</td>
-              <td className="px-4 py-3">
-                {canManageRoles ? (
-                  <select
-                    className="input h-8 w-32"
-                    value={u.role}
-                    onChange={(e) => setRole.mutate({ id: u.id, role: e.target.value })}
-                  >
-                    <option value="customer">customer</option>
-                    <option value="manager">manager</option>
-                    <option value="admin">admin</option>
-                  </select>
-                ) : (
-                  <span className="text-ink/70">{u.role}</span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      </ResponsiveTable>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <input
+          className="input sm:max-w-xs"
+          placeholder="ค้นหาชื่อหรืออีเมล…"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+        <select
+          className="input sm:w-40"
+          value={roleFilter}
+          onChange={(e) => {
+            setRoleFilter(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">ทุก Role</option>
+          <option value="customer">customer</option>
+          <option value="manager">manager</option>
+          <option value="admin">admin</option>
+        </select>
+        {data && (
+          <p className="text-sm text-ink/50 sm:ml-auto">
+            แสดง {users.length} จาก {data.total} คน
+          </p>
+        )}
+      </div>
+
+      <div className="card overflow-hidden">
+        <ResponsiveTable>
+          <table className="w-full text-sm">
+            <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
+              <tr>
+                <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id} className="border-b border-ink/5">
+                  <td className="px-4 py-3 font-medium">{u.displayName}</td>
+                  <td className="px-4 py-3 text-ink/60">{u.email}</td>
+                  <td className="px-4 py-3">
+                    {canManageRoles ? (
+                      <select
+                        className="input h-8 w-32"
+                        value={u.role}
+                        onChange={(e) => setRole.mutate({ id: u.id, role: e.target.value })}
+                      >
+                        <option value="customer">customer</option>
+                        <option value="manager">manager</option>
+                        <option value="admin">admin</option>
+                      </select>
+                    ) : (
+                      <span className="text-ink/70">{u.role}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-4 py-8 text-center text-ink/40">
+                    ไม่พบผู้ใช้ที่ตรงกับการค้นหา
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </ResponsiveTable>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            type="button"
+            className="btn-outline text-xs"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            ก่อนหน้า
+          </button>
+          <span className="text-sm text-ink/60">
+            หน้า {page} / {totalPages}
+          </span>
+          <button
+            type="button"
+            className="btn-outline text-xs"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            ถัดไป
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -799,10 +886,15 @@ function WalletAdmin() {
     queryKey: ["admin-withdrawals"],
     queryFn: () => api.get<any[]>("/wallet/admin/withdrawals", true),
   });
-  const { data: users } = useQuery({
-    queryKey: ["admin-users"],
-    queryFn: () => api.get<any[]>("/admin/users", true),
+  const { data: usersPage } = useQuery({
+    queryKey: ["admin-users", "grant"],
+    queryFn: () =>
+      api.get<{ items: Array<{ id: string; displayName: string; email: string }> }>(
+        "/admin/users?pageSize=200",
+        true,
+      ),
   });
+  const users = usersPage?.items ?? [];
   const grant = useMutation({
     mutationFn: () =>
       api.post("/wallet/admin/grant", {

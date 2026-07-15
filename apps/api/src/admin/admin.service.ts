@@ -338,16 +338,45 @@ export class AdminService {
   }
 
   // --- Admin only ---
-  async listUsers() {
-    const users = await this.prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 200 });
-    return users.map((u) => ({
-      id: u.id,
-      email: u.email,
-      displayName: u.displayName,
-      role: u.role,
-      sellerRating: u.sellerRating,
-      createdAt: u.createdAt.toISOString(),
-    }));
+  async listUsers(query: { q?: string; role?: Role; page?: number; pageSize?: number }) {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    const where: {
+      role?: Role;
+      OR?: Array<{ email?: { contains: string; mode: "insensitive" }; displayName?: { contains: string; mode: "insensitive" } }>;
+    } = {};
+    if (query.role) where.role = query.role;
+    if (query.q) {
+      where.OR = [
+        { email: { contains: query.q, mode: "insensitive" } },
+        { displayName: { contains: query.q, mode: "insensitive" } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      items: users.map((u) => ({
+        id: u.id,
+        email: u.email,
+        displayName: u.displayName,
+        role: u.role,
+        sellerRating: u.sellerRating,
+        createdAt: u.createdAt.toISOString(),
+      })),
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   async setUserRole(userId: string, role: Role) {

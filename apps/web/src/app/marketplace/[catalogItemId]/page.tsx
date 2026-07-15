@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
-import { ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star, Handshake } from "lucide-react";
 import {
   SOCKET_EVENTS,
   type CatalogItemDto,
@@ -31,6 +31,7 @@ import {
 } from "@/components/detail-layout";
 import { PriceChart } from "@/components/price-chart";
 import { WishlistButton } from "@/components/wishlist-button";
+import { MakeOfferModal } from "@/components/make-offer-modal";
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3000";
 
@@ -54,6 +55,7 @@ export default function CatalogDetailPage({
   const router = useRouter();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("Card Info");
+  const [offerOpen, setOfferOpen] = useState(false);
 
   const { data: item } = useQuery({
     queryKey: ["catalog-item", catalogItemId],
@@ -110,6 +112,8 @@ export default function CatalogDetailPage({
       })
       .slice(0, 4);
   }, [similarListings, catalogItemId]);
+
+  const listingPrice = activeListing?.price ?? 0;
 
   const buy = useMutation({
     mutationFn: () =>
@@ -250,10 +254,29 @@ export default function CatalogDetailPage({
               </p>
             )}
             <WishlistButton catalogItemId={catalogItemId} />
-            <Link href="/account/sell" className="btn-outline flex-1">
+            <button
+              type="button"
+              className="btn-outline flex-1"
+              disabled={!activeListing}
+              onClick={() => {
+                if (!session) return router.push("/sign-in");
+                setOfferOpen(true);
+              }}
+            >
+              <Handshake size={16} />
               Make an Offer
-            </Link>
+            </button>
           </div>
+
+          {activeListing && (
+            <MakeOfferModal
+              listingId={activeListing.id}
+              listingPrice={listingPrice}
+              cardName={item?.name ?? "การ์ด"}
+              open={offerOpen}
+              onClose={() => setOfferOpen(false)}
+            />
+          )}
 
           <DetailTabs tabs={[...TABS]} active={tab} onChange={(v) => setTab(v as Tab)} />
 

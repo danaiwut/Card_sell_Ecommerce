@@ -4,11 +4,12 @@ import {
   ForbiddenException,
   BadRequestException,
 } from "@nestjs/common";
-import type { CreateListingInput, MarketplaceQuery } from "@cardverse/shared";
+import type { CreateListingInput, CreateOfferInput, MarketplaceQuery } from "@cardverse/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   catalogItemInclude,
   serializeListing,
+  toBaht,
   toSatang,
 } from "../common/serializers";
 
@@ -126,5 +127,51 @@ export class ListingsService {
       data: { status: "CANCELLED" },
     });
     return { ok: true };
+  }
+
+  async createOffer(buyerId: string, listingId: string, input: CreateOfferInput) {
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: listingId },
+      include: { catalogItem: true, seller: true },
+    });
+    if (!listing || listing.status !== "ACTIVE") {
+      throw new NotFoundException("Listing not found");
+    }
+    if (listing.sellerId === buyerId) {
+      throw new BadRequestException("ไม่สามารถเสนอราคากับประกาศของตัวเอง");
+    }
+
+    const amount = toSatang(input.amount);
+    if (amount >= listing.price) {
+      throw new BadRequestException("ราคาที่เสนอต้องต่ำกว่าราคาปิดการขาย");
+    }
+
+    const buyer = await this.prisma.user.findUnique({ where: { id: buyerId } });
+    const offer = await this.prisma.listingOffer.create({
+      data: {
+        listingId,
+        buyerId,
+        amount,
+        message: input.message,
+      },
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        userId: listing.sellerId,
+        type: "MARKETPLACE_SALE",
+        title: "มีข้อเสนอราคาใหม่",
+        body: `${buyer?.displayName ?? "ผู้ซื้อ"} เสนอราคา ฿${toBaht(amount).toLocaleString()} สำหรับ ${listing.catalogItem.name}`,
+        link: "/account/sell",
+      },
+    });
+
+    return {
+      id: offer.id,
+      amount: toBaht(offer.amount),
+      message: offer.message,
+      status: offer.status,
+      listingId: offer.listingId,
+    };
   }
 }

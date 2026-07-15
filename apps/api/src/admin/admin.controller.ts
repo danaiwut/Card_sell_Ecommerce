@@ -9,6 +9,7 @@ import {
   Query,
 } from "@nestjs/common";
 import type { Role } from "@cardverse/shared";
+import { adminUsersQuerySchema } from "@cardverse/shared";
 import { AdminService } from "./admin.service";
 import { Roles } from "../auth/decorators";
 
@@ -118,8 +119,8 @@ export class AdminController {
   }
 
   @Get("users")
-  users() {
-    return this.admin.listUsers();
+  users(@Query() query: Record<string, string>) {
+    return this.admin.listUsers(adminUsersQuerySchema.parse(query));
   }
 
   @Roles("admin")

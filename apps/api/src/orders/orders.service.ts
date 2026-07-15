@@ -27,61 +27,71 @@ export class OrdersService {
       payWithCredit?: boolean;
     },
   ) {
-    const cart = await this.prisma.cart.findUnique({
-      where: { userId },
-      include: { items: { include: { product: true } } },
-    });
-    if (!cart || cart.items.length === 0) {
-      throw new BadRequestException("ตะกร้าว่างเปล่า");
-    }
+    const { order, total, user } = await this.prisma.$transaction(async (tx) => {
+      // Row lock prevents concurrent checkout from reading the same cart.
+      await tx.$executeRaw`SELECT id FROM "Cart" WHERE "userId" = ${userId} FOR UPDATE`;
 
-    let subtotal = 0;
-    for (const item of cart.items) {
-      if (item.product.stock < item.quantity) {
-        throw new BadRequestException(`สินค้า ${item.product.name} ไม่พอ`);
-      }
-      subtotal += item.product.price * item.quantity;
-    }
-
-    let discount = 0;
-    let couponId: string | undefined;
-    if (params.couponCode) {
-      const coupon = await this.prisma.coupon.findUnique({
-        where: { code: params.couponCode },
+      const cart = await tx.cart.findUnique({
+        where: { userId },
+        include: { items: { include: { product: true } } },
       });
-      if (coupon && coupon.active) {
-        couponId = coupon.id;
-        if (coupon.percentOff) discount = Math.round((subtotal * coupon.percentOff) / 100);
-        if (coupon.amountOff) discount += coupon.amountOff;
+      if (!cart || cart.items.length === 0) {
+        throw new BadRequestException("ตะกร้าว่างเปล่า");
       }
-    }
 
-    const shipping = Math.round(Number(params.shipping ?? 0) * 100) || 0;
-    const total = Math.max(0, subtotal - discount) + shipping;
+      let subtotal = 0;
+      for (const item of cart.items) {
+        if (item.product.stock < item.quantity) {
+          throw new BadRequestException(`สินค้า ${item.product.name} ไม่พอ`);
+        }
+        subtotal += item.product.price * item.quantity;
+      }
 
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      let discount = 0;
+      let couponId: string | undefined;
+      if (params.couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: params.couponCode },
+        });
+        if (coupon && coupon.active) {
+          couponId = coupon.id;
+          if (coupon.percentOff) discount = Math.round((subtotal * coupon.percentOff) / 100);
+          if (coupon.amountOff) discount += coupon.amountOff;
+        }
+      }
 
-    const order = await this.prisma.order.create({
-      data: {
-        orderNumber: this.orderNumber(),
-        userId,
-        status: "PENDING",
-        subtotal,
-        discount,
-        shipping,
-        total,
-        couponId,
-        addressId: params.addressId,
-        items: {
-          create: cart.items.map((i) => ({
-            productId: i.productId,
-            name: i.product.name,
-            unitPrice: i.product.price,
-            quantity: i.quantity,
-          })),
+      const shipping = Math.round(Number(params.shipping ?? 0) * 100) || 0;
+      const total = Math.max(0, subtotal - discount) + shipping;
+
+      // Clear cart immediately so duplicate submits see an empty cart.
+      await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+      const buyer = await tx.user.findUnique({ where: { id: userId } });
+
+      const created = await tx.order.create({
+        data: {
+          orderNumber: this.orderNumber(),
+          userId,
+          status: "PENDING",
+          subtotal,
+          discount,
+          shipping,
+          total,
+          couponId,
+          addressId: params.addressId,
+          items: {
+            create: cart.items.map((i) => ({
+              productId: i.productId,
+              name: i.product.name,
+              unitPrice: i.product.price,
+              quantity: i.quantity,
+            })),
+          },
         },
-      },
-      include: { items: true },
+        include: { items: true },
+      });
+
+      return { order: created, total, user: buyer };
     });
 
     if (params.payWithCredit || !this.stripe.enabled) {

@@ -106,6 +106,13 @@ enum NewsKind {
   PRICE_UPDATE
 }
 
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
 enum NotificationType {
   ORDER_UPDATE
   SHIPMENT_UPDATE
@@ -168,6 +175,7 @@ model User {
   wishlist         WishlistItem[]
   collection       CollectionItem[]
   notifications    Notification[]
+  offersMade       ListingOffer[]     @relation("OffersMade")
   reviewsWritten   SellerReview[]     @relation("ReviewAuthor")
   reviewsReceived  SellerReview[]     @relation("ReviewSeller")
   newsPosts        NewsPost[]
@@ -489,6 +497,7 @@ model Listing {
   status        ListingStatus @default(ACTIVE)
 
   orders MarketplaceOrder[]
+  offers ListingOffer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -497,6 +506,24 @@ model Listing {
   @@index([sellerId])
   @@index([status])
   @@index([price])
+}
+
+model ListingOffer {
+  id        String      @id @default(cuid())
+  listingId String
+  listing   Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId   String
+  buyer     User        @relation("OffersMade", fields: [buyerId], references: [id], onDelete: Cascade)
+  amount    Int // satang
+  message   String?
+  status    OfferStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([listingId])
+  @@index([buyerId])
+  @@index([status])
 }
 
 model MarketplaceOrder {

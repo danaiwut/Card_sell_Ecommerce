@@ -330,11 +330,12 @@ Manager flow + เปลี่ยน role ใน Users tab
 
 | ฟีเจอร์ | สถานะ |
 | --- | --- |
-| Make an Offer negotiation | UI only |
 | Shop product reviews | ยังไม่มี |
 | Stripe live payment | ใช้เครดิตใน Demo |
 | Catalog taxonomy CRUD UI | ดูได้อย่างเดียว |
-| Admin search box | placeholder (ยังไม่ค้นหาจริง) |
+| Seller accept/reject offer UI | แจ้งเตือนแล้ว — UI จัดการ offer ยังไม่ครบ |
+
+> **Workshop #7 UAT Report:** ดู [`UAT-Workshop7-Report.md`](./UAT-Workshop7-Report.md) — ผ่าน **100%** (28/28)
 
 ---
 

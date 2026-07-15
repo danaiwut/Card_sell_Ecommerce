@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import {
   createListingSchema,
+  createOfferSchema,
   marketplaceQuerySchema,
 } from "@cardverse/shared";
 import { ListingsService } from "./listings.service";
@@ -44,6 +45,15 @@ export class MarketplaceController {
   @Delete("listings/:id")
   cancel(@CurrentUser("id") userId: string, @Param("id") id: string) {
     return this.listings.cancel(userId, id);
+  }
+
+  @Post("listings/:id/offers")
+  createOffer(
+    @CurrentUser("id") userId: string,
+    @Param("id") id: string,
+    @Body() body: unknown,
+  ) {
+    return this.listings.createOffer(userId, id, createOfferSchema.parse(body));
   }
 
   @Public()

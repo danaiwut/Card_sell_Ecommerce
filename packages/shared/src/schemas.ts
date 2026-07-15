@@ -109,5 +109,17 @@ export const addressSchema = z.object({
 });
 export type AddressInput = z.infer<typeof addressSchema>;
 
+export const createOfferSchema = z.object({
+  amount: z.number().positive("ราคาที่เสนอต้องมากกว่า 0"),
+  message: z.string().trim().max(500).optional(),
+});
+export type CreateOfferInput = z.infer<typeof createOfferSchema>;
+
+export const adminUsersQuerySchema = paginationSchema.extend({
+  q: z.string().trim().optional(),
+  role: z.enum(["customer", "manager", "admin"]).optional(),
+});
+export type AdminUsersQuery = z.infer<typeof adminUsersQuerySchema>;
+
 export const priceRangeWindow = z.enum(["TODAY", "7D", "30D", "90D", "1Y"]);
 export type PriceRangeWindow = z.infer<typeof priceRangeWindow>;

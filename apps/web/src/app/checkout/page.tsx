@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, MapPin, CreditCard, Package } from "lucide-react";
 import type { ProductDto } from "@cardverse/shared";
@@ -61,6 +61,7 @@ export default function CheckoutPage() {
     isDefault: true,
   });
   const [paymentState, setPaymentState] = useState<"idle" | "processing" | "success" | "error">("idle");
+  const checkoutLocked = useRef(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
@@ -101,7 +102,10 @@ export default function CheckoutPage() {
           payWithCredit: true,
         },
       ),
-    onMutate: () => setPaymentState("processing"),
+    onMutate: () => {
+      checkoutLocked.current = true;
+      setPaymentState("processing");
+    },
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["cart"] });
       qc.invalidateQueries({ queryKey: ["cart-count"] });
@@ -115,8 +119,16 @@ export default function CheckoutPage() {
       setStep("done");
       router.push(`/account/orders/${res.orderId}`);
     },
-    onError: () => setPaymentState("error"),
+    onError: () => {
+      checkoutLocked.current = false;
+      setPaymentState("error");
+    },
   });
+
+  function submitCheckout() {
+    if (!activeAddressId || checkoutLocked.current || checkout.isPending) return;
+    checkout.mutate(activeAddressId);
+  }
 
   if (!session) return <DevLogin />;
 
@@ -327,11 +339,19 @@ export default function CheckoutPage() {
                   ย้อนกลับ
                 </button>
                 <button
+                  type="button"
                   className="btn-primary flex-1"
-                  disabled={checkout.isPending || !activeAddressId || !canPay}
-                  onClick={() => activeAddressId && checkout.mutate(activeAddressId)}
+                  disabled={
+                    checkout.isPending ||
+                    paymentState === "processing" ||
+                    !activeAddressId ||
+                    !canPay
+                  }
+                  onClick={submitCheckout}
                 >
-                  {checkout.isPending ? "กำลังชำระ…" : `ชำระเครดิต ${formatBaht(total)}`}
+                  {checkout.isPending || paymentState === "processing"
+                    ? "กำลังชำระ…"
+                    : `ชำระเครดิต ${formatBaht(total)}`}
                 </button>
               </div>
             </div>
