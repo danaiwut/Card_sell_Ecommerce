@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { toBaht } from "../common/serializers";
 
@@ -62,5 +62,21 @@ export class UsersService {
       await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
     }
     return this.prisma.address.create({ data: { ...data, userId } });
+  }
+
+  async updateAddress(userId: string, addressId: string, data: any) {
+    const existing = await this.prisma.address.findFirst({ where: { id: addressId, userId } });
+    if (!existing) throw new NotFoundException("Address not found");
+    if (data.isDefault) {
+      await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+    }
+    return this.prisma.address.update({ where: { id: addressId }, data });
+  }
+
+  async deleteAddress(userId: string, addressId: string) {
+    const existing = await this.prisma.address.findFirst({ where: { id: addressId, userId } });
+    if (!existing) throw new NotFoundException("Address not found");
+    await this.prisma.address.delete({ where: { id: addressId } });
+    return { success: true };
   }
 }

@@ -1,7 +1,7 @@
 # CardVerse — คู่มือรันเว็บในเครื่อง (Local)
 
 เอกสารนี้อธิบายวิธีรัน CardVerse บนเครื่องตัวเอง **แบบเดียวกับที่ใช้งานได้จริง** ในโปรเจกต์นี้  
-Repository: [https://github.com/danaiwut/Card_sell_Ecommerce](https://github.com/danaiwut/Card_sell_Ecommerce)
+Repository: [https://github.com/danaiwut/Card_sell_Ecommerce/tree/lotus](https://github.com/danaiwut/Card_sell_Ecommerce/tree/lotus)
 
 ---
 

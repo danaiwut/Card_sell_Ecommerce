@@ -9,6 +9,8 @@ const nextConfig = {
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "**.r2.dev" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "images.pokemontcg.io" },
+      { protocol: "https", hostname: "images.ygoprodeck.com" },
     ],
   },
   async rewrites() {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { OrdersService } from "./orders.service";
 import { CurrentUser } from "../auth/decorators";
 
@@ -33,5 +33,10 @@ export class OrdersController {
   @Get(":id")
   get(@CurrentUser("id") userId: string, @Param("id") id: string) {
     return this.orders.get(userId, id);
+  }
+
+  @Delete(":id")
+  cancel(@CurrentUser("id") userId: string, @Param("id") id: string) {
+    return this.orders.cancel(userId, id);
   }
 }

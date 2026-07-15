@@ -10,16 +10,25 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgresql://user:pass@localhost:5432/cardverse
+
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_YW1hemVkLW9hcmZpc2gtMTQuY2xlcmsuYWNjb3VudHMuZGV2JA
+      CLERK_SECRET_KEY: sk_test_zw3LSEJlrwpON9Kdttjw9SJMdb8mBNRx4dbxq4Ucu5
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
+
       - run: pnpm db:generate
+
       - run: pnpm build
+
       - run: pnpm typecheck
+      
