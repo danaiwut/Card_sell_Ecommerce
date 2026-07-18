@@ -18,9 +18,9 @@ async function bootstrap() {
   // Request validation is handled per-route with zod schemas (see controllers),
   // so no global class-validator ValidationPipe is needed.
 
-  const port = Number(process.env.API_PORT ?? 4000);
-  await app.listen(port);
-  Logger.log(`CardVerse API listening on http://localhost:${port}`, "Bootstrap");
+  const port = Number(process.env.PORT ?? process.env.API_PORT ?? 4000);
+  await app.listen(port, "0.0.0.0");
+  Logger.log(`CardVerse API listening on port ${port}`, "Bootstrap");
 }
 
 bootstrap();

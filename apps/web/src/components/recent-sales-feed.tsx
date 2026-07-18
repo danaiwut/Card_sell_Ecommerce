@@ -5,9 +5,8 @@ import { io, type Socket } from "socket.io-client";
 import { useQuery } from "@tanstack/react-query";
 import { SOCKET_EVENTS, type TradeDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
+import { getWsBaseUrl } from "@/lib/env-urls";
 import { formatBaht } from "@/lib/format";
-
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3000";
 
 export function RecentSalesFeed() {
   const { data } = useQuery({
@@ -17,7 +16,7 @@ export function RecentSalesFeed() {
   const [live, setLive] = useState<TradeDto[]>([]);
 
   useEffect(() => {
-    const socket: Socket = io(WS_URL, { transports: ["websocket"] });
+    const socket: Socket = io(getWsBaseUrl(), { transports: ["websocket"] });
     socket.on(SOCKET_EVENTS.RECENT_SALE, (trade: TradeDto) => {
       setLive((prev) => [trade, ...prev].slice(0, 10));
     });

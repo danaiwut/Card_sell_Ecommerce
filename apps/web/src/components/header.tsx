@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -25,6 +26,11 @@ export function Header() {
   const { session } = useSession();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: cart } = useQuery({
     queryKey: ["cart-count", session?.userId],
@@ -41,6 +47,85 @@ export function Header() {
 
   const unreadCount = notifications?.unread ?? 0;
   const cartCount = cart?.items?.length ?? 0;
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
+  const mobileMenu =
+    mounted &&
+    mobileOpen &&
+    createPortal(
+      <>
+        <button
+          type="button"
+          className="fixed inset-0 z-[100] bg-ink/50 md:hidden"
+          aria-label="ปิดเมนู"
+          onClick={() => setMobileOpen(false)}
+        />
+        <aside className="fixed inset-y-0 left-0 z-[101] flex w-[min(88vw,320px)] flex-col bg-white shadow-2xl md:hidden">
+          <div className="flex shrink-0 items-center justify-between border-b border-ink/10 px-4 py-4">
+            <span className="font-display text-lg font-semibold">เมนู</span>
+            <button
+              type="button"
+              className="rounded-md p-2 text-ink/50 hover:bg-ink/5"
+              aria-label="ปิดเมนู"
+              onClick={() => setMobileOpen(false)}
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
+            {NAV.map((item) => {
+              const active =
+                item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "block rounded-lg px-4 py-3 text-sm font-medium",
+                    active ? "bg-ink text-white" : "text-ink/70 hover:bg-ink/5",
+                  )}
+                >
+                  {t(item.key)}
+                </Link>
+              );
+            })}
+            <Link
+              href="/cart"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-4 py-3 text-sm font-medium text-ink/70 hover:bg-ink/5"
+            >
+              {t("cart.title") ?? "Cart"}
+            </Link>
+            <Link
+              href="/account"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-4 py-3 text-sm font-medium text-ink/70 hover:bg-ink/5"
+            >
+              บัญชี
+            </Link>
+          </nav>
+          <div className="shrink-0 border-t border-ink/10 p-4">
+            <button
+              type="button"
+              onClick={() => setLocale(locale === "th" ? "en" : "th")}
+              className="w-full rounded-lg border border-ink/10 px-4 py-2.5 text-sm font-semibold text-ink/70"
+            >
+              {locale === "th" ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}
+            </button>
+          </div>
+        </aside>
+      </>,
+      document.body,
+    );
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink/10 bg-cream/90 backdrop-blur">
@@ -132,69 +217,7 @@ export function Header() {
         </div>
       </div>
 
-      {mobileOpen && (
-        <>
-          <button
-            type="button"
-            className="fixed inset-0 z-40 bg-ink/40 md:hidden"
-            aria-label="ปิดเมนู"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="fixed inset-y-0 left-0 z-50 flex w-[min(85vw,320px)] flex-col bg-white shadow-xl md:hidden">
-            <div className="flex items-center justify-between border-b border-ink/10 px-4 py-4">
-              <span className="font-display text-lg font-semibold">เมนู</span>
-              <button
-                type="button"
-                className="rounded-md p-2 text-ink/50 hover:bg-ink/5"
-                onClick={() => setMobileOpen(false)}
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-              {NAV.map((item) => {
-                const active =
-                  item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={cn(
-                      "block rounded-lg px-4 py-3 text-sm font-medium",
-                      active ? "bg-ink text-white" : "text-ink/70 hover:bg-ink/5",
-                    )}
-                  >
-                    {t(item.key)}
-                  </Link>
-                );
-              })}
-              <Link
-                href="/cart"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg px-4 py-3 text-sm font-medium text-ink/70 hover:bg-ink/5"
-              >
-                {t("cart.title") ?? "Cart"}
-              </Link>
-              <Link
-                href="/account"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg px-4 py-3 text-sm font-medium text-ink/70 hover:bg-ink/5"
-              >
-                บัญชี
-              </Link>
-            </nav>
-            <div className="border-t border-ink/10 p-4">
-              <button
-                onClick={() => setLocale(locale === "th" ? "en" : "th")}
-                className="w-full rounded-lg border border-ink/10 px-4 py-2.5 text-sm font-semibold text-ink/70"
-              >
-                {locale === "th" ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      {mobileMenu}
     </header>
   );
 }

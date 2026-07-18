@@ -6,13 +6,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SOCKET_EVENTS, type ShipmentUpdateEventDto } from "@cardverse/shared";
 import { io } from "socket.io-client";
 import { api } from "@/lib/api";
+import { getWsBaseUrl } from "@/lib/env-urls";
 import { useSession } from "@/lib/session";
 import { DevLogin } from "@/components/dev-login";
 import { AccountLayout } from "@/components/account-layout";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { formatDate } from "@/lib/format";
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3000";
 const ACTIVE_SHIPMENT_STATUS = new Set([
   "PENDING",
   "CONFIRMED",
@@ -62,7 +62,7 @@ export default function AccountShipmentsPage() {
 
   useEffect(() => {
     if (!session) return;
-    const socket = io(WS_URL, { transports: ["websocket"] });
+    const socket = io(getWsBaseUrl(), { transports: ["websocket"] });
     socket.on(SOCKET_EVENTS.SHIPMENT_UPDATE, (event: ShipmentUpdateEventDto) => {
       if (!event.userIds.includes(session.userId)) return;
       qc.invalidateQueries({ queryKey: ["orders", session.userId] });

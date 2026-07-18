@@ -10,7 +10,6 @@ import {
 } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { getDevSession, setDevSession, setAuthTokenProvider, type DevSession, api } from "./api";
-import { isClerkEnabled } from "./clerk-config";
 
 export type SessionRole = DevSession["role"];
 
@@ -143,8 +142,14 @@ function ClerkSessionBridge({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function SessionProvider({ children }: { children: React.ReactNode }) {
-  if (!isClerkEnabled()) {
+export function SessionProvider({
+  children,
+  clerkEnabled = false,
+}: {
+  children: React.ReactNode;
+  clerkEnabled?: boolean;
+}) {
+  if (!clerkEnabled) {
     return <DevSessionProvider>{children}</DevSessionProvider>;
   }
 

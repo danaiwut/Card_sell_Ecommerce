@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
-const apiOrigin = process.env.API_URL ?? "http://localhost:4000";
+const apiOrigin =
+  process.env.CARDVERSE_API_ORIGIN ??
+  (process.env.API_URL?.startsWith("http") ? process.env.API_URL : undefined) ??
+  "http://localhost:4000";
 
 const nextConfig = {
   reactStrictMode: true,
@@ -14,6 +17,10 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    // Production uses vercel.json rewrites — env vars are redacted during `next build`.
+    if (process.env.VERCEL) {
+      return [];
+    }
     return [
       { source: "/backend/:path*", destination: `${apiOrigin}/:path*` },
       { source: "/socket.io/:path*", destination: `${apiOrigin}/socket.io/:path*` },

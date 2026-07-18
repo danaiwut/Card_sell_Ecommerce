@@ -1,0 +1,22 @@
+{
+  "env": {
+    "NEXT_PUBLIC_API_URL": "/backend",
+    "NEXT_PUBLIC_WS_URL": "https://cardverse-five.vercel.app",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_YW1hemVkLW9hcmZpc2gtMTQuY2xlcmsuYWNjb3VudHMuZGV2JA",
+    "CLERK_SECRET_KEY": "sk_test_zw3LSEJlrwpON9Kdttjw9SJMdb8mBNRx4dbxq4Ucu5",
+    "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",
+    "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
+    "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL": "/account",
+    "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL": "/account"
+  },
+  "rewrites": [
+    {
+      "source": "/backend/:path*",
+      "destination": "https://cardverse-api-production.up.railway.app/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://cardverse-api-production.up.railway.app/socket.io/:path*"
+    }
+  ]
+}

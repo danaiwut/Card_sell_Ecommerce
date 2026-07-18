@@ -16,6 +16,7 @@ import {
   type TradeDto,
 } from "@cardverse/shared";
 import { api } from "@/lib/api";
+import { getWsBaseUrl } from "@/lib/env-urls";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 import { formatBaht, formatDate } from "@/lib/format";
@@ -32,8 +33,6 @@ import {
 import { PriceChart } from "@/components/price-chart";
 import { WishlistButton } from "@/components/wishlist-button";
 import { MakeOfferModal } from "@/components/make-offer-modal";
-
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:3000";
 
 const TABS = ["Card Info", "Price History", "Shipping & Returns", "Seller Reviews"] as const;
 type Tab = (typeof TABS)[number];
@@ -84,7 +83,7 @@ export default function CatalogDetailPage({
 
   const [liveStats, setLiveStats] = useState<MarketStatsDto | null>(null);
   useEffect(() => {
-    const socket = io(WS_URL, { transports: ["websocket"] });
+    const socket = io(getWsBaseUrl(), { transports: ["websocket"] });
     socket.on(SOCKET_EVENTS.PRICE_UPDATE, (s: MarketStatsDto) => {
       if (s.catalogItemId === catalogItemId) setLiveStats(s);
     });

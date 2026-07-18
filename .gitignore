@@ -30,3 +30,5 @@ packages/db/prisma/generate-seed-sql.ts
 packages/db/prisma/apply-seed-*.mjs
 packages/db/prisma/*-batch*.js
 packages/db/prisma/execute-all-batches-*.js
+.vercel
+.env*

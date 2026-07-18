@@ -1,6 +1,5 @@
 import { isClerkEnabled } from "./clerk-config";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/backend";
+import { getApiBaseUrl } from "./env-urls";
 
 export interface DevSession {
   userId: string;
@@ -85,7 +84,7 @@ async function request<T>(
   };
   if (auth) Object.assign(finalHeaders, await authHeaders());
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${getApiBaseUrl()}${path}`, {
     ...rest,
     headers: finalHeaders,
     cache: "no-store",
@@ -114,4 +113,4 @@ export const api = {
   del: <T>(path: string, auth = true) => request<T>(path, { method: "DELETE", auth }),
 };
 
-export { API_URL };
+export { getApiBaseUrl as API_URL };

@@ -5,7 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider } from "@/lib/i18n";
 import { SessionProvider } from "@/lib/session";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  clerkEnabled = false,
+}: {
+  children: React.ReactNode;
+  clerkEnabled?: boolean;
+}) {
   const [client] = useState(
     () =>
       new QueryClient({
@@ -16,7 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <I18nProvider>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider clerkEnabled={clerkEnabled}>{children}</SessionProvider>
       </I18nProvider>
     </QueryClientProvider>
   );

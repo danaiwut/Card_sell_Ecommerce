@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/providers";
-import { SiteShell } from "@/components/site-shell";
 import { ClerkProviderShell } from "@/components/clerk-provider-shell";
+import { SiteShell } from "@/components/site-shell";
 
 const display = Playfair_Display({
   subsets: ["latin"],
@@ -22,9 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th" className={`${display.variable} ${sans.variable}`}>
       <body className="font-sans antialiased">
         <ClerkProviderShell>
-          <Providers>
-            <SiteShell>{children}</SiteShell>
-          </Providers>
+          <SiteShell>{children}</SiteShell>
         </ClerkProviderShell>
       </body>
     </html>

@@ -1,23 +1,27 @@
 "use client";
 
 import { ClerkProvider } from "@clerk/nextjs";
-
-const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+import { getClerkPublishableKey } from "@/lib/clerk-config";
+import { clerkAuthAppearance } from "@/lib/clerk-appearance";
+import { Providers } from "@/components/providers";
 
 export function ClerkProviderShell({ children }: { children: React.ReactNode }) {
-  if (!clerkPublishableKey) {
-    return <>{children}</>;
+  const publishableKey = getClerkPublishableKey();
+
+  if (!publishableKey) {
+    return <Providers clerkEnabled={false}>{children}</Providers>;
   }
 
   return (
     <ClerkProvider
-      publishableKey={clerkPublishableKey}
+      publishableKey={publishableKey}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
       afterSignInUrl="/account"
       afterSignUpUrl="/account"
+      appearance={clerkAuthAppearance}
     >
-      {children}
+      <Providers clerkEnabled>{children}</Providers>
     </ClerkProvider>
   );
 }
