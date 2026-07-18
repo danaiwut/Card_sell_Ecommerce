@@ -87,4 +87,4 @@ Admins can edit the title, excerpt, body, image, kind, and event date before cli
 
 - Respect each source site's terms, robots.txt, and rate limits.
 - Keep imported content in draft mode so an admin can check quality and copyright risk.
-- If source images are unreliable, add a later n8n step to upload images to Cloudflare R2 and pass the R2 public URL as `imageUrl`.
+- If source images are unreliable, add a later n8n step to upload images to Supabase Storage and pass the public URL as `imageUrl`.

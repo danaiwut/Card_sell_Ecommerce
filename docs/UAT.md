@@ -30,7 +30,7 @@
 | **Manager** | `manager` | `/account` → เข้าสู่ระบบเป็น Manager | Clerk + role ใน metadata/DB |
 | **Admin** | `admin` | `/account` → เข้าสู่ระบบเป็น Admin | Clerk + role `admin` |
 
-**บัญชี seed (Demo):**
+**บัญชี Demo (dev session):**
 
 | Email | Role | เครดิตเริ่มต้น |
 | --- | --- | --- |

@@ -1,9 +1,9 @@
-import {ClerkProvider} from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { SiteShell } from "@/components/site-shell";
+import { ClerkProviderShell } from "@/components/clerk-provider-shell";
 
 const display = Playfair_Display({
   subsets: ["latin"],
@@ -21,16 +21,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="th" className={`${display.variable} ${sans.variable}`}>
       <body className="font-sans antialiased">
-        <ClerkProvider
-          signInUrl="/sign-in"
-          signUpUrl="/sign-up"
-          afterSignInUrl="/account"
-          afterSignUpUrl="/account"
-        >
+        <ClerkProviderShell>
           <Providers>
             <SiteShell>{children}</SiteShell>
           </Providers>
-        </ClerkProvider>
+        </ClerkProviderShell>
       </body>
     </html>
   );

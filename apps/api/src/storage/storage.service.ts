@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -14,23 +13,16 @@ const MAX_FILE_SIZE = 8 * 1024 * 1024;
 
 @Injectable()
 export class StorageService {
-  private readonly client: S3Client | null;
-  private readonly bucket = process.env.R2_BUCKET;
-  private readonly publicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, "");
+  private readonly client: SupabaseClient | null;
+  private readonly bucket = process.env.SUPABASE_STORAGE_BUCKET ?? "cardverse";
+  private readonly supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
 
   constructor() {
-    const accountId = process.env.R2_ACCOUNT_ID;
-    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+    const url = process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     this.client =
-      accountId && accessKeyId && secretAccessKey
-        ? new S3Client({
-            region: "auto",
-            endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-            credentials: { accessKeyId, secretAccessKey },
-          })
-        : null;
+      url && serviceKey ? createClient(url, serviceKey, { auth: { persistSession: false } }) : null;
   }
 
   async presignImageUpload(input: {
@@ -39,9 +31,9 @@ export class StorageService {
     size: number;
     folder?: "products" | "catalog" | "news" | "avatars";
   }) {
-    if (!this.client || !this.bucket || !this.publicUrl) {
+    if (!this.client || !this.supabaseUrl) {
       throw new BadRequestException(
-        "R2 storage is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, and R2_PUBLIC_URL.",
+        "Supabase storage is not configured. Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET.",
       );
     }
 
@@ -57,20 +49,19 @@ export class StorageService {
     const folder = input.folder ?? "products";
     const key = `${folder}/${new Date().toISOString().slice(0, 10)}/${randomUUID()}${extension}`;
 
-    const command = new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-      ContentType: input.contentType,
-      ContentLength: input.size,
-    });
+    const { data, error } = await this.client.storage
+      .from(this.bucket)
+      .createSignedUploadUrl(key);
 
-    const uploadUrl = await getSignedUrl(this.client, command, { expiresIn: 60 * 5 });
+    if (error || !data) {
+      throw new BadRequestException(error?.message ?? "Failed to create upload URL");
+    }
 
     return {
       key,
-      uploadUrl,
-      publicUrl: `${this.publicUrl}/${key}`,
-      expiresIn: 300,
+      uploadUrl: data.signedUrl,
+      publicUrl: `${this.supabaseUrl}/storage/v1/object/public/${this.bucket}/${key}`,
+      expiresIn: 7200,
     };
   }
 

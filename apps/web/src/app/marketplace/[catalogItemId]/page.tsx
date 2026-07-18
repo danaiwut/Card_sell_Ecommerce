@@ -133,7 +133,6 @@ export default function CatalogDetailPage({
     enabled: Boolean(session),
   });
 
-  const listingPrice = activeListing?.price ?? 0;
   const canBuyWithCredit = (wallet?.balance ?? 0) >= listingPrice;
 
   if (!item) return <div className="container-page py-10">Loading…</div>;

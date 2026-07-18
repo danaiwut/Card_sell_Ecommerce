@@ -6,10 +6,10 @@ RUN corepack enable
 WORKDIR /app
 
 FROM base AS build
-COPY pnpm-workspace.yaml package.json tsconfig.base.json ./
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/worker ./apps/worker
-RUN pnpm install --frozen-lockfile=false
+RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @cardverse/shared build \
   && pnpm --filter @cardverse/db generate \
   && pnpm --filter @cardverse/db build \

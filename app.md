@@ -91,12 +91,10 @@ cp .env.example .env
 ```bash
 pnpm db:generate
 pnpm db:push
-pnpm db:seed
 ```
 
 - `db:generate` — สร้าง Prisma Client
 - `db:push` — สร้างตารางใน PostgreSQL
-- `db:seed` — ใส่ข้อมูล demo (20 หมวดหมู่, สินค้า, marketplace, trades)
 
 ### 6) สตาร์ท dev server
 
@@ -129,7 +127,6 @@ pnpm dev
 cp .env.example .env
 pnpm db:generate
 pnpm db:push
-pnpm db:seed
 pnpm dev
 ```
 
@@ -169,8 +166,6 @@ pnpm dev
 ```
 
 แล้วเปิด http://localhost:3000
-
-> ไม่ต้อง `db:seed` ซ้ำทุกครั้ง ยกเว้นต้องการ reset ข้อมูล
 
 ---
 
@@ -291,7 +286,7 @@ apps/
   api/       NestJS — REST + Socket.IO (port 4000)
   worker/    BullMQ — งานเบื้องหลัง (escrow, notifications)
 packages/
-  db/        Prisma schema + seed
+  db/        Prisma schema + migrations
   shared/    types, enums, taxonomy 20 หมวด
 docker-compose.yml   PostgreSQL + Redis
 .env.example         ตัวอย่าง env (copy เป็น .env)
@@ -303,7 +298,7 @@ docker-compose.yml   PostgreSQL + Redis
 
 1. `docker compose up -d` — เปิด DB
 2. `cp .env.example .env` — ตั้งค่า env
-3. `pnpm db:generate && pnpm db:push && pnpm db:seed` — เตรียมข้อมูล (ครั้งแรก)
+3. `pnpm db:generate && pnpm db:push` — เตรียม schema (ครั้งแรก)
 4. `pnpm dev` — รันเว็บ (**เปิดทิ้งไว้**)
 5. เปิด **http://localhost:3000**
 

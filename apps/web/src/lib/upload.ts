@@ -7,7 +7,7 @@ interface PresignResponse {
   expiresIn: number;
 }
 
-export async function uploadImageToR2(
+export async function uploadImage(
   file: File,
   folder: "products" | "catalog" | "news" | "avatars" = "products",
 ) {

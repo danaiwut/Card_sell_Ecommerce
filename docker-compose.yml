@@ -1,23 +1,25 @@
 # Local infrastructure for CardVerse development.
-# Run: docker compose up -d   (then: pnpm db:push && pnpm db:seed && pnpm dev)
+# Database: Supabase (cloud) — set DATABASE_URL / DIRECT_URL in .env
+# Run: docker compose up -d   (Redis only; then: pnpm db:push && pnpm dev)
 # App UI: http://localhost:3000
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: cardverse
-    ports:
-      - "5432:5432"
-    volumes:
-      - cardverse_pg:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  # Optional local Postgres — only if you want to develop offline without Supabase.
+  # postgres:
+  #   image: postgres:16-alpine
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: cardverse
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - cardverse_pg:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
 
   redis:
     image: redis:7-alpine
@@ -28,5 +30,5 @@ services:
       - cardverse_redis:/data
 
 volumes:
-  cardverse_pg:
+  # cardverse_pg:
   cardverse_redis:

@@ -10,7 +10,7 @@ import {
   type Rarity,
 } from "@cardverse/shared";
 import { api } from "@/lib/api";
-import { uploadImageToR2 } from "@/lib/upload";
+import { uploadImage } from "@/lib/upload";
 import { CatalogItemPicker } from "./catalog-item-picker";
 
 const INITIAL_FORM = {
@@ -137,7 +137,7 @@ export function AdminProductForm({ onCreated }: { onCreated?: () => void }) {
           onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
         />
         <label className="text-xs font-semibold tracking-wider text-ink/50">
-          Upload image to R2
+          Upload image
           <input
             className="input mt-1"
             type="file"
@@ -148,7 +148,7 @@ export function AdminProductForm({ onCreated }: { onCreated?: () => void }) {
               if (!file) return;
               setUploading(true);
               try {
-                const imageUrl = await uploadImageToR2(file, "products");
+                const imageUrl = await uploadImage(file, "products");
                 setForm((current) => ({ ...current, imageUrl }));
               } finally {
                 setUploading(false);

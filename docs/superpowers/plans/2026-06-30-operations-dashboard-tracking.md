@@ -310,7 +310,7 @@ Picker behavior:
 Fields:
 
 - `name`, `subtitle`, `description`, `type`, `price`, `stock`, `rarity`
-- `imageUrl`, image upload via existing R2 helper
+- `imageUrl`, image upload via existing Supabase Storage helper
 - `isPreOrder`, `isFeatured`, `isTrending`, `isNewArrival`
 - selected `catalogItemId`
 
