@@ -1,7 +1,9 @@
 import type {
   Carrier,
   CardCondition,
+  ListingItemType,
   MarketplaceOrderStatus,
+  OfferStatus,
   ProductType,
   Rarity,
   ShipmentStatus,
@@ -47,14 +49,36 @@ export interface ProductDto {
 export interface ListingDto {
   id: string;
   price: number;
+  itemType: ListingItemType;
   condition: CardCondition;
+  grade: number | null;
+  imageUrls: string[];
   quantity: number;
+  description?: string | null;
+  status?: string;
   catalogItem: CatalogItemDto;
   seller: {
     id: string;
     displayName: string;
     rating: number;
     ratingCount: number;
+  };
+}
+
+export interface ListingOfferDto {
+  id: string;
+  listingId: string;
+  amount: number;
+  message: string | null;
+  status: OfferStatus;
+  rejectReason: string | null;
+  createdAt: string;
+  buyer: { id: string; displayName: string };
+  listing: {
+    id: string;
+    price: number;
+    itemType: ListingItemType;
+    catalogItem: Pick<CatalogItemDto, "id" | "name" | "slug" | "imageUrl">;
   };
 }
 

@@ -114,6 +114,11 @@ enum OfferStatus {
   WITHDRAWN
 }
 
+enum ListingItemType {
+  SINGLE_CARD
+  BOX
+}
+
 enum NotificationType {
   ORDER_UPDATE
   SHIPMENT_UPDATE
@@ -503,16 +508,19 @@ model Coupon {
 // ---------------------------------------------------------------------------
 
 model Listing {
-  id            String        @id @default(cuid())
+  id            String           @id @default(cuid())
   catalogItemId String
-  catalogItem   CatalogItem   @relation(fields: [catalogItemId], references: [id])
+  catalogItem   CatalogItem      @relation(fields: [catalogItemId], references: [id])
   sellerId      String
-  seller        User          @relation(fields: [sellerId], references: [id])
+  seller        User             @relation(fields: [sellerId], references: [id])
+  itemType      ListingItemType  @default(SINGLE_CARD)
   price         Int // satang
-  condition     CardCondition @default(NEAR_MINT)
-  quantity      Int           @default(1)
+  condition     CardCondition    @default(NEAR_MINT)
+  grade         Int? // 1-10 for single cards only
+  imageUrls     String[]         @default([])
+  quantity      Int              @default(1)
   description   String?
-  status        ListingStatus @default(ACTIVE)
+  status        ListingStatus    @default(ACTIVE)
 
   orders MarketplaceOrder[]
   offers ListingOffer[]
@@ -532,9 +540,10 @@ model ListingOffer {
   listing   Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
   buyerId   String
   buyer     User        @relation("OffersMade", fields: [buyerId], references: [id], onDelete: Cascade)
-  amount    Int // satang
-  message   String?
-  status    OfferStatus @default(PENDING)
+  amount       Int // satang
+  message      String?
+  status       OfferStatus @default(PENDING)
+  rejectReason String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

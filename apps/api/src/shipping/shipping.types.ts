@@ -24,3 +24,21 @@ export function orderStatusForShipment(status: ShipmentStatus) {
   if (status === "CANCELLED") return "CANCELLED";
   return null;
 }
+
+const SHIPPED_OR_LATER: ShipmentStatus[] = [
+  "SHIPPED",
+  "LABEL_CREATED",
+  "IN_TRANSIT",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+];
+
+export function assertValidShipmentTransition(
+  current: ShipmentStatus | null | undefined,
+  next: ShipmentStatus,
+) {
+  if (!current || current === "PENDING") return;
+  if (SHIPPED_OR_LATER.includes(current) && next === "FAILED") {
+    throw new Error("SHIPMENT_CANNOT_FAIL_AFTER_SHIPPED");
+  }
+}

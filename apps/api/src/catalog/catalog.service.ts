@@ -66,4 +66,70 @@ export class CatalogService {
     if (!item) throw new NotFoundException("Catalog item not found");
     return serializeCatalogItem(item);
   }
+
+  async catalogOptions() {
+    const [categories, subcategories, brands, sets] = await Promise.all([
+      this.prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
+      this.prisma.subcategory.findMany({ orderBy: { name: "asc" } }),
+      this.prisma.brand.findMany({ orderBy: { name: "asc" } }),
+      this.prisma.cardSet.findMany({ orderBy: { name: "asc" } }),
+    ]);
+
+    return {
+      categories: categories.map((c) => ({
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        nameTh: c.nameTh,
+      })),
+      subcategories: subcategories.map((s) => ({
+        id: s.id,
+        categoryId: s.categoryId,
+        slug: s.slug,
+        name: s.name,
+      })),
+      brands: brands.map((b) => ({
+        id: b.id,
+        categoryId: b.categoryId,
+        slug: b.slug,
+        name: b.name,
+      })),
+      sets: sets.map((s) => ({
+        id: s.id,
+        slug: s.slug,
+        name: s.name,
+        releaseDate: s.releaseDate?.toISOString() ?? null,
+      })),
+    };
+  }
+
+  async createCatalogItem(data: {
+    name: string;
+    categoryId: string;
+    subcategoryId?: string;
+    brandId?: string;
+    setId?: string;
+    rarity?: string;
+    cardNumber?: string;
+    imageUrl?: string;
+    images?: string[];
+  }) {
+    const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const item = await this.prisma.catalogItem.create({
+      data: {
+        slug,
+        name: data.name,
+        categoryId: data.categoryId,
+        subcategoryId: data.subcategoryId,
+        brandId: data.brandId,
+        setId: data.setId,
+        rarity: data.rarity as any,
+        cardNumber: data.cardNumber,
+        imageUrl: data.imageUrl,
+        images: data.images ?? [],
+      },
+      include: catalogItemInclude,
+    });
+    return serializeCatalogItem(item);
+  }
 }

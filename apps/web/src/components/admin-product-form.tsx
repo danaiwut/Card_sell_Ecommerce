@@ -87,20 +87,28 @@ export function AdminProductForm({ onCreated }: { onCreated?: () => void }) {
           onChange={(event) => setForm({ ...form, description: event.target.value })}
         />
         <div className="grid grid-cols-2 gap-3">
-          <input
-            className="input"
-            placeholder="ราคา"
-            type="number"
-            value={form.price}
-            onChange={(event) => setForm({ ...form, price: event.target.value })}
-          />
-          <input
-            className="input"
-            placeholder="สต็อก"
-            type="number"
-            value={form.stock}
-            onChange={(event) => setForm({ ...form, stock: event.target.value })}
-          />
+          <div>
+            <label className="text-xs font-semibold tracking-wider text-ink/50">ราคาขาย (฿)</label>
+            <p className="text-xs text-ink/40">ราคาที่ลูกค้าเห็นบนหน้าร้าน หน่วยบาท</p>
+            <input
+              className="input mt-1"
+              placeholder="เช่น 299"
+              type="number"
+              value={form.price}
+              onChange={(event) => setForm({ ...form, price: event.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold tracking-wider text-ink/50">จำนวนคงเหลือ (Stock)</label>
+            <p className="text-xs text-ink/40">จำนวนชิ้นที่พร้อมขาย ลดอัตโนมัติเมื่อมีออเดอร์</p>
+            <input
+              className="input mt-1"
+              placeholder="เช่น 10"
+              type="number"
+              value={form.stock}
+              onChange={(event) => setForm({ ...form, stock: event.target.value })}
+            />
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <select

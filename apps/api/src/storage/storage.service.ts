@@ -29,7 +29,7 @@ export class StorageService {
     fileName: string;
     contentType: string;
     size: number;
-    folder?: "products" | "catalog" | "news" | "avatars";
+    folder?: "products" | "catalog" | "news" | "avatars" | "listings";
   }) {
     if (!this.client || !this.supabaseUrl) {
       throw new BadRequestException(

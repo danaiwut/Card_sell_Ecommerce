@@ -58,14 +58,46 @@ export function serializeListing(l: any): ListingDto {
   return {
     id: l.id,
     price: toBaht(l.price),
+    itemType: l.itemType ?? "SINGLE_CARD",
     condition: l.condition,
+    grade: l.grade ?? null,
+    imageUrls: l.imageUrls ?? [],
     quantity: l.quantity,
+    description: l.description ?? null,
+    status: l.status,
     catalogItem: serializeCatalogItem(l.catalogItem),
     seller: {
       id: l.seller.id,
       displayName: l.seller.displayName,
       rating: l.seller.sellerRating,
       ratingCount: l.seller.sellerRatingCount,
+    },
+  };
+}
+
+export function serializeListingOffer(o: any) {
+  return {
+    id: o.id,
+    listingId: o.listingId,
+    amount: toBaht(o.amount),
+    message: o.message ?? null,
+    status: o.status,
+    rejectReason: o.rejectReason ?? null,
+    createdAt: o.createdAt.toISOString(),
+    buyer: {
+      id: o.buyer.id,
+      displayName: o.buyer.displayName,
+    },
+    listing: {
+      id: o.listing.id,
+      price: toBaht(o.listing.price),
+      itemType: o.listing.itemType ?? "SINGLE_CARD",
+      catalogItem: {
+        id: o.listing.catalogItem.id,
+        name: o.listing.catalogItem.name,
+        slug: o.listing.catalogItem.slug,
+        imageUrl: o.listing.catalogItem.imageUrl ?? null,
+      },
     },
   };
 }

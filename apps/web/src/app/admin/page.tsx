@@ -2,12 +2,13 @@
 
 import { useState, Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { NEWS_KIND } from "@cardverse/shared";
+import { NEWS_KIND, type CatalogItemDto } from "@cardverse/shared";
 import { useSession, type AppSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { formatBaht, formatDate } from "@/lib/format";
 import { ResponsiveTable } from "@/components/responsive-table";
 import { AdminProductForm } from "@/components/admin-product-form";
+import { CatalogItemPicker } from "@/components/catalog-item-picker";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { ShipmentUpdateForm, type ShipmentUpdatePayload } from "@/components/shipment-update-form";
 import { TrackingTimeline } from "@/components/tracking-timeline";
@@ -164,20 +165,26 @@ function Products() {
           <div className="card p-4">
             <p className="text-sm font-semibold">แก้ไข: {editing.name}</p>
             <div className="mt-3 grid gap-2">
-              <input
-                className="input"
-                type="number"
-                placeholder="Price (฿)"
-                defaultValue={editing.price}
-                id="edit-price"
-              />
-              <input
-                className="input"
-                type="number"
-                placeholder="Stock"
-                defaultValue={editing.stock}
-                id="edit-stock"
-              />
+              <div>
+                <label className="text-xs font-semibold text-ink/50">ราคาขาย (฿)</label>
+                <input
+                  className="input mt-1"
+                  type="number"
+                  placeholder="ราคาที่ลูกค้าเห็น"
+                  defaultValue={editing.price}
+                  id="edit-price"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-ink/50">จำนวนคงเหลือ (Stock)</label>
+                <input
+                  className="input mt-1"
+                  type="number"
+                  placeholder="จำนวนพร้อมขาย"
+                  defaultValue={editing.stock}
+                  id="edit-stock"
+                />
+              </div>
               <button
                 className="btn-primary"
                 disabled={update.isPending}
@@ -205,17 +212,31 @@ function Products() {
 }
 
 function Catalog() {
+  const [catalogItem, setCatalogItem] = useState<CatalogItemDto | null>(null);
+
   const { data } = useQuery({
     queryKey: ["admin-catalog-options"],
     queryFn: () => api.get<any>("/admin/catalog-options", true),
   });
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <CatalogCard title="Categories" items={(data?.categories ?? []).map((item: any) => item.name)} />
-      <CatalogCard title="Subcategories" items={(data?.subcategories ?? []).map((item: any) => item.name)} />
-      <CatalogCard title="Brands" items={(data?.brands ?? []).map((item: any) => item.name)} />
-      <CatalogCard title="Sets" items={(data?.sets ?? []).map((item: any) => item.name)} />
+    <div className="space-y-6">
+      <div className="card p-4">
+        <p className="text-sm font-semibold">เพิ่ม Catalog Item</p>
+        <p className="mt-1 text-xs text-ink/50">สร้าง catalog ใหม่พร้อมอัปโหลดรูปจากเครื่อง</p>
+        <div className="mt-4">
+          <CatalogItemPicker value={catalogItem} onChange={setCatalogItem} />
+        </div>
+        {catalogItem && (
+          <p className="mt-3 text-sm text-green-700">สร้างแล้ว: {catalogItem.name}</p>
+        )}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <CatalogCard title="Categories" items={(data?.categories ?? []).map((item: any) => item.name)} />
+        <CatalogCard title="Subcategories" items={(data?.subcategories ?? []).map((item: any) => item.name)} />
+        <CatalogCard title="Brands" items={(data?.brands ?? []).map((item: any) => item.name)} />
+        <CatalogCard title="Sets" items={(data?.sets ?? []).map((item: any) => item.name)} />
+      </div>
     </div>
   );
 }
@@ -568,6 +589,7 @@ function ShopOrderRow({ order, onChange }: { order: any; onChange: () => void })
             initialCarrier={order.shipment?.carrier}
             initialTrackingNumber={order.shipment?.trackingNumber}
             initialStatus={order.shipment?.status ?? "IN_TRANSIT"}
+            currentStatus={order.shipment?.status ?? "PENDING"}
             onSubmit={(payload) => ship.mutate(payload)}
           />
           {["PAID", "PROCESSING"].includes(order.status) && (
@@ -661,6 +683,7 @@ function ShippingQueue() {
             initialCarrier={row.carrier}
             initialTrackingNumber={row.trackingNumber}
             initialStatus={row.shipmentStatus ?? "IN_TRANSIT"}
+            currentStatus={row.shipmentStatus ?? "PENDING"}
             onSubmit={(payload) => update.mutate({ row, payload })}
           />
         </div>

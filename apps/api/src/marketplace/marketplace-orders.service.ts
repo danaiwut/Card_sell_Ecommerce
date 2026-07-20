@@ -35,7 +35,7 @@ export class MarketplaceOrdersService {
   ) {}
 
   /** Step 1: buyer initiates purchase; escrow PaymentIntent is created. */
-  async buy(buyerId: string, listingId: string) {
+  async buy(buyerId: string, listingId: string, offerId?: string) {
     const listing = await this.prisma.listing.findUnique({
       where: { id: listingId },
       include: { seller: true },
@@ -48,7 +48,20 @@ export class MarketplaceOrdersService {
       throw new BadRequestException("ไม่สามารถซื้อประกาศของตัวเองได้");
     }
 
-    const amount = listing.price;
+    let amount = listing.price;
+    if (offerId) {
+      const offer = await this.prisma.listingOffer.findUnique({ where: { id: offerId } });
+      if (
+        !offer ||
+        offer.listingId !== listingId ||
+        offer.buyerId !== buyerId ||
+        offer.status !== "ACCEPTED"
+      ) {
+        throw new BadRequestException("ข้อเสนอราคานี้ไม่สามารถใช้ซื้อได้");
+      }
+      amount = offer.amount;
+    }
+
     const platformFee = Math.round((amount * FEE_PERCENT) / 100);
     const sellerPayout = amount - platformFee;
 

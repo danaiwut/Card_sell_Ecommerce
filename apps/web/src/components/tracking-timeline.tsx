@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo } from "react";
 import { CheckCircle2, Circle, PackageCheck, Truck } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { ShipmentStatusBadge, shipmentStatusLabel } from "./shipment-status-badge";
@@ -17,6 +20,26 @@ const DEFAULT_STEPS = [
   "DELIVERED",
 ];
 
+function stepTimestamp(
+  stepIndex: number,
+  steps: string[],
+  eventsByStatus: Map<string, ShipmentEventView>,
+  currentIndex: number,
+): string | null {
+  const direct = eventsByStatus.get(steps[stepIndex]);
+  if (direct) return formatDate(direct.at);
+
+  if (stepIndex <= currentIndex) {
+    for (let i = stepIndex + 1; i < steps.length; i++) {
+      const later = eventsByStatus.get(steps[i]);
+      if (later) return formatDate(later.at);
+    }
+    const current = eventsByStatus.get(steps[currentIndex]);
+    if (current) return formatDate(current.at);
+  }
+  return null;
+}
+
 export function TrackingTimeline({
   events,
   currentStatus,
@@ -25,7 +48,10 @@ export function TrackingTimeline({
   currentStatus?: string | null;
 }) {
   const currentIndex = Math.max(DEFAULT_STEPS.indexOf(currentStatus ?? "PENDING"), 0);
-  const eventsByStatus = new Map(events.map((event) => [event.status, event]));
+  const eventsByStatus = useMemo(
+    () => new Map(events.map((event) => [event.status, event])),
+    [events],
+  );
 
   return (
     <div className="card p-5">
@@ -42,6 +68,7 @@ export function TrackingTimeline({
           const event = eventsByStatus.get(step);
           const complete = index <= currentIndex;
           const active = step === currentStatus;
+          const timestamp = stepTimestamp(index, DEFAULT_STEPS, eventsByStatus, currentIndex);
           return (
             <li key={step} className="relative flex gap-3">
               {index < DEFAULT_STEPS.length - 1 && (
@@ -63,7 +90,7 @@ export function TrackingTimeline({
                   {shipmentStatusLabel(step)}
                 </p>
                 <p className="mt-0.5 text-xs text-ink/50">
-                  {event ? formatDate(event.at) : active ? "กำลังดำเนินการ" : "รออัปเดต"}
+                  {timestamp ?? (complete ? "—" : "")}
                 </p>
                 {event?.note && (
                   <p className="mt-2 rounded-md bg-ink/[0.03] px-3 py-2 text-sm text-ink/70">

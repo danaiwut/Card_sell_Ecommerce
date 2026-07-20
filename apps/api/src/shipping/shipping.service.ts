@@ -10,7 +10,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { QueueService } from "../queue/queue.service";
 import { MarketplaceOrdersService } from "../marketplace/marketplace-orders.service";
 import { RealtimeGateway } from "../realtime/realtime.gateway";
-import { normalizeShipmentUpdate, orderStatusForShipment } from "./shipping.types";
+import { assertValidShipmentTransition, normalizeShipmentUpdate, orderStatusForShipment } from "./shipping.types";
 
 @Injectable()
 export class ShippingService {
@@ -40,6 +40,12 @@ export class ShippingService {
     }
     if (!["PAID_HELD", "SHIPPED", "DELIVERED"].includes(order.status)) {
       throw new BadRequestException("คำสั่งซื้อยังไม่พร้อมจัดส่ง");
+    }
+
+    try {
+      assertValidShipmentTransition(order.shipment?.status, input.status ?? "SHIPPED");
+    } catch {
+      throw new BadRequestException("ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งล้มเหลวหลังจากจัดส่งแล้ว");
     }
 
     const shipment = normalizeShipmentUpdate(input);
@@ -124,6 +130,12 @@ export class ShippingService {
       include: { shipment: true },
     });
     if (!order) throw new NotFoundException("Order not found");
+
+    try {
+      assertValidShipmentTransition(order.shipment?.status, input.status ?? "SHIPPED");
+    } catch {
+      throw new BadRequestException("ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งล้มเหลวหลังจากจัดส่งแล้ว");
+    }
 
     const shipment = normalizeShipmentUpdate(input);
     const orderStatus = orderStatusForShipment(shipment.status);

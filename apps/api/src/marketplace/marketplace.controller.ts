@@ -11,6 +11,7 @@ import {
   createListingSchema,
   createOfferSchema,
   marketplaceQuerySchema,
+  rejectOfferSchema,
 } from "@cardverse/shared";
 import { ListingsService } from "./listings.service";
 import { MarketService } from "./market.service";
@@ -56,6 +57,30 @@ export class MarketplaceController {
     return this.listings.createOffer(userId, id, createOfferSchema.parse(body));
   }
 
+  @Get("offers/incoming")
+  incomingOffers(@CurrentUser("id") userId: string) {
+    return this.listings.incomingOffers(userId);
+  }
+
+  @Get("offers/mine")
+  myOffers(@CurrentUser("id") userId: string) {
+    return this.listings.myOffers(userId);
+  }
+
+  @Post("offers/:id/accept")
+  acceptOffer(@CurrentUser("id") userId: string, @Param("id") id: string) {
+    return this.listings.acceptOffer(userId, id);
+  }
+
+  @Post("offers/:id/reject")
+  rejectOffer(
+    @CurrentUser("id") userId: string,
+    @Param("id") id: string,
+    @Body() body: unknown,
+  ) {
+    return this.listings.rejectOffer(userId, id, rejectOfferSchema.parse(body));
+  }
+
   @Public()
   @Get("catalog/:catalogItemId/listings")
   byCatalogItem(@Param("catalogItemId") id: string) {
@@ -77,8 +102,12 @@ export class MarketplaceController {
 
   // --- Escrow orders ---
   @Post("orders/:listingId/buy")
-  buy(@CurrentUser("id") userId: string, @Param("listingId") listingId: string) {
-    return this.orders.buy(userId, listingId);
+  buy(
+    @CurrentUser("id") userId: string,
+    @Param("listingId") listingId: string,
+    @Body() body: { offerId?: string },
+  ) {
+    return this.orders.buy(userId, listingId, body?.offerId);
   }
 
   @Post("orders/:id/confirm")

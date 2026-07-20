@@ -4,14 +4,25 @@ import {
   ForbiddenException,
   BadRequestException,
 } from "@nestjs/common";
-import type { CreateListingInput, CreateOfferInput, MarketplaceQuery } from "@cardverse/shared";
+import type { CreateListingInput, CreateOfferInput, MarketplaceQuery, RejectOfferInput } from "@cardverse/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   catalogItemInclude,
   serializeListing,
+  serializeListingOffer,
   toBaht,
   toSatang,
 } from "../common/serializers";
+
+const offerInclude = {
+  buyer: true,
+  listing: {
+    include: {
+      catalogItem: { include: catalogItemInclude },
+      seller: true,
+    },
+  },
+} as const;
 
 @Injectable()
 export class ListingsService {
@@ -85,7 +96,6 @@ export class ListingsService {
   }
 
   async create(sellerId: string, input: CreateListingInput) {
-    // Sellers MUST reference an existing catalog item (no free-form data).
     const catalogItem = await this.prisma.catalogItem.findUnique({
       where: { id: input.catalogItemId },
     });
@@ -93,7 +103,6 @@ export class ListingsService {
       throw new BadRequestException("เลือกการ์ดจาก catalog ที่มีอยู่เท่านั้น");
     }
 
-    // Enforce Stripe Connect onboarding when Stripe is configured.
     if (process.env.STRIPE_SECRET_KEY) {
       const seller = await this.prisma.user.findUnique({ where: { id: sellerId } });
       if (!seller?.stripeConnectOnboarded) {
@@ -107,8 +116,11 @@ export class ListingsService {
       data: {
         catalogItemId: input.catalogItemId,
         sellerId,
+        itemType: input.itemType,
         price: toSatang(input.price),
-        condition: input.condition,
+        condition: input.condition ?? "NEAR_MINT",
+        grade: input.itemType === "SINGLE_CARD" ? input.grade : null,
+        imageUrls: input.imageUrls ?? [],
         quantity: input.quantity,
         description: input.description,
       },
@@ -128,6 +140,24 @@ export class ListingsService {
       data: { status: "CANCELLED" },
     });
     return { ok: true };
+  }
+
+  async incomingOffers(sellerId: string) {
+    const offers = await this.prisma.listingOffer.findMany({
+      where: { listing: { sellerId } },
+      include: offerInclude,
+      orderBy: { createdAt: "desc" },
+    });
+    return offers.map(serializeListingOffer);
+  }
+
+  async myOffers(buyerId: string) {
+    const offers = await this.prisma.listingOffer.findMany({
+      where: { buyerId },
+      include: offerInclude,
+      orderBy: { createdAt: "desc" },
+    });
+    return offers.map(serializeListingOffer);
   }
 
   async createOffer(buyerId: string, listingId: string, input: CreateOfferInput) {
@@ -163,7 +193,7 @@ export class ListingsService {
         type: "MARKETPLACE_SALE",
         title: "มีข้อเสนอราคาใหม่",
         body: `${buyer?.displayName ?? "ผู้ซื้อ"} เสนอราคา ฿${toBaht(amount).toLocaleString()} สำหรับ ${listing.catalogItem.name}`,
-        link: "/account/sell",
+        link: "/account/offers",
       },
     });
 
@@ -174,5 +204,89 @@ export class ListingsService {
       status: offer.status,
       listingId: offer.listingId,
     };
+  }
+
+  async acceptOffer(sellerId: string, offerId: string) {
+    const offer = await this.prisma.listingOffer.findUnique({
+      where: { id: offerId },
+      include: {
+        buyer: true,
+        listing: { include: { catalogItem: true } },
+      },
+    });
+    if (!offer) throw new NotFoundException("Offer not found");
+    if (offer.listing.sellerId !== sellerId) {
+      throw new ForbiddenException("ไม่ใช่ข้อเสนอของประกาศคุณ");
+    }
+    if (offer.status !== "PENDING") {
+      throw new BadRequestException("ข้อเสนอนี้ดำเนินการไปแล้ว");
+    }
+    if (offer.listing.status !== "ACTIVE") {
+      throw new BadRequestException("ประกาศนี้ปิดแล้ว");
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.listingOffer.update({
+        where: { id: offerId },
+        data: { status: "ACCEPTED" },
+      }),
+      this.prisma.listingOffer.updateMany({
+        where: {
+          listingId: offer.listingId,
+          id: { not: offerId },
+          status: "PENDING",
+        },
+        data: {
+          status: "REJECTED",
+          rejectReason: "มีข้อเสนออื่นที่ผู้ขายยอมรับแล้ว",
+        },
+      }),
+    ]);
+
+    await this.prisma.notification.create({
+      data: {
+        userId: offer.buyerId,
+        type: "MARKETPLACE_SALE",
+        title: "ข้อเสนอราคาได้รับการยอมรับ",
+        body: `คุณสามารถซื้อ ${offer.listing.catalogItem.name} ในราคา ฿${toBaht(offer.amount).toLocaleString()} ได้แล้ว`,
+        link: `/marketplace/${offer.listing.catalogItemId}?offer=${offerId}`,
+      },
+    });
+
+    return { ok: true, offerId };
+  }
+
+  async rejectOffer(sellerId: string, offerId: string, input: RejectOfferInput) {
+    const offer = await this.prisma.listingOffer.findUnique({
+      where: { id: offerId },
+      include: {
+        buyer: true,
+        listing: { include: { catalogItem: true } },
+      },
+    });
+    if (!offer) throw new NotFoundException("Offer not found");
+    if (offer.listing.sellerId !== sellerId) {
+      throw new ForbiddenException("ไม่ใช่ข้อเสนอของประกาศคุณ");
+    }
+    if (offer.status !== "PENDING") {
+      throw new BadRequestException("ข้อเสนอนี้ดำเนินการไปแล้ว");
+    }
+
+    await this.prisma.listingOffer.update({
+      where: { id: offerId },
+      data: { status: "REJECTED", rejectReason: input.reason },
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        userId: offer.buyerId,
+        type: "MARKETPLACE_SALE",
+        title: "ข้อเสนอราคาถูกปฏิเสธ",
+        body: `ผู้ขายปฏิเสธข้อเสนอสำหรับ ${offer.listing.catalogItem.name}: ${input.reason}`,
+        link: `/marketplace/${offer.listing.catalogItemId}`,
+      },
+    });
+
+    return { ok: true };
   }
 }

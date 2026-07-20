@@ -5,19 +5,23 @@ import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CARD_CONDITIONS,
+  LISTING_ITEM_TYPES,
   type CatalogItemDto,
   type ListingDto,
-  type Paginated,
+  type ListingItemType,
 } from "@cardverse/shared";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
 import { AccountLayout } from "@/components/account-layout";
 import { SuccessBanner } from "@/components/success-banner";
+import { CatalogItemPicker } from "@/components/catalog-item-picker";
 import { formatBaht } from "@/lib/format";
+import { uploadImage } from "@/lib/upload";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { ShipmentUpdateForm, type ShipmentUpdatePayload } from "@/components/shipment-update-form";
 import { TrackingTimeline } from "@/components/tracking-timeline";
+import Link from "next/link";
 
 export default function SellPage() {
   return (
@@ -92,11 +96,18 @@ function SellPageInner() {
           {status?.onboarded && <CreateListingForm />}
 
           <section>
-            <h2 className="text-sm font-semibold tracking-wider text-ink/50">MY LISTINGS</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold tracking-wider text-ink/50">MY LISTINGS</h2>
+              <Link href="/account/offers" className="text-xs font-semibold text-gold hover:underline">
+                ดูข้อเสนอราคา →
+              </Link>
+            </div>
             <div className="card mt-3 divide-y divide-ink/5">
               {(listings ?? []).map((l) => (
                 <div key={l.id} className="flex items-center justify-between p-4 text-sm">
-                  <span>{l.catalogItem.name} • {l.condition}</span>
+                  <span>
+                    {l.catalogItem.name} • {l.itemType === "BOX" ? "กล่อง" : `เกรด ${l.grade ?? "—"}`} • {l.condition}
+                  </span>
                   <span className="price">{formatBaht(l.price)}</span>
                 </div>
               ))}
@@ -129,30 +140,38 @@ function SellPageInner() {
 
 function CreateListingForm() {
   const qc = useQueryClient();
-  const [q, setQ] = useState("");
+  const [itemType, setItemType] = useState<ListingItemType>("SINGLE_CARD");
   const [selected, setSelected] = useState<CatalogItemDto | null>(null);
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState<(typeof CARD_CONDITIONS)[number]>("NEAR_MINT");
-
-  const { data: results } = useQuery({
-    queryKey: ["catalog-search", q],
-    queryFn: () => api.get<Paginated<CatalogItemDto>>(`/catalog-items?q=${encodeURIComponent(q)}`),
-    enabled: q.length >= 2,
-  });
+  const [grade, setGrade] = useState("8");
+  const [description, setDescription] = useState("");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const create = useMutation({
     mutationFn: () =>
       api.post("/marketplace/listings", {
         catalogItemId: selected!.id,
+        itemType,
         price: Number(price),
-        condition,
+        condition: itemType === "SINGLE_CARD" ? condition : undefined,
+        grade: itemType === "SINGLE_CARD" ? Number(grade) : undefined,
+        imageUrls: imageUrls.length ? imageUrls : undefined,
+        description: description || undefined,
         quantity: 1,
       }),
     onSuccess: () => {
       setSelected(null);
       setPrice("");
-      setQ("");
+      setDescription("");
+      setImageUrls([]);
+      setSuccessMsg("ลงขายสำเร็จ!");
       qc.invalidateQueries({ queryKey: ["my-listings"] });
+    },
+    onError: (err: Error) => {
+      alert(err.message || "ลงขายไม่สำเร็จ");
     },
   });
 
@@ -160,47 +179,48 @@ function CreateListingForm() {
     <div className="card p-5">
       <h2 className="text-sm font-semibold tracking-wider text-ink/50">สร้างประกาศใหม่</h2>
       <p className="mt-1 text-xs text-ink/50">
-        เลือกการ์ดจาก catalog เท่านั้น (กรอกเองไม่ได้) เพื่อให้ราคาเข้ากราฟได้ถูกต้อง
+        ระบุว่าขายการ์ดใบเดียวหรือกล่อง เลือก catalog ที่มีอยู่หรือสร้างใหม่ พร้อมอัปโหลดรูปเองได้
       </p>
 
-      {!selected ? (
-        <div className="relative mt-3">
-          <input
-            className="input"
-            placeholder="ค้นหาการ์ดใน catalog…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          {(results?.items.length ?? 0) > 0 && (
-            <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-ink/10 bg-white shadow-card">
-              {results!.items.map((it) => (
-                <li key={it.id}>
-                  <button
-                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-cream"
-                    onClick={() => setSelected(it)}
-                  >
-                    <span>{it.name}</span>
-                    <span className="text-xs text-ink/50">{it.setName} • {it.rarity}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+      <div className="mt-4">
+        <label className="text-xs font-semibold tracking-wider text-ink/50">ประเภทสินค้า</label>
+        <div className="mt-2 flex gap-2">
+          {LISTING_ITEM_TYPES.map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                itemType === type ? "bg-ink text-white" : "bg-ink/5 text-ink/60 hover:bg-ink/10"
+              }`}
+              onClick={() => setItemType(type)}
+            >
+              {type === "SINGLE_CARD" ? "การ์ดใบเดียว" : "กล่อง"}
+            </button>
+          ))}
         </div>
-      ) : (
-        <div className="mt-3 flex items-center justify-between rounded-md bg-ink/[0.04] px-3 py-2 text-sm">
-          <span>
-            {selected.name} <span className="text-ink/50">({selected.setName})</span>
-          </span>
-          <button className="text-xs text-gold" onClick={() => setSelected(null)}>
-            เปลี่ยน
-          </button>
-        </div>
+      </div>
+
+      <div className="mt-4">
+        <CatalogItemPicker
+          value={selected}
+          onChange={setSelected}
+          createEndpoint="/catalog-items"
+          optionsEndpoint="/catalog/options"
+          optionsAuth
+          createAuth
+          showRarity={itemType === "SINGLE_CARD"}
+        />
+      </div>
+
+      {itemType === "SINGLE_CARD" && selected?.rarity && (
+        <p className="mt-3 rounded-md bg-gold/10 px-3 py-2 text-sm">
+          ระดับการ์ด (Rarity): <span className="font-semibold">{selected.rarity}</span>
+        </p>
       )}
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-ink/50">ราคา (฿)</label>
+          <label className="text-xs text-ink/50">ราคาขาย (฿)</label>
           <input
             className="input mt-1"
             type="number"
@@ -208,28 +228,97 @@ function CreateListingForm() {
             onChange={(e) => setPrice(e.target.value)}
           />
         </div>
-        <div>
-          <label className="text-xs text-ink/50">สภาพการ์ด</label>
-          <select
-            className="input mt-1"
-            value={condition}
-            onChange={(e) => setCondition(e.target.value as any)}
-          >
-            {CARD_CONDITIONS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
+        {itemType === "SINGLE_CARD" ? (
+          <>
+            <div>
+              <label className="text-xs text-ink/50">เกรดการ์ด (1-10)</label>
+              <p className="text-xs text-ink/40">คะแนนประเมินสภาพการ์ด</p>
+              <select className="input mt-1" value={grade} onChange={(e) => setGrade(e.target.value)}>
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <label className="text-xs text-ink/50">สภาพการ์ด</label>
+              <select
+                className="input mt-1"
+                value={condition}
+                onChange={(e) => setCondition(e.target.value as typeof condition)}
+              >
+                {CARD_CONDITIONS.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+          </>
+        ) : (
+          <div className="col-span-2 text-xs text-ink/50 sm:col-span-1">
+            <p className="mt-6 rounded-md bg-ink/[0.04] px-3 py-2">กล่องไม่ต้องระบุเกรดการ์ด</p>
+          </div>
+        )}
       </div>
+
+      <div className="mt-3">
+        <label className="text-xs text-ink/50">รายละเอียดเพิ่มเติม (ไม่บังคับ)</label>
+        <textarea
+          className="input mt-1 min-h-20"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="อธิบายสภาพหรือรายละเอียดเพิ่มเติม"
+        />
+      </div>
+
+      <div className="mt-3">
+        <label className="text-xs font-semibold tracking-wider text-ink/50">รูปภาพประกาศ (อัปโหลดได้สูงสุด 5 รูป)</label>
+        <input
+          className="input mt-1"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          disabled={uploading || imageUrls.length >= 5}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setUploading(true);
+            try {
+              const url = await uploadImage(file, "listings");
+              setImageUrls((prev) => [...prev, url].slice(0, 5));
+            } finally {
+              setUploading(false);
+              e.target.value = "";
+            }
+          }}
+        />
+        {uploading && <p className="mt-1 text-xs text-ink/50">กำลังอัปโหลด...</p>}
+        {imageUrls.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {imageUrls.map((url) => (
+              <div key={url} className="relative">
+                <img src={url} alt="" className="h-16 w-16 rounded-md object-cover" />
+                <button
+                  type="button"
+                  className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 text-xs text-white"
+                  onClick={() => setImageUrls((prev) => prev.filter((u) => u !== url))}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <button
         className="btn-primary mt-4"
         disabled={!selected || !price || create.isPending}
-        onClick={() => create.mutate()}
+        onClick={() => {
+          setSuccessMsg(null);
+          create.mutate();
+        }}
       >
-        ลงขาย
+        {create.isPending ? "กำลังลงขาย..." : "ลงขาย"}
       </button>
+      {successMsg && <p className="mt-2 text-sm text-green-600">{successMsg}</p>}
     </div>
   );
 }
@@ -289,6 +378,7 @@ function SaleRow({ sale }: { sale: any }) {
                 initialCarrier={sale.shipment?.carrier}
                 initialTrackingNumber={sale.shipment?.trackingNumber}
                 initialStatus={sale.shipment?.status ?? "SHIPPED"}
+                currentStatus={sale.shipment?.status ?? "PENDING"}
                 onSubmit={(payload) => ship.mutate(payload)}
               />
               <p className="mt-3 text-xs leading-relaxed text-ink/50">

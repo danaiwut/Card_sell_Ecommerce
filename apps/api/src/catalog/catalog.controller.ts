@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { createCatalogItemSchema } from "@cardverse/shared";
 import { CatalogService } from "./catalog.service";
-import { Public } from "../auth/decorators";
+import { CurrentUser, Public } from "../auth/decorators";
 
 @Controller()
 export class CatalogController {
@@ -32,5 +33,15 @@ export class CatalogController {
   @Get("catalog-items/:slug")
   catalogItem(@Param("slug") slug: string) {
     return this.catalog.getCatalogItem(slug);
+  }
+
+  @Get("catalog/options")
+  catalogOptions() {
+    return this.catalog.catalogOptions();
+  }
+
+  @Post("catalog-items")
+  createCatalogItem(@Body() body: unknown) {
+    return this.catalog.createCatalogItem(createCatalogItemSchema.parse(body));
   }
 }

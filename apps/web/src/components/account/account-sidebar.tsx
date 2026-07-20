@@ -27,8 +27,8 @@ const LINKS = [
   { href: "/account/purchases", label: "Purchases", icon: Store },
   { href: "/account/shipments", label: "Shipments", icon: Truck },
   { href: "/account/sell", label: "Sell", icon: Tag },
+  { href: "/account/offers", label: "Offers", icon: Tag, shortLabel: "Offers" },
   { href: "/account/withdraw", label: "Withdraw", icon: Banknote },
-  { href: "/account/settings", label: "Settings", icon: Settings },
 ];
 
 function NavLinks({
@@ -108,7 +108,7 @@ export function AccountSidebar() {
 
   const { data: me } = useQuery({
     queryKey: ["me", session?.userId],
-    queryFn: () => api.get<{ displayName: string; email: string }>("/users/me", true),
+    queryFn: () => api.get<{ displayName: string; email: string; avatarUrl?: string | null }>("/users/me", true),
     enabled: Boolean(session),
   });
 
@@ -122,9 +122,13 @@ export function AccountSidebar() {
     <>
       <div className="lg:hidden">
         <div className="card flex items-center gap-3 p-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-lg font-semibold text-white">
-            {me?.displayName?.charAt(0)?.toUpperCase() ?? "👤"}
-          </div>
+          {me?.avatarUrl ? (
+            <img src={me.avatarUrl} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+          ) : (
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-lg font-semibold text-white">
+              {me?.displayName?.charAt(0)?.toUpperCase() ?? "👤"}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold">{me?.displayName ?? "บัญชีของฉัน"}</p>
             <p className="truncate text-xs text-ink/50">{me?.email}</p>
@@ -142,9 +146,17 @@ export function AccountSidebar() {
 
       <aside className="hidden h-fit overflow-hidden rounded-xl border border-ink/10 bg-white shadow-card lg:block">
         <div className="bg-ink px-5 py-6 text-center text-white">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/10 text-2xl">
-            {me?.displayName?.charAt(0)?.toUpperCase() ?? "👤"}
-          </div>
+          {me?.avatarUrl ? (
+            <img
+              src={me.avatarUrl}
+              alt=""
+              className="mx-auto h-16 w-16 rounded-full object-cover ring-2 ring-white/20"
+            />
+          ) : (
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/10 text-2xl">
+              {me?.displayName?.charAt(0)?.toUpperCase() ?? "👤"}
+            </div>
+          )}
           <p className="mt-3 font-semibold">{me?.displayName ?? "บัญชีของฉัน"}</p>
           {me?.email && <p className="mt-0.5 text-xs text-white/50">{me.email}</p>}
           <span className="mt-2 inline-block rounded-full bg-gold/20 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-gold">
@@ -159,6 +171,13 @@ export function AccountSidebar() {
 
         <nav className="p-3 text-sm">
           <NavLinks pathname={pathname} variant="desktop" />
+          <Link
+            href="/account/settings"
+            className="mt-1 flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-ink/60 transition hover:bg-ink/5 hover:text-ink"
+          >
+            <Settings size={15} className="text-ink/30" />
+            ตั้งค่า & ที่อยู่
+          </Link>
           <div className="my-2 border-t border-ink/10" />
           <button
             onClick={logout}

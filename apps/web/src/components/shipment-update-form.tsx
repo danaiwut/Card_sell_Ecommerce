@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { CARRIERS, SHIPMENT_STATUS } from "@cardverse/shared";
+import { useMemo, useState } from "react";
+import { CARRIERS, SHIPMENT_STATUS, type ShipmentStatus } from "@cardverse/shared";
 
 export interface ShipmentUpdatePayload {
   carrier: (typeof CARRIERS)[number];
@@ -10,12 +10,21 @@ export interface ShipmentUpdatePayload {
   note?: string;
 }
 
+const SHIPPED_OR_LATER: ShipmentStatus[] = [
+  "SHIPPED",
+  "LABEL_CREATED",
+  "IN_TRANSIT",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+];
+
 export function ShipmentUpdateForm({
   onSubmit,
   pending,
   initialCarrier = "THAILAND_POST",
   initialTrackingNumber = "",
   initialStatus = "SHIPPED",
+  currentStatus,
   submitLabel = "อัปเดตการจัดส่ง",
 }: {
   onSubmit: (payload: ShipmentUpdatePayload) => void;
@@ -23,6 +32,7 @@ export function ShipmentUpdateForm({
   initialCarrier?: (typeof CARRIERS)[number] | null;
   initialTrackingNumber?: string | null;
   initialStatus?: (typeof SHIPMENT_STATUS)[number] | null;
+  currentStatus?: (typeof SHIPMENT_STATUS)[number] | null;
   submitLabel?: string;
 }) {
   const [carrier, setCarrier] = useState<(typeof CARRIERS)[number]>(
@@ -33,6 +43,16 @@ export function ShipmentUpdateForm({
     initialStatus ?? "SHIPPED",
   );
   const [note, setNote] = useState("");
+
+  const statusOptions = useMemo(() => {
+    const blockedAfterShip =
+      currentStatus && SHIPPED_OR_LATER.includes(currentStatus as ShipmentStatus);
+    return SHIPMENT_STATUS.filter((value) => {
+      if (value === "PENDING") return false;
+      if (blockedAfterShip && value === "FAILED") return false;
+      return true;
+    });
+  }, [currentStatus]);
 
   return (
     <div className="grid gap-3 rounded-lg border border-ink/10 bg-white p-3 sm:grid-cols-2">
@@ -66,7 +86,7 @@ export function ShipmentUpdateForm({
           value={status}
           onChange={(event) => setStatus(event.target.value as (typeof SHIPMENT_STATUS)[number])}
         >
-          {SHIPMENT_STATUS.filter((value) => value !== "PENDING").map((value) => (
+          {statusOptions.map((value) => (
             <option key={value} value={value}>
               {value}
             </option>

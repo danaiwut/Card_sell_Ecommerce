@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CARD_CONDITIONS,
   CARRIERS,
+  LISTING_ITEM_TYPES,
   NEWS_KIND,
   PRODUCT_TYPES,
   RARITIES,
@@ -35,15 +36,48 @@ export const marketplaceQuerySchema = paginationSchema.extend({
 });
 export type MarketplaceQuery = z.infer<typeof marketplaceQuerySchema>;
 
-export const createListingSchema = z.object({
-  // sellers must reference an existing CatalogItem — no free-form card data
-  catalogItemId: z.string().min(1, "เลือกการ์ดจาก catalog"),
-  price: z.number().positive("ราคาต้องมากกว่า 0"),
-  condition: z.enum(CARD_CONDITIONS),
-  quantity: z.number().int().min(1).default(1),
-  description: z.string().max(2000).optional(),
-});
+export const createListingSchema = z
+  .object({
+    catalogItemId: z.string().min(1, "เลือกการ์ดจาก catalog"),
+    itemType: z.enum(LISTING_ITEM_TYPES).default("SINGLE_CARD"),
+    price: z.number().positive("ราคาต้องมากกว่า 0"),
+    condition: z.enum(CARD_CONDITIONS).optional(),
+    grade: z.number().int().min(1).max(10).optional(),
+    imageUrls: z.array(z.string().url()).max(5).optional(),
+    quantity: z.number().int().min(1).default(1),
+    description: z.string().max(2000).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.itemType === "SINGLE_CARD") {
+      if (data.grade == null) {
+        ctx.addIssue({ code: "custom", message: "กรุณาระบุเกรดการ์ด 1-10", path: ["grade"] });
+      }
+      if (!data.condition) {
+        ctx.addIssue({ code: "custom", message: "กรุณาเลือกสภาพการ์ด", path: ["condition"] });
+      }
+    } else if (data.grade != null) {
+      ctx.addIssue({ code: "custom", message: "กล่องไม่ต้องระบุเกรด", path: ["grade"] });
+    }
+  });
 export type CreateListingInput = z.infer<typeof createListingSchema>;
+
+export const createCatalogItemSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  categoryId: z.string().min(1),
+  subcategoryId: z.string().optional(),
+  brandId: z.string().optional(),
+  setId: z.string().optional(),
+  rarity: z.enum(RARITIES).optional(),
+  cardNumber: z.string().trim().max(40).optional(),
+  imageUrl: z.string().trim().url().optional(),
+  images: z.array(z.string().url()).optional(),
+});
+export type CreateCatalogItemInput = z.infer<typeof createCatalogItemSchema>;
+
+export const rejectOfferSchema = z.object({
+  reason: z.string().trim().min(1, "กรุณาระบุเหตุผล").max(500),
+});
+export type RejectOfferInput = z.infer<typeof rejectOfferSchema>;
 
 export const addToCartSchema = z.object({
   productId: z.string().min(1),

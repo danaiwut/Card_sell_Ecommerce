@@ -39,6 +39,17 @@ export const LISTING_STATUS = [
 ] as const;
 export type ListingStatus = (typeof LISTING_STATUS)[number];
 
+export const LISTING_ITEM_TYPES = ["SINGLE_CARD", "BOX"] as const;
+export type ListingItemType = (typeof LISTING_ITEM_TYPES)[number];
+
+export const OFFER_STATUSES = [
+  "PENDING",
+  "ACCEPTED",
+  "REJECTED",
+  "WITHDRAWN",
+] as const;
+export type OfferStatus = (typeof OFFER_STATUSES)[number];
+
 /**
  * Marketplace escrow order lifecycle.
  * PENDING_PAYMENT -> PAID_HELD -> SHIPPED -> DELIVERED -> COMPLETED

@@ -9,14 +9,18 @@ interface PresignResponse {
 
 export async function uploadImage(
   file: File,
-  folder: "products" | "catalog" | "news" | "avatars" = "products",
+  folder: "products" | "catalog" | "news" | "avatars" | "listings" = "products",
 ) {
-  const presign = await api.post<PresignResponse>("/storage/presign", {
-    fileName: file.name,
-    contentType: file.type,
-    size: file.size,
-    folder,
-  });
+  const presign = await api.post<PresignResponse>(
+    "/storage/presign",
+    {
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      folder,
+    },
+    true,
+  );
 
   const upload = await fetch(presign.uploadUrl, {
     method: "PUT",

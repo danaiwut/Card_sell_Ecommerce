@@ -11,6 +11,7 @@ import {
   SOCKET_EVENTS,
   type CatalogItemDto,
   type ListingDto,
+  type ListingOfferDto,
   type MarketStatsDto,
   type Paginated,
   type TradeDto,
@@ -48,6 +49,7 @@ export default function CatalogDetailPage({
 }) {
   const { catalogItemId } = use(params);
   const listingId = useSearchParams().get("listing");
+  const offerId = useSearchParams().get("offer");
   const { t } = useI18n();
   const { session } = useSession();
   const router = useRouter();
@@ -111,12 +113,25 @@ export default function CatalogDetailPage({
       .slice(0, 4);
   }, [similarListings, catalogItemId]);
 
-  const listingPrice = activeListing?.price ?? 0;
+  const { data: acceptedOffer } = useQuery({
+    queryKey: ["offer", offerId, session?.userId],
+    queryFn: async () => {
+      const offers = await api.get<ListingOfferDto[]>("/marketplace/offers/mine", true);
+      return offers.find((o) => o.id === offerId) ?? null;
+    },
+    enabled: Boolean(session && offerId),
+  });
+
+  const listingPrice =
+    acceptedOffer?.status === "ACCEPTED" && acceptedOffer.listingId === activeListing?.id
+      ? acceptedOffer.amount
+      : (activeListing?.price ?? 0);
 
   const buy = useMutation({
     mutationFn: () =>
       api.post<{ orderId: string; mock: boolean; clientSecret: string | null }>(
         `/marketplace/orders/${activeListing!.id}/buy`,
+        offerId && acceptedOffer?.status === "ACCEPTED" ? { offerId } : undefined,
       ),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["catalog-listings", catalogItemId] });
