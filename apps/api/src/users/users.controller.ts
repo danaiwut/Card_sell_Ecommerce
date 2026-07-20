@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
 import { addressSchema } from "@cardverse/shared";
+import { parseZod } from "../common/parse-zod";
 import { UsersService } from "./users.service";
 import { CurrentUser } from "../auth/decorators";
 
@@ -27,7 +28,7 @@ export class UsersController {
 
   @Post("me/addresses")
   addAddress(@CurrentUser("id") userId: string, @Body() body: unknown) {
-    return this.users.addAddress(userId, addressSchema.parse(body));
+    return this.users.addAddress(userId, parseZod(addressSchema, body));
   }
 
   @Patch("me/addresses/:id")
@@ -36,7 +37,7 @@ export class UsersController {
     @Param("id") addressId: string,
     @Body() body: unknown,
   ) {
-    return this.users.updateAddress(userId, addressId, addressSchema.partial().parse(body));
+    return this.users.updateAddress(userId, addressId, parseZod(addressSchema.partial(), body));
   }
 
   @Delete("me/addresses/:id")

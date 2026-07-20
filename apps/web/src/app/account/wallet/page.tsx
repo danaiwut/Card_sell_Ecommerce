@@ -17,6 +17,7 @@ export default function WalletPage() {
   const qc = useQueryClient();
   const [amount, setAmount] = useState(500);
   const [custom, setCustom] = useState("");
+  const [topUpNote, setTopUpNote] = useState("");
 
   const { data: wallet } = useQuery({
     queryKey: ["wallet", session?.userId],
@@ -41,12 +42,28 @@ export default function WalletPage() {
     enabled: Boolean(session),
   });
 
+  const { data: topUpRequests } = useQuery({
+    queryKey: ["wallet-top-up-requests", session?.userId],
+    queryFn: () =>
+      api.get<
+        {
+          id: string;
+          amount: number;
+          status: string;
+          note: string | null;
+          managerNote: string | null;
+          createdAt: string;
+        }[]
+      >("/wallet/top-up-requests", true),
+    enabled: Boolean(session),
+  });
+
   const topUp = useMutation({
-    mutationFn: (amt: number) => api.post("/wallet/top-up", { amount: amt }),
+    mutationFn: (amt: number) => api.post("/wallet/top-up", { amount: amt, note: topUpNote || undefined }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["wallet"] });
-      qc.invalidateQueries({ queryKey: ["wallet-transactions"] });
+      qc.invalidateQueries({ queryKey: ["wallet-top-up-requests"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
+      setTopUpNote("");
     },
   });
 
@@ -97,10 +114,10 @@ export default function WalletPage() {
           <div className="mt-6 card p-6">
             <h2 className="flex items-center gap-2 font-semibold">
               <Plus size={18} className="text-gold" />
-              เติมเครดิต (Demo)
+              ขอเติมเครดิต
             </h2>
             <p className="mt-1 text-sm text-ink/50">
-              โหมด Demo — เติมเครดิตทันทีโดยไม่ผ่าน payment gateway จริง
+              ส่งคำขอเติมเครดิต — แอดมินตรวจสอบและอนุมัติก่อนเครดิตเข้ากระเป๋า
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {TOP_UP_PRESETS.map((p) => (
@@ -136,14 +153,25 @@ export default function WalletPage() {
                 disabled={topUp.isPending || topUpAmount < 10}
                 onClick={() => topUp.mutate(topUpAmount)}
               >
-                {topUp.isPending ? "กำลังเติม…" : `เติม ฿${topUpAmount.toLocaleString()}`}
+                {topUp.isPending ? "กำลังส่งคำขอ…" : `ขอเติม ฿${topUpAmount.toLocaleString()}`}
               </button>
             </div>
+            <input
+              className="input mt-3"
+              placeholder="หมายเหตุ (เช่น โอนแล้วเมื่อไหร่, เลขอ้างอิง)"
+              value={topUpNote}
+              onChange={(e) => setTopUpNote(e.target.value)}
+            />
             {topUp.isError && (
-              <p className="mt-2 text-sm text-red-600">เติมเครดิตไม่สำเร็จ กรุณาลองใหม่</p>
+              <p className="mt-2 text-sm text-red-600">ส่งคำขอไม่สำเร็จ กรุณาลองใหม่</p>
             )}
             {topUp.isSuccess && (
-              <p className="mt-2 text-sm text-green-600">เติมเครดิตสำเร็จ!</p>
+              <p className="mt-2 text-sm text-green-600">ส่งคำขอเติมเครดิตแล้ว — รอแอดมินอนุมัติ</p>
+            )}
+            {(topUpRequests ?? []).some((r) => r.status === "PENDING") && (
+              <p className="mt-2 text-sm text-amber-700">
+                มีคำขอเติมเครดิตรออนุมัติอยู่
+              </p>
             )}
           </div>
 

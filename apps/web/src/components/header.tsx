@@ -7,7 +7,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
-import { Bell, Heart, Menu, ShoppingCart, User, X } from "lucide-react";
+import { Bell, Menu, ShoppingCart, User, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 import { isClerkEnabled } from "@/lib/clerk-config";
@@ -32,21 +32,22 @@ export function Header() {
     setMounted(true);
   }, []);
 
-  const { data: cart } = useQuery({
-    queryKey: ["cart-count", session?.userId],
+  const { data: cartCount = 0 } = useQuery({
+    queryKey: ["cart", session?.userId],
     queryFn: () => api.get<{ items: unknown[] }>("/cart", true),
     enabled: Boolean(session),
+    select: (data) => data.items.length,
+    staleTime: 60_000,
   });
 
-  const { data: notifications } = useQuery({
+  const { data: unreadCount = 0 } = useQuery({
     queryKey: ["notifications", session?.userId],
     queryFn: () => api.get<{ unread: number }>("/notifications", true),
     enabled: Boolean(session),
-    refetchInterval: 30_000,
+    select: (data) => data.unread,
+    staleTime: 60_000,
+    refetchInterval: 120_000,
   });
-
-  const unreadCount = notifications?.unread ?? 0;
-  const cartCount = cart?.items?.length ?? 0;
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -186,15 +187,6 @@ export function Header() {
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
-          </Link>
-          <Link
-            href="/account/wishlist"
-            className={cn(
-              "text-ink/60 hover:text-ink",
-              pathname.startsWith("/account/wishlist") && "text-gold",
-            )}
-          >
-            <Heart size={18} />
           </Link>
           <Link href="/cart" className="relative text-ink/60 hover:text-ink">
             <ShoppingCart size={18} />

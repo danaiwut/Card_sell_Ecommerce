@@ -8,7 +8,6 @@ import {
   ShoppingBag,
   Store,
   Tag,
-  Heart,
   Settings,
   LogOut,
   ShieldCheck,
@@ -29,7 +28,6 @@ const LINKS = [
   { href: "/account/shipments", label: "Shipments", icon: Truck },
   { href: "/account/sell", label: "Sell", icon: Tag },
   { href: "/account/withdraw", label: "Withdraw", icon: Banknote },
-  { href: "/account/wishlist", label: "Wishlist", icon: Heart },
   { href: "/account/settings", label: "Settings", icon: Settings },
 ];
 

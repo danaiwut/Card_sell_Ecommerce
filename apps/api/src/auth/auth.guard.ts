@@ -72,7 +72,9 @@ export class AuthGuard implements CanActivate {
 
     const dbUser = await this.prisma.user.upsert({
       where: { clerkId: identity.clerkId },
-      update: { email: identity.email },
+      update: {
+        ...(identity.displayName ? { displayName: identity.displayName } : {}),
+      },
       create: {
         clerkId: identity.clerkId,
         email: identity.email,
@@ -80,6 +82,17 @@ export class AuthGuard implements CanActivate {
         role: identity.role ?? "customer",
       },
     });
+
+    if (dbUser.email !== identity.email) {
+      try {
+        await this.prisma.user.update({
+          where: { id: dbUser.id },
+          data: { email: identity.email },
+        });
+      } catch (err) {
+        this.logger.warn(`Could not sync email for user ${dbUser.id}: ${String(err)}`);
+      }
+    }
 
     return {
       id: dbUser.id,

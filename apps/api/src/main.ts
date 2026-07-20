@@ -1,7 +1,8 @@
-import { NestFactory } from "@nestjs/core";
+import { NestFactory, Reflector } from "@nestjs/core";
 import { Logger } from "@nestjs/common";
 import { json, raw } from "express";
 import { AppModule } from "./app.module";
+import { PublicCacheInterceptor } from "./common/public-cache.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: false });
@@ -14,6 +15,8 @@ async function bootstrap() {
     origin: (process.env.CORS_ORIGIN ?? "http://localhost:3000").split(","),
     credentials: true,
   });
+
+  app.useGlobalInterceptors(new PublicCacheInterceptor(app.get(Reflector)));
 
   // Request validation is handled per-route with zod schemas (see controllers),
   // so no global class-validator ValidationPipe is needed.

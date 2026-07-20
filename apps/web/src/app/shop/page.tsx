@@ -44,6 +44,7 @@ function ShopInner() {
   const { data, isLoading } = useQuery({
     queryKey: ["shop", queryString],
     queryFn: () => api.get<Paginated<ProductDto>>(`/products?${queryString}`),
+    placeholderData: (prev) => prev,
   });
 
   const totalPages = data?.totalPages ?? 1;
@@ -81,7 +82,7 @@ function ShopInner() {
       </div>
 
       <div>
-        {isLoading ? (
+        {isLoading && !data ? (
           <p className="text-sm text-ink/50">Loading…</p>
         ) : (
           <>

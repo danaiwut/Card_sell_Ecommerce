@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
-  Handshake,
   Info,
   Minus,
   Plus,
   ShoppingCart,
+  Zap,
 } from "lucide-react";
 import type { ProductDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
@@ -26,7 +26,6 @@ import {
   TrustBadges,
   VerifiedBadge,
 } from "@/components/detail-layout";
-import { WishlistButton } from "@/components/wishlist-button";
 
 interface DetailPayload {
   product: ProductDto;
@@ -51,6 +50,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [cartError, setCartError] = useState<string | null>(null);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["product", slug],
@@ -62,16 +62,26 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
       api.post("/cart/items", { productId: data!.product.id, quantity: qty }),
     onSuccess: () => {
       setCartError(null);
-      qc.invalidateQueries({ queryKey: ["cart-count"] });
-      router.push("/cart");
+      setAddedToCart(true);
+      qc.invalidateQueries({ queryKey: ["cart"] });
     },
     onError: (err) => {
       setCartError(err instanceof Error ? err.message : "ไม่สามารถเพิ่มลงตะกร้าได้");
     },
   });
 
-
-
+  const buyNow = useMutation({
+    mutationFn: () =>
+      api.post("/cart/items", { productId: data!.product.id, quantity: qty }),
+    onSuccess: () => {
+      setCartError(null);
+      qc.invalidateQueries({ queryKey: ["cart"] });
+      router.push("/checkout");
+    },
+    onError: (err) => {
+      setCartError(err instanceof Error ? err.message : "ไม่สามารถซื้อได้");
+    },
+  });
   if (!data) return <div className="container-page py-10">Loading…</div>;
 
   const { product } = data;
@@ -201,6 +211,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             <button
               type="button"
               className="btn-primary flex-1"
+              disabled={!product.stock || buyNow.isPending || !isLoaded}
+              onClick={() => {
+                if (!isLoaded) return;
+                if (!session) {
+                  router.push(`/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`);
+                  return;
+                }
+                setCartError(null);
+                buyNow.mutate();
+              }}
+            >
+              <Zap size={16} />
+              {buyNow.isPending ? "…" : t("common.buyNow")}
+            </button>
+            <button
+              type="button"
+              className="btn-outline flex-1"
               disabled={!product.stock || addToCart.isPending || !isLoaded}
               onClick={() => {
                 if (!isLoaded) return;
@@ -209,24 +236,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   return;
                 }
                 setCartError(null);
+                setAddedToCart(false);
                 addToCart.mutate();
               }}
             >
               <ShoppingCart size={16} />
               {addToCart.isPending ? "Adding…" : t("common.addToCart")}
             </button>
-            <button type="button" className="btn-outline flex-1">
-              <Handshake size={16} />
-              Make an Offer
-            </button>
-            {product.catalogItem?.id && (
-              <WishlistButton
-                catalogItemId={product.catalogItem.id}
-                className="sm:w-auto sm:flex-none"
-                label=""
-              />
-            )}
           </div>
+          {addedToCart && (
+            <p className="mt-2 text-sm text-green-600">เพิ่มลงตะกร้าแล้ว</p>
+          )}
           {cartError && <p className="mt-2 text-sm text-red-600">{cartError}</p>}
 
           <TrustBadges />

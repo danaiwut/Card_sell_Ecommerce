@@ -36,7 +36,7 @@ function DevSessionLogin({
 }: {
   onLogin: (userId: string, role: "customer" | "manager" | "admin") => void;
 }) {
-  const [name, setName] = useState("collector");
+  const [name, setName] = useState("danaiwut077");
 
   return (
     <div className="container-page py-16">

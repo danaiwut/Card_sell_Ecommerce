@@ -10,7 +10,7 @@ import { formatBaht } from "@/lib/format";
 
 export function RecentSalesFeed() {
   const { data } = useQuery({
-    queryKey: ["recent-sales"],
+    queryKey: ["recent-sales", 10],
     queryFn: () => api.get<TradeDto[]>("/marketplace/recent-sales?limit=10"),
   });
   const [live, setLive] = useState<TradeDto[]>([]);

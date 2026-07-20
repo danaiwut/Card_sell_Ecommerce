@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ShoppingBag, Store, Heart, Tag, ArrowRight } from "lucide-react";
+import { ShoppingBag, Store, Tag, ArrowRight } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
@@ -13,7 +13,7 @@ import { formatBaht, formatDate } from "@/lib/format";
 interface Me {
   displayName: string;
   level: number;
-  stats: { orders: number; purchases: number; wishlist: number; listings: number };
+  stats: { orders: number; purchases: number; listings: number };
   recentOrders: { orderNumber: string; date: string; total: number; status: string }[];
 }
 
@@ -38,7 +38,6 @@ export default function AccountPage() {
   const stats = [
     { label: "Shop Orders", value: data?.stats.orders ?? 0, icon: ShoppingBag, href: "/account/orders" },
     { label: "Purchases", value: data?.stats.purchases ?? 0, icon: Store, href: "/account/purchases" },
-    { label: "Wishlist", value: data?.stats.wishlist ?? 0, icon: Heart, href: "/account/wishlist" },
     { label: "My Listings", value: data?.stats.listings ?? 0, icon: Tag, href: "/account/sell" },
   ];
 
@@ -53,11 +52,11 @@ export default function AccountPage() {
               {data?.displayName ?? "บัญชีของฉัน"}
             </h1>
             <p className="mt-1 text-sm text-ink/50">
-              จัดการคำสั่งซื้อ การซื้อขาย และรายการโปรดของคุณ
+              จัดการคำสั่งซื้อและการซื้อขายของคุณ
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {stats.map((s) => {
               const Icon = s.icon;
               return (

@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { DevLogin } from "@/components/dev-login";
 import { AccountSidebar } from "@/components/account-sidebar";
-import { formatBaht } from "@/lib/format";
 
 interface CollectionCard {
   id: string;
@@ -23,24 +22,11 @@ interface CollectionCard {
 
 export default function CollectionPage() {
   const { session } = useSession();
-  const qc = useQueryClient();
 
   const { data: cards } = useQuery({
     queryKey: ["collection-cards", session?.userId],
     queryFn: () => api.get<CollectionCard[]>("/collection/cards", true),
     enabled: Boolean(session),
-  });
-
-  const { data: wishlist } = useQuery({
-    queryKey: ["wishlist", session?.userId],
-    queryFn: () => api.get<CollectionCard[]>("/collection/wishlist", true),
-    enabled: Boolean(session),
-  });
-
-  const removeWish = useMutation({
-    mutationFn: (catalogItemId: string) =>
-      api.post("/collection/wishlist/toggle", { catalogItemId }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["wishlist"] }),
   });
 
   if (!session) return <DevLogin />;
@@ -86,36 +72,6 @@ export default function CollectionPage() {
                   ยังไม่มีการ์ดในคอลเลกชัน — ซื้อจาก Marketplace แล้วเพิ่มได้
                 </p>
               )}
-            </div>
-          </section>
-
-          <section className="mt-8">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold">Wishlist ({wishlist?.length ?? 0})</h2>
-              <Link href="/account/wishlist" className="text-sm text-gold hover:underline">
-                ดูทั้งหมด →
-              </Link>
-            </div>
-            <div className="mt-3 space-y-2">
-              {(wishlist ?? []).slice(0, 5).map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between rounded-lg border border-ink/10 px-4 py-3 text-sm"
-                >
-                  <Link
-                    href={`/marketplace/${item.catalogItem.id}`}
-                    className="font-medium hover:text-gold"
-                  >
-                    {item.catalogItem.name}
-                  </Link>
-                  <button
-                    className="text-xs text-ink/40 hover:text-red-500"
-                    onClick={() => removeWish.mutate(item.catalogItem.id)}
-                  >
-                    ลบ
-                  </button>
-                </div>
-              ))}
             </div>
           </section>
         </div>

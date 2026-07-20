@@ -35,6 +35,17 @@ const BLANK = {
   isDefault: false,
 };
 
+function validateAddress(form: typeof BLANK): string | null {
+  if (!form.fullName.trim()) return "กรุณากรอกชื่อ-นามสกุล";
+  const phone = form.phone.replace(/\D/g, "");
+  if (phone.length < 9 || phone.length > 10) return "เบอร์โทรศัพท์ไม่ถูกต้อง (9-10 หลัก)";
+  if (!form.line1.trim()) return "กรุณากรอกที่อยู่";
+  if (!form.district.trim()) return "กรุณากรอกแขวง/ตำบล";
+  if (!form.province.trim()) return "กรุณากรอกจังหวัด";
+  if (!/^\d{5}$/.test(form.postalCode.trim())) return "รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก";
+  return null;
+}
+
 export function AddressModal({ open, onClose, initial, onSaved }: Props) {
   const [form, setForm] = useState(BLANK);
   const [error, setError] = useState("");
@@ -61,7 +72,16 @@ export function AddressModal({ open, onClose, initial, onSaved }: Props) {
 
   const save = useMutation({
     mutationFn: () => {
-      const body = { ...form, line2: form.line2 || undefined };
+      const phone = form.phone.replace(/\D/g, "");
+      const body = {
+        ...form,
+        phone,
+        line1: form.line1.trim(),
+        line2: form.line2.trim() || undefined,
+        district: form.district.trim(),
+        province: form.province.trim(),
+        postalCode: form.postalCode.trim(),
+      };
       if (initial) return api.patch(`/users/me/addresses/${initial.id}`, body);
       return api.post("/users/me/addresses", body);
     },
@@ -161,7 +181,15 @@ export function AddressModal({ open, onClose, initial, onSaved }: Props) {
           <button
             className="btn-primary min-w-[120px]"
             disabled={save.isPending}
-            onClick={() => save.mutate()}
+            onClick={() => {
+              const err = validateAddress(form);
+              if (err) {
+                setError(err);
+                return;
+              }
+              setError("");
+              save.mutate();
+            }}
           >
             {save.isPending ? "กำลังบันทึก..." : initial ? "บันทึกการแก้ไข" : "เพิ่มที่อยู่"}
           </button>

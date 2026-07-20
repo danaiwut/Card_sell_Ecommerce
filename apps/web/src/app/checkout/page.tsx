@@ -108,7 +108,6 @@ export default function CheckoutPage() {
     },
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["cart"] });
-      qc.invalidateQueries({ queryKey: ["cart-count"] });
       qc.invalidateQueries({ queryKey: ["notifications"] });
       qc.invalidateQueries({ queryKey: ["wallet"] });
       if (res.url) {

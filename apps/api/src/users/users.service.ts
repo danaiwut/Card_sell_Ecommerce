@@ -7,12 +7,11 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async me(userId: string) {
-    const [user, ordersCount, purchasesCount, wishlistCount, listingsCount, recentOrders] =
+    const [user, ordersCount, purchasesCount, listingsCount, recentOrders] =
       await Promise.all([
         this.prisma.user.findUnique({ where: { id: userId } }),
         this.prisma.order.count({ where: { userId } }),
         this.prisma.marketplaceOrder.count({ where: { buyerId: userId } }),
-        this.prisma.wishlistItem.count({ where: { userId } }),
         this.prisma.listing.count({ where: { sellerId: userId, status: "ACTIVE" } }),
         this.prisma.order.findMany({
           where: { userId },
@@ -33,7 +32,6 @@ export class UsersService {
       stats: {
         orders: ordersCount,
         purchases: purchasesCount,
-        wishlist: wishlistCount,
         listings: listingsCount,
       },
       recentOrders: recentOrders.map((o) => ({
@@ -58,10 +56,14 @@ export class UsersService {
   }
 
   async addAddress(userId: string, data: any) {
-    if (data.isDefault) {
+    const payload = {
+      ...data,
+      line2: data.line2?.trim() ? data.line2.trim() : null,
+    };
+    if (payload.isDefault) {
       await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
     }
-    return this.prisma.address.create({ data: { ...data, userId } });
+    return this.prisma.address.create({ data: { ...payload, userId } });
   }
 
   async updateAddress(userId: string, addressId: string, data: any) {

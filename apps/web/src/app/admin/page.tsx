@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NEWS_KIND } from "@cardverse/shared";
-import { useSession } from "@/lib/session";
+import { useSession, type AppSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { formatBaht, formatDate } from "@/lib/format";
 import { ResponsiveTable } from "@/components/responsive-table";
@@ -54,7 +54,7 @@ function AdminPageInner() {
       {activeTab === "listings" && <ListingsModeration />}
       {activeTab === "catalog" && <Catalog />}
       {activeTab === "news" && <NewsAdmin />}
-      {activeTab === "wallet" && <WalletAdmin />}
+      {activeTab === "wallet" && <WalletAdmin session={session} />}
       {activeTab === "settings" && <PlatformSettings />}
       {activeTab === "shop-orders" && <ShopOrders />}
       {activeTab === "marketplace-orders" && <MarketplaceOrders />}
@@ -874,25 +874,34 @@ function ListingsModeration() {
   );
 }
 
-function WalletAdmin() {
+function WalletAdmin({ session }: { session: AppSession }) {
   const qc = useQueryClient();
   const [grantUserId, setGrantUserId] = useState("");
   const [grantAmount, setGrantAmount] = useState("1000");
+  const [userSearch, setUserSearch] = useState("");
   const { data: wallets } = useQuery({
     queryKey: ["admin-wallets"],
     queryFn: () => api.get<any[]>("/wallet/admin/all", true),
+    enabled: Boolean(session),
   });
   const { data: withdrawals } = useQuery({
     queryKey: ["admin-withdrawals"],
     queryFn: () => api.get<any[]>("/wallet/admin/withdrawals", true),
+    enabled: Boolean(session),
   });
-  const { data: usersPage } = useQuery({
-    queryKey: ["admin-users", "grant"],
+  const { data: topUps } = useQuery({
+    queryKey: ["admin-top-ups"],
+    queryFn: () => api.get<any[]>("/wallet/admin/top-ups", true),
+    enabled: Boolean(session),
+  });
+  const { data: usersPage, isError: usersError } = useQuery({
+    queryKey: ["admin-users", "grant", userSearch],
     queryFn: () =>
       api.get<{ items: Array<{ id: string; displayName: string; email: string }> }>(
-        "/admin/users?pageSize=200",
+        `/admin/users?pageSize=100${userSearch ? `&q=${encodeURIComponent(userSearch)}` : ""}`,
         true,
       ),
+    enabled: Boolean(session),
   });
   const users = usersPage?.items ?? [];
   const grant = useMutation({
@@ -906,31 +915,54 @@ function WalletAdmin() {
       setGrantUserId("");
     },
   });
-  const approve = useMutation({
+  const approveWithdrawal = useMutation({
     mutationFn: (id: string) => api.post(`/wallet/admin/withdrawals/${id}/approve`, {}, true),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-withdrawals"] }),
   });
-  const reject = useMutation({
+  const rejectWithdrawal = useMutation({
     mutationFn: (id: string) => api.post(`/wallet/admin/withdrawals/${id}/reject`, {}, true),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-withdrawals"] }),
+  });
+  const approveTopUp = useMutation({
+    mutationFn: (id: string) => api.post(`/wallet/admin/top-ups/${id}/approve`, {}, true),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-top-ups"] });
+      qc.invalidateQueries({ queryKey: ["admin-wallets"] });
+    },
+  });
+  const rejectTopUp = useMutation({
+    mutationFn: (id: string) => api.post(`/wallet/admin/top-ups/${id}/reject`, {}, true),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-top-ups"] }),
   });
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <section className="card p-5">
-        <p className="font-semibold">เติมเครดิตให้ผู้ใช้</p>
+        <p className="font-semibold">เติมเครดิตให้ผู้ใช้ (แอดมิน)</p>
         <div className="mt-3 grid gap-2">
+          <input
+            className="input"
+            placeholder="ค้นหาชื่อหรืออีเมล..."
+            value={userSearch}
+            onChange={(e) => setUserSearch(e.target.value)}
+          />
           <select
             className="input"
             value={grantUserId}
             onChange={(e) => setGrantUserId(e.target.value)}
           >
             <option value="">เลือกผู้ใช้</option>
-            {(users ?? []).map((u) => (
+            {users.map((u) => (
               <option key={u.id} value={u.id}>
-                {u.displayName} ({u.email})
+                {u.displayName || u.email} ({u.email})
               </option>
             ))}
           </select>
+          {usersError && (
+            <p className="text-sm text-red-600">โหลดรายชื่อผู้ใช้ไม่สำเร็จ — ลองรีเฟรชหน้า</p>
+          )}
+          {!usersError && users.length === 0 && (
+            <p className="text-sm text-ink/50">ไม่พบผู้ใช้ — ลองค้นหาด้วยอีเมล</p>
+          )}
           <input
             className="input"
             type="number"
@@ -949,42 +981,76 @@ function WalletAdmin() {
         <div className="mt-6 max-h-64 overflow-auto text-sm">
           {(wallets ?? []).map((w) => (
             <div key={w.userId} className="flex justify-between border-b border-ink/5 py-2">
-              <span>{w.displayName}</span>
+              <span>{w.displayName || w.email}</span>
               <span className="font-medium text-gold">{formatBaht(w.balance)}</span>
             </div>
           ))}
         </div>
       </section>
-      <section className="card p-5">
-        <p className="font-semibold">คำขอถอนเครดิต (รออนุมัติ)</p>
-        <div className="mt-4 space-y-3">
-          {(withdrawals ?? []).map((w) => (
-            <div key={w.id} className="rounded-lg border border-ink/10 p-4 text-sm">
-              <p className="font-medium">{w.user.displayName} — {formatBaht(w.amount)}</p>
-              {w.note && <p className="text-xs text-ink/50">{w.note}</p>}
-              <div className="mt-2 flex gap-2">
-                <button
-                  className="btn-primary text-xs"
-                  disabled={approve.isPending}
-                  onClick={() => approve.mutate(w.id)}
-                >
-                  อนุมัติ (โอนเงินสดแล้ว)
-                </button>
-                <button
-                  className="btn-outline text-xs"
-                  disabled={reject.isPending}
-                  onClick={() => reject.mutate(w.id)}
-                >
-                  ปฏิเสธ
-                </button>
+      <div className="space-y-6">
+        <section className="card p-5">
+          <p className="font-semibold">คำขอเติมเครดิต (รออนุมัติ)</p>
+          <div className="mt-4 space-y-3">
+            {(topUps ?? []).map((r) => (
+              <div key={r.id} className="rounded-lg border border-ink/10 p-4 text-sm">
+                <p className="font-medium">
+                  {r.user.displayName || r.user.email} — {formatBaht(r.amount)}
+                </p>
+                {r.note && <p className="text-xs text-ink/50">{r.note}</p>}
+                <div className="mt-2 flex gap-2">
+                  <button
+                    className="btn-primary text-xs"
+                    disabled={approveTopUp.isPending}
+                    onClick={() => approveTopUp.mutate(r.id)}
+                  >
+                    อนุมัติเติมเครดิต
+                  </button>
+                  <button
+                    className="btn-outline text-xs"
+                    disabled={rejectTopUp.isPending}
+                    onClick={() => rejectTopUp.mutate(r.id)}
+                  >
+                    ปฏิเสธ
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-          {(withdrawals?.length ?? 0) === 0 && (
-            <p className="text-sm text-ink/40">ไม่มีคำขอถอนรอดำเนินการ</p>
-          )}
-        </div>
-      </section>
+            ))}
+            {(topUps?.length ?? 0) === 0 && (
+              <p className="text-sm text-ink/40">ไม่มีคำขอเติมเครดิตรอดำเนินการ</p>
+            )}
+          </div>
+        </section>
+        <section className="card p-5">
+          <p className="font-semibold">คำขอถอนเครดิต (รออนุมัติ)</p>
+          <div className="mt-4 space-y-3">
+            {(withdrawals ?? []).map((w) => (
+              <div key={w.id} className="rounded-lg border border-ink/10 p-4 text-sm">
+                <p className="font-medium">{w.user.displayName} — {formatBaht(w.amount)}</p>
+                {w.note && <p className="text-xs text-ink/50">{w.note}</p>}
+                <div className="mt-2 flex gap-2">
+                  <button
+                    className="btn-primary text-xs"
+                    disabled={approveWithdrawal.isPending}
+                    onClick={() => approveWithdrawal.mutate(w.id)}
+                  >
+                    อนุมัติ (โอนเงินสดแล้ว)
+                  </button>
+                  <button
+                    className="btn-outline text-xs"
+                    disabled={rejectWithdrawal.isPending}
+                    onClick={() => rejectWithdrawal.mutate(w.id)}
+                  >
+                    ปฏิเสธ
+                  </button>
+                </div>
+              </div>
+            ))}
+            {(withdrawals?.length ?? 0) === 0 && (
+              <p className="text-sm text-ink/40">ไม่มีคำขอถอนรอดำเนินการ</p>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

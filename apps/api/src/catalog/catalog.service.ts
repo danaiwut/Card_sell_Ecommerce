@@ -1,25 +1,30 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { createResponseCache } from "../common/response-cache";
 import {
   catalogItemInclude,
   serializeCatalogItem,
   serializeCategory,
 } from "../common/serializers";
 
+const categoriesCache = createResponseCache<unknown[]>(120_000);
+
 @Injectable()
 export class CatalogService {
   constructor(private readonly prisma: PrismaService) {}
 
   async listCategories() {
-    const categories = await this.prisma.category.findMany({
-      orderBy: { sortOrder: "asc" },
-      include: { subcategories: { orderBy: { name: "asc" } } },
+    return categoriesCache.get(async () => {
+      const categories = await this.prisma.category.findMany({
+        orderBy: { sortOrder: "asc" },
+        include: { subcategories: { orderBy: { name: "asc" } } },
+      });
+      return categories.map((c) => ({
+        ...serializeCategory(c),
+        note: c.note,
+        subcategories: c.subcategories.map((s) => ({ id: s.id, slug: s.slug, name: s.name })),
+      }));
     });
-    return categories.map((c) => ({
-      ...serializeCategory(c),
-      note: c.note,
-      subcategories: c.subcategories.map((s) => ({ id: s.id, slug: s.slug, name: s.name })),
-    }));
   }
 
   /** Catalog items sellers can choose from when creating a listing. */

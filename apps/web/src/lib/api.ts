@@ -87,7 +87,7 @@ async function request<T>(
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     ...rest,
     headers: finalHeaders,
-    cache: "no-store",
+    ...(auth ? { cache: "no-store" } : {}),
   });
 
   if (!res.ok) {

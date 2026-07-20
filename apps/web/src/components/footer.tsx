@@ -19,7 +19,6 @@ const COLUMNS = [
     links: [
       { label: "Login", href: isClerkEnabled() ? "/sign-in" : "/account" },
       { label: "Register", href: isClerkEnabled() ? "/sign-up" : "/account" },
-      { label: "Wishlist", href: "/account/wishlist" },
       { label: "Settings", href: "/account/settings" },
     ],
   },

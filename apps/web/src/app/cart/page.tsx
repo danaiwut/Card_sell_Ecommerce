@@ -49,7 +49,6 @@ function CartPageInner() {
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["cart"] });
-    qc.invalidateQueries({ queryKey: ["cart-count"] });
   };
 
   const setQty = useMutation({

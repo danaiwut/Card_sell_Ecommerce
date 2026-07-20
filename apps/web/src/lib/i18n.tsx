@@ -39,7 +39,6 @@ const DICT: Dict = {
   "common.apply": { th: "ใช้งาน", en: "APPLY" },
   "common.addToCart": { th: "เพิ่มลงตะกร้า", en: "ADD TO CART" },
   "common.buyNow": { th: "ซื้อเลย", en: "BUY NOW" },
-  "common.wishlist": { th: "รายการโปรด", en: "Wishlist" },
   "common.search": { th: "ค้นหาการ์ด ชุด คีย์เวิร์ด...", en: "Search cards, sets, keywords..." },
   "shop.game": { th: "เกม", en: "GAME" },
   "shop.type": { th: "ประเภท", en: "TYPE" },

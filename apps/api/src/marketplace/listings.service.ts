@@ -70,6 +70,7 @@ export class ListingsService {
       where: { catalogItemId, status: "ACTIVE" },
       include: { catalogItem: { include: catalogItemInclude }, seller: true },
       orderBy: { price: "asc" },
+      take: 50,
     });
     return items.map(serializeListing);
   }

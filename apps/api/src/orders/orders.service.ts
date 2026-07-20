@@ -263,6 +263,10 @@ export class OrdersService {
         : []),
     ]);
 
+    if (order.status === "PAID") {
+      await this.wallet.refundShopOrder(userId, order.id, order.total, order.orderNumber);
+    }
+
     await this.queue.enqueueNotification({
       userId,
       type: "ORDER_UPDATE",

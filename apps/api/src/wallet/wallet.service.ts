@@ -62,6 +62,163 @@ export class WalletService {
     }));
   }
 
+  /** Refund credits for a cancelled shop order (idempotent). */
+  async refundShopOrder(
+    userId: string,
+    orderId: string,
+    amountSatang: number,
+    orderNumber: string,
+  ) {
+    const existing = await this.prisma.walletTransaction.findFirst({
+      where: { referenceType: "order", referenceId: orderId, type: "REFUND" },
+    });
+    if (existing) return;
+
+    const purchase = await this.prisma.walletTransaction.findFirst({
+      where: { referenceType: "order", referenceId: orderId, type: "PURCHASE" },
+    });
+    if (!purchase) return;
+
+    const wallet = await this.getOrCreate(userId);
+    const updated = await this.credit(wallet.id, amountSatang, "REFUND", {
+      description: `คืนเครดิตจากการยกเลิก ${orderNumber}`,
+      referenceType: "order",
+      referenceId: orderId,
+    });
+    await this.queue.enqueueNotification({
+      userId,
+      type: "CREDIT",
+      title: "คืนเครดิตแล้ว",
+      body: `+฿${toBaht(amountSatang).toLocaleString()} — ยอดคงเหลือ ฿${toBaht(updated.balance).toLocaleString()}`,
+      link: "/account/wallet",
+    });
+  }
+
+  /** User requests top-up — pending admin approval. */
+  async requestTopUp(userId: string, amountBaht: number, note?: string) {
+    if (amountBaht < 10 || amountBaht > 100_000) {
+      throw new BadRequestException("จำนวนเติมเครดิตต้องอยู่ระหว่าง ฿10 – ฿100,000");
+    }
+    const amount = Math.round(amountBaht * 100);
+    const pending = await this.prisma.topUpRequest.count({
+      where: { userId, status: "PENDING" },
+    });
+    if (pending >= 3) {
+      throw new BadRequestException("มีคำขอเติมเครดิตรออนุมัติอยู่แล้ว กรุณารอแอดมินตรวจสอบ");
+    }
+
+    const req = await this.prisma.topUpRequest.create({
+      data: { userId, amount, note, status: "PENDING" },
+    });
+
+    await this.queue.enqueueNotification({
+      userId,
+      type: "CREDIT",
+      title: "ส่งคำขอเติมเครดิตแล้ว",
+      body: `฿${amountBaht.toLocaleString()} — รอแอดมินอนุมัติ`,
+      link: "/account/wallet",
+    });
+
+    return {
+      id: req.id,
+      amount: amountBaht,
+      status: req.status,
+    };
+  }
+
+  async listMyTopUpRequests(userId: string) {
+    const rows = await this.prisma.topUpRequest.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      amount: toBaht(r.amount),
+      status: r.status,
+      note: r.note,
+      managerNote: r.managerNote,
+      processedAt: r.processedAt?.toISOString() ?? null,
+      createdAt: r.createdAt.toISOString(),
+    }));
+  }
+
+  async listPendingTopUps() {
+    const rows = await this.prisma.topUpRequest.findMany({
+      where: { status: "PENDING" },
+      include: { user: true },
+      orderBy: { createdAt: "asc" },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      amount: toBaht(r.amount),
+      status: r.status,
+      note: r.note,
+      user: { id: r.user.id, displayName: r.user.displayName, email: r.user.email },
+      createdAt: r.createdAt.toISOString(),
+    }));
+  }
+
+  async approveTopUp(topUpId: string, managerId: string, note?: string) {
+    const req = await this.prisma.topUpRequest.findUnique({ where: { id: topUpId } });
+    if (!req) throw new NotFoundException("ไม่พบคำขอเติมเครดิต");
+    if (req.status !== "PENDING") throw new BadRequestException("คำขอนี้ดำเนินการแล้ว");
+
+    const wallet = await this.getOrCreate(req.userId);
+    const updated = await this.credit(wallet.id, req.amount, "TOP_UP", {
+      description: note ?? `เติมเครดิต ฿${toBaht(req.amount).toLocaleString()}`,
+      referenceType: "topup",
+      referenceId: topUpId,
+      createdById: managerId,
+    });
+
+    await this.prisma.topUpRequest.update({
+      where: { id: topUpId },
+      data: {
+        status: "COMPLETED",
+        processedById: managerId,
+        processedAt: new Date(),
+        managerNote: note ?? "อนุมัติแล้ว",
+      },
+    });
+
+    await this.queue.enqueueNotification({
+      userId: req.userId,
+      type: "CREDIT",
+      title: "เติมเครดิตสำเร็จ",
+      body: `+฿${toBaht(req.amount).toLocaleString()} — ยอดคงเหลือ ฿${toBaht(updated.balance).toLocaleString()}`,
+      link: "/account/wallet",
+    });
+
+    return { ok: true, balance: toBaht(updated.balance) };
+  }
+
+  async rejectTopUp(topUpId: string, managerId: string, reason?: string) {
+    const req = await this.prisma.topUpRequest.findUnique({ where: { id: topUpId } });
+    if (!req) throw new NotFoundException("ไม่พบคำขอเติมเครดิต");
+    if (req.status !== "PENDING") throw new BadRequestException("คำขอนี้ดำเนินการแล้ว");
+
+    await this.prisma.topUpRequest.update({
+      where: { id: topUpId },
+      data: {
+        status: "REJECTED",
+        processedById: managerId,
+        processedAt: new Date(),
+        managerNote: reason ?? "ปฏิเสธคำขอเติมเครดิต",
+      },
+    });
+
+    await this.queue.enqueueNotification({
+      userId: req.userId,
+      type: "CREDIT",
+      title: "คำขอเติมเครดิตถูกปฏิเสธ",
+      body: reason ?? "กรุณาติดต่อแอดมิน",
+      link: "/account/wallet",
+    });
+
+    return { ok: true };
+  }
+
   /** Demo top-up — instant credit without real payment gateway. */
   async topUp(userId: string, amountBaht: number) {
     if (amountBaht < 10 || amountBaht > 100_000) {

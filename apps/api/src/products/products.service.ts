@@ -1,114 +1,126 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type { ShopQuery } from "@cardverse/shared";
 import { PrismaService } from "../prisma/prisma.service";
+import { createResponseCache, createKeyedResponseCache } from "../common/response-cache";
 import { serializeProduct, toSatang, catalogItemInclude } from "../common/serializers";
+
+const homeCache = createResponseCache<Record<string, unknown>>(60_000);
+const shopCache = createKeyedResponseCache<Record<string, unknown>>(30_000);
+const detailCache = createKeyedResponseCache<Record<string, unknown>>(60_000);
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async shop(query: ShopQuery) {
-    const where: any = {};
-    if (query.type) where.type = query.type;
-    if (query.q) {
-      where.OR = [
-        { name: { contains: query.q, mode: "insensitive" } },
-        { subtitle: { contains: query.q, mode: "insensitive" } },
-      ];
-    }
-    if (query.category) where.catalogItem = { category: { slug: query.category } };
-    if (query.subcategory) {
-      where.catalogItem = {
-        ...(where.catalogItem ?? {}),
-        subcategory: { slug: query.subcategory },
+    const cacheKey = JSON.stringify(query);
+    return shopCache.get(cacheKey, async () => {
+      const where: any = {};
+      if (query.type) where.type = query.type;
+      if (query.q) {
+        where.OR = [
+          { name: { contains: query.q, mode: "insensitive" } },
+          { subtitle: { contains: query.q, mode: "insensitive" } },
+        ];
+      }
+      if (query.category) where.catalogItem = { category: { slug: query.category } };
+      if (query.subcategory) {
+        where.catalogItem = {
+          ...(where.catalogItem ?? {}),
+          subcategory: { slug: query.subcategory },
+        };
+      }
+      if (query.minPrice != null || query.maxPrice != null) {
+        where.price = {};
+        if (query.minPrice != null) where.price.gte = toSatang(query.minPrice);
+        if (query.maxPrice != null) where.price.lte = toSatang(query.maxPrice);
+      }
+
+      const orderBy =
+        query.sort === "price_asc"
+          ? { price: "asc" as const }
+          : query.sort === "price_desc"
+            ? { price: "desc" as const }
+            : query.sort === "popular"
+              ? { soldCount: "desc" as const }
+              : { createdAt: "desc" as const };
+
+      const [items, total] = await Promise.all([
+        this.prisma.product.findMany({
+          where,
+          include: { catalogItem: { include: catalogItemInclude } },
+          orderBy,
+          skip: (query.page - 1) * query.pageSize,
+          take: query.pageSize,
+        }),
+        this.prisma.product.count({ where }),
+      ]);
+
+      return {
+        items: items.map(serializeProduct),
+        page: query.page,
+        pageSize: query.pageSize,
+        total,
+        totalPages: Math.ceil(total / query.pageSize),
       };
-    }
-    if (query.minPrice != null || query.maxPrice != null) {
-      where.price = {};
-      if (query.minPrice != null) where.price.gte = toSatang(query.minPrice);
-      if (query.maxPrice != null) where.price.lte = toSatang(query.maxPrice);
-    }
-
-    const orderBy =
-      query.sort === "price_asc"
-        ? { price: "asc" as const }
-        : query.sort === "price_desc"
-          ? { price: "desc" as const }
-          : query.sort === "popular"
-            ? { soldCount: "desc" as const }
-            : { createdAt: "desc" as const };
-
-    const [items, total] = await Promise.all([
-      this.prisma.product.findMany({
-        where,
-        include: { catalogItem: { include: catalogItemInclude } },
-        orderBy,
-        skip: (query.page - 1) * query.pageSize,
-        take: query.pageSize,
-      }),
-      this.prisma.product.count({ where }),
-    ]);
-
-    return {
-      items: items.map(serializeProduct),
-      page: query.page,
-      pageSize: query.pageSize,
-      total,
-      totalPages: Math.ceil(total / query.pageSize),
-    };
+    });
   }
 
   async detail(slug: string) {
-    const product = await this.prisma.product.findFirst({
-      where: { OR: [{ slug }, { id: slug }] },
-      include: { catalogItem: { include: catalogItemInclude } },
-    });
-    if (!product) throw new NotFoundException("Product not found");
+    return detailCache.get(slug, async () => {
+      const product = await this.prisma.product.findFirst({
+        where: { OR: [{ slug }, { id: slug }] },
+        include: { catalogItem: { include: catalogItemInclude } },
+      });
+      if (!product) throw new NotFoundException("Product not found");
 
-    const related = await this.prisma.product.findMany({
-      where: { id: { not: product.id } },
-      include: { catalogItem: { include: catalogItemInclude } },
-      take: 5,
-      orderBy: { isTrending: "desc" },
-    });
+      const related = await this.prisma.product.findMany({
+        where: { id: { not: product.id } },
+        include: { catalogItem: { include: catalogItemInclude } },
+        take: 5,
+        orderBy: { isTrending: "desc" },
+      });
 
-    return {
-      product: serializeProduct(product),
-      releaseDate: product.catalogItem?.releaseDate ?? null,
-      description: product.description,
-      related: related.map(serializeProduct),
-    };
+      return {
+        product: serializeProduct(product),
+        releaseDate: product.catalogItem?.releaseDate ?? null,
+        description: product.description,
+        related: related.map(serializeProduct),
+      };
+    });
   }
 
   async home() {
-    const [trending, newArrival, preOrder, featured, topExpensive, topSelling] =
-      await Promise.all([
-        this.products({ isTrending: true }),
-        this.products({ isNewArrival: true }),
-        this.products({ isPreOrder: true }),
-        this.products({ isFeatured: true }),
-        this.topProducts({ orderBy: { price: "desc" as const }, take: 2 }),
-        this.topProducts({ orderBy: { soldCount: "desc" as const }, take: 2 }),
-      ]);
-    const categories = await this.prisma.category.findMany({
-      orderBy: { sortOrder: "asc" },
-      take: 8,
+    return homeCache.get(async () => {
+      const [trending, newArrival, preOrder, featured, topExpensive, topSelling] =
+        await Promise.all([
+          this.products({ isTrending: true }),
+          this.products({ isNewArrival: true }),
+          this.products({ isPreOrder: true }),
+          this.products({ isFeatured: true }),
+          this.topProducts({ orderBy: { price: "desc" as const }, take: 2 }),
+          this.topProducts({ orderBy: { soldCount: "desc" as const }, take: 2 }),
+        ]);
+      const categories = await this.prisma.category.findMany({
+        orderBy: { sortOrder: "asc" },
+        take: 8,
+      });
+      return {
+        categories: categories.map((c) => ({
+          id: c.id,
+          slug: c.slug,
+          name: c.name,
+          nameTh: c.nameTh,
+          emoji: c.emoji,
+        })),
+        trending,
+        newArrival,
+        preOrder,
+        featured,
+        topExpensive,
+        topSelling,
+      };
     });
-    return {
-      categories: categories.map((c) => ({
-        id: c.id,
-        slug: c.slug,
-        name: c.name,
-        nameTh: c.nameTh,
-        emoji: c.emoji,
-      })),
-      trending,
-      newArrival,
-      preOrder,
-      featured,
-      topExpensive,
-      topSelling,
-    };
   }
 
   private async topProducts(opts: { orderBy: Record<string, "asc" | "desc">; take: number }) {

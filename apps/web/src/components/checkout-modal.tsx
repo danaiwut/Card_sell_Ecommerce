@@ -79,7 +79,6 @@ export function CheckoutModal({ open, onClose, cart }: Props) {
       }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["cart"] });
-      qc.invalidateQueries({ queryKey: ["cart-count"] });
       onClose();
       if (res.url) window.location.href = res.url;
       else router.push(`/account/orders?status=success&order=${res.orderNumber}`);

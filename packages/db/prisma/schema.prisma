@@ -173,7 +173,6 @@ model User {
   salesAsSeller    MarketplaceOrder[] @relation("SellerOrders")
   purchasesAsBuyer MarketplaceOrder[] @relation("BuyerOrders")
   trades           Trade[]            @relation("SellerTrades")
-  wishlist         WishlistItem[]
   collection       CollectionItem[]
   notifications    Notification[]
   offersMade       ListingOffer[]     @relation("OffersMade")
@@ -182,6 +181,7 @@ model User {
   newsPosts        NewsPost[]
   wallet           Wallet?
   withdrawals      WithdrawalRequest[]
+  topUpRequests    TopUpRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -221,6 +221,24 @@ model WalletTransaction {
 }
 
 model WithdrawalRequest {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Int // satang
+  status        WithdrawalStatus @default(PENDING)
+  note          String?
+  managerNote   String?
+  processedById String?
+  processedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model TopUpRequest {
   id            String           @id @default(cuid())
   userId        String
   user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -347,7 +365,6 @@ model CatalogItem {
   listings    Listing[]
   trades      Trade[]
   pricePoints PricePoint[]
-  wishlist    WishlistItem[]
   collection  CollectionItem[]
 
   createdAt DateTime @default(now())
@@ -667,7 +684,7 @@ model ShipmentEvent {
 }
 
 // ---------------------------------------------------------------------------
-// Collection, wishlist, notifications, news
+// Collection, notifications, news
 // ---------------------------------------------------------------------------
 
 model CollectionItem {
@@ -678,19 +695,6 @@ model CollectionItem {
   catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
   quantity      Int         @default(1)
   acquiredAt    DateTime    @default(now())
-
-  @@unique([userId, catalogItemId])
-  @@index([userId])
-}
-
-model WishlistItem {
-  id            String      @id @default(cuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  catalogItemId String
-  catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
 
   @@unique([userId, catalogItemId])
   @@index([userId])

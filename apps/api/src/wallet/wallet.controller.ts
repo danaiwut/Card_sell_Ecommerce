@@ -17,8 +17,16 @@ export class WalletController {
   }
 
   @Post("top-up")
-  topUp(@CurrentUser("id") userId: string, @Body() body: { amount: number }) {
-    return this.wallet.topUp(userId, Number(body.amount));
+  topUp(
+    @CurrentUser("id") userId: string,
+    @Body() body: { amount: number; note?: string },
+  ) {
+    return this.wallet.requestTopUp(userId, Number(body.amount), body.note);
+  }
+
+  @Get("top-up-requests")
+  myTopUpRequests(@CurrentUser("id") userId: string) {
+    return this.wallet.listMyTopUpRequests(userId);
   }
 
   @Post("withdraw")
@@ -47,6 +55,32 @@ export class WalletController {
     @Body() body: { userId: string; amount: number; note?: string },
   ) {
     return this.wallet.adminGrant(body.userId, Number(body.amount), grantedById, body.note);
+  }
+
+  @Roles("manager", "admin")
+  @Get("admin/top-ups")
+  pendingTopUps() {
+    return this.wallet.listPendingTopUps();
+  }
+
+  @Roles("manager", "admin")
+  @Post("admin/top-ups/:id/approve")
+  approveTopUp(
+    @CurrentUser("id") managerId: string,
+    @Param("id") id: string,
+    @Body() body: { note?: string },
+  ) {
+    return this.wallet.approveTopUp(id, managerId, body.note);
+  }
+
+  @Roles("manager", "admin")
+  @Post("admin/top-ups/:id/reject")
+  rejectTopUp(
+    @CurrentUser("id") managerId: string,
+    @Param("id") id: string,
+    @Body() body: { reason?: string },
+  ) {
+    return this.wallet.rejectTopUp(id, managerId, body.reason);
   }
 
   @Roles("manager", "admin")

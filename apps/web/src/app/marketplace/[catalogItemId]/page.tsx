@@ -31,7 +31,6 @@ import {
   VerifiedBadge,
 } from "@/components/detail-layout";
 import { PriceChart } from "@/components/price-chart";
-import { WishlistButton } from "@/components/wishlist-button";
 import { MakeOfferModal } from "@/components/make-offer-modal";
 
 const TABS = ["Card Info", "Price History", "Shipping & Returns", "Seller Reviews"] as const;
@@ -69,7 +68,7 @@ export default function CatalogDetailPage({
     queryFn: () => api.get<ListingDto[]>(`/marketplace/catalog/${catalogItemId}/listings`),
   });
   const { data: recent } = useQuery({
-    queryKey: ["recent-sales"],
+    queryKey: ["recent-sales", 20],
     queryFn: () => api.get<TradeDto[]>("/marketplace/recent-sales?limit=20"),
   });
   const { data: similarListings } = useQuery({
@@ -251,7 +250,6 @@ export default function CatalogDetailPage({
                 </Link>
               </p>
             )}
-            <WishlistButton catalogItemId={catalogItemId} />
             <button
               type="button"
               className="btn-outline flex-1"
