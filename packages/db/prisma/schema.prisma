@@ -132,6 +132,7 @@ enum NotificationType {
 
 enum WalletTransactionType {
   TOP_UP
+  TOP_UP_REJECTED
   ADMIN_GRANT
   PURCHASE
   ESCROW_HOLD

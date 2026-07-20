@@ -52,12 +52,7 @@ export class QueueService implements OnModuleDestroy {
     body?: string;
     link?: string;
   }) {
-    const q = this.queue(QUEUE_NAMES.NOTIFICATIONS);
-    if (q) {
-      await q.add("notify", payload, { removeOnComplete: 200 });
-      return;
-    }
-    // Fallback: persist directly when Redis/worker is unavailable.
+    // Persist immediately (do not rely on Redis/worker — those can drop jobs silently).
     await prisma.notification.create({
       data: {
         userId: payload.userId,

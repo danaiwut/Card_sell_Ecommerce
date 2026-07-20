@@ -70,7 +70,14 @@ export default function NewsDetailPage({
 
         {data.imageUrl && (
           <div className="relative mt-6 aspect-[16/9] overflow-hidden rounded-xl bg-ink/5">
-            <Image src={data.imageUrl} alt={data.title} fill className="object-cover" priority />
+            <Image
+              src={data.imageUrl}
+              alt={data.title}
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
           </div>
         )}
 

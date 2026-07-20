@@ -198,21 +198,38 @@ export class WalletService {
     if (!req) throw new NotFoundException("ไม่พบคำขอเติมเครดิต");
     if (req.status !== "PENDING") throw new BadRequestException("คำขอนี้ดำเนินการแล้ว");
 
-    await this.prisma.topUpRequest.update({
-      where: { id: topUpId },
-      data: {
-        status: "REJECTED",
-        processedById: managerId,
-        processedAt: new Date(),
-        managerNote: reason ?? "ปฏิเสธคำขอเติมเครดิต",
-      },
+    const wallet = await this.getOrCreate(req.userId);
+    const rejectNote = reason ?? "ปฏิเสธคำขอเติมเครดิต";
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.topUpRequest.update({
+        where: { id: topUpId },
+        data: {
+          status: "REJECTED",
+          processedById: managerId,
+          processedAt: new Date(),
+          managerNote: rejectNote,
+        },
+      });
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: "TOP_UP_REJECTED",
+          amount: 0,
+          balanceAfter: wallet.balance,
+          description: `ปฏิเสธคำขอเติมเครดิต ฿${toBaht(req.amount).toLocaleString()}${reason ? ` — ${reason}` : ""}`,
+          referenceType: "topup",
+          referenceId: topUpId,
+          createdById: managerId,
+        },
+      });
     });
 
     await this.queue.enqueueNotification({
       userId: req.userId,
       type: "CREDIT",
       title: "คำขอเติมเครดิตถูกปฏิเสธ",
-      body: reason ?? "กรุณาติดต่อแอดมิน",
+      body: `฿${toBaht(req.amount).toLocaleString()} — ${rejectNote}`,
       link: "/account/wallet",
     });
 
@@ -471,14 +488,32 @@ export class WalletService {
     if (!req) throw new NotFoundException("ไม่พบคำขอถอน");
     if (req.status !== "PENDING") throw new BadRequestException("คำขอนี้ดำเนินการแล้ว");
 
-    await this.prisma.withdrawalRequest.update({
-      where: { id: withdrawalId },
-      data: {
-        status: "COMPLETED",
-        processedById: managerId,
-        processedAt: new Date(),
-        managerNote: note ?? "อนุมัติแล้ว — โอนเงินสดให้ผู้ขายเรียบร้อย",
-      },
+    const wallet = await this.getOrCreate(req.userId);
+    const managerNote = note ?? "อนุมัติแล้ว — โอนเงินสดให้ผู้ขายเรียบร้อย";
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.withdrawalRequest.update({
+        where: { id: withdrawalId },
+        data: {
+          status: "COMPLETED",
+          processedById: managerId,
+          processedAt: new Date(),
+          managerNote,
+        },
+      });
+      // Audit row (funds already deducted when the request was created).
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: "WITHDRAWAL",
+          amount: 0,
+          balanceAfter: wallet.balance,
+          description: `อนุมัติถอนเครดิต ฿${toBaht(req.amount).toLocaleString()} — ${managerNote}`,
+          referenceType: "withdrawal",
+          referenceId: withdrawalId,
+          createdById: managerId,
+        },
+      });
     });
 
     await this.queue.enqueueNotification({

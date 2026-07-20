@@ -180,13 +180,20 @@ export default function WalletPage() {
               <h2 className="font-semibold">ประวัติธุรกรรม</h2>
             </div>
             <div className="divide-y divide-ink/5">
-              {(transactions ?? []).map((t) => (
+              {(transactions ?? []).map((t) => {
+                const isReject = t.type === "TOP_UP_REJECTED";
+                const isZeroNote = t.amount === 0;
+                return (
                 <div key={t.id} className="flex items-center justify-between px-5 py-3 text-sm">
                   <div className="flex items-center gap-3">
-                    {t.amount >= 0 ? (
+                    {isReject || (isZeroNote && t.type === "WITHDRAWAL") ? (
+                      <ArrowUpRight size={16} className={isReject ? "text-red-500" : "text-ink/40"} />
+                    ) : t.amount > 0 ? (
                       <ArrowDownLeft size={16} className="text-green-600" />
-                    ) : (
+                    ) : t.amount < 0 ? (
                       <ArrowUpRight size={16} className="text-red-500" />
+                    ) : (
+                      <ArrowDownLeft size={16} className="text-ink/40" />
                     )}
                     <div>
                       <p className="font-medium">{t.description ?? t.type}</p>
@@ -194,14 +201,21 @@ export default function WalletPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-semibold ${t.amount >= 0 ? "text-green-600" : "text-ink"}`}>
-                      {t.amount >= 0 ? "+" : ""}
-                      {formatBaht(t.amount)}
-                    </p>
+                    {isZeroNote ? (
+                      <p className={`font-semibold ${isReject ? "text-red-500" : "text-ink/50"}`}>
+                        {isReject ? "ถูกปฏิเสธ" : "บันทึกแล้ว"}
+                      </p>
+                    ) : (
+                      <p className={`font-semibold ${t.amount > 0 ? "text-green-600" : "text-ink"}`}>
+                        {t.amount > 0 ? "+" : ""}
+                        {formatBaht(t.amount)}
+                      </p>
+                    )}
                     <p className="text-xs text-ink/40">คงเหลือ {formatBaht(t.balanceAfter)}</p>
                   </div>
                 </div>
-              ))}
+                );
+              })}
               {(transactions?.length ?? 0) === 0 && (
                 <p className="px-5 py-8 text-center text-sm text-ink/40">ยังไม่มีธุรกรรม</p>
               )}

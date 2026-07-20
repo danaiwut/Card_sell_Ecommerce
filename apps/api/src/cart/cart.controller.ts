@@ -14,8 +14,8 @@ export class CartController {
 
   @Post("items")
   add(@CurrentUser("id") userId: string, @Body() body: unknown) {
-    const { productId, quantity } = addToCartSchema.parse(body);
-    return this.cart.add(userId, productId, quantity);
+    const { productId, quantity, mode } = addToCartSchema.parse(body);
+    return this.cart.add(userId, productId, quantity, mode);
   }
 
   @Patch("items/:id")

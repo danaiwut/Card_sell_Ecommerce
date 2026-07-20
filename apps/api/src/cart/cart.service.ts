@@ -33,13 +33,18 @@ export class CartService {
     return { items: lines, subtotal, shipping: 0, total: subtotal };
   }
 
-  async add(userId: string, productId: string, quantity: number) {
+  async add(
+    userId: string,
+    productId: string,
+    quantity: number,
+    mode: "add" | "set" = "add",
+  ) {
     const cart = await this.ensureCart(userId);
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new BadRequestException("Product not found");
     await this.prisma.cartItem.upsert({
       where: { cartId_productId: { cartId: cart.id, productId } },
-      update: { quantity: { increment: quantity } },
+      update: mode === "set" ? { quantity } : { quantity: { increment: quantity } },
       create: { cartId: cart.id, productId, quantity },
     });
     return this.get(userId);

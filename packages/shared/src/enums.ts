@@ -118,6 +118,7 @@ export type NewsKind = (typeof NEWS_KIND)[number];
 
 export const WALLET_TRANSACTION_TYPES = [
   "TOP_UP",
+  "TOP_UP_REJECTED",
   "ADMIN_GRANT",
   "PURCHASE",
   "ESCROW_HOLD",

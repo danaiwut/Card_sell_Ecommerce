@@ -72,7 +72,11 @@ export function ProductDetailClient({ slug, initialData }: Props) {
 
   const buyNow = useMutation({
     mutationFn: () =>
-      api.post("/cart/items", { productId: data.product.id, quantity: qty }),
+      api.post("/cart/items", {
+        productId: data.product.id,
+        quantity: qty,
+        mode: "set",
+      }),
     onSuccess: () => {
       setCartError(null);
       qc.invalidateQueries({ queryKey: ["cart"] });

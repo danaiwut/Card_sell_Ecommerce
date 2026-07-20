@@ -82,6 +82,8 @@ export type RejectOfferInput = z.infer<typeof rejectOfferSchema>;
 export const addToCartSchema = z.object({
   productId: z.string().min(1),
   quantity: z.number().int().min(1).default(1),
+  /** add = increment existing qty; set = replace qty (used by Buy Now) */
+  mode: z.enum(["add", "set"]).default("add"),
 });
 
 export const updateShipmentSchema = z.object({
