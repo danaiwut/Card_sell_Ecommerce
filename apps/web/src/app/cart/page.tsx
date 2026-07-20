@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Suspense, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Minus, Plus, Trash2, ShieldCheck } from "lucide-react";
@@ -12,7 +13,6 @@ import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
 import { isClerkEnabled } from "@/lib/clerk-config";
 import { formatBaht } from "@/lib/format";
-import { CheckoutModal } from "@/components/checkout-modal";
 
 interface CartPayload {
   items: { id: string; quantity: number; product: ProductDto; lineTotal: number }[];
@@ -32,10 +32,11 @@ export default function CartPage() {
 function CartPageInner() {
   const { t } = useI18n();
   const { session } = useSession();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [showCancelled, setShowCancelled] = useState(false);
   const qc = useQueryClient();
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (searchParams.get("status") === "cancelled") setShowCancelled(true);
@@ -46,6 +47,12 @@ function CartPageInner() {
     queryFn: () => api.get<CartPayload>("/cart", true),
     enabled: Boolean(session),
   });
+
+  useEffect(() => {
+    if (data?.items) {
+      setSelectedIds(new Set(data.items.map((i) => i.id)));
+    }
+  }, [data?.items]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["cart"] });
@@ -58,8 +65,42 @@ function CartPageInner() {
   });
   const remove = useMutation({
     mutationFn: (id: string) => api.del(`/cart/items/${id}`),
-    onSuccess: invalidate,
+    onSuccess: (_, id) => {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      invalidate();
+    },
   });
+
+  const selectedItems = useMemo(
+    () => (data?.items ?? []).filter((line) => selectedIds.has(line.id)),
+    [data?.items, selectedIds],
+  );
+  const selectedSubtotal = selectedItems.reduce((sum, line) => sum + line.lineTotal, 0);
+  const allSelected = (data?.items.length ?? 0) > 0 && selectedIds.size === data!.items.length;
+
+  function toggleItem(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (!data?.items.length) return;
+    setSelectedIds(allSelected ? new Set() : new Set(data.items.map((i) => i.id)));
+  }
+
+  function goCheckout() {
+    const ids = selectedItems.map((i) => i.id);
+    if (ids.length === 0) return;
+    router.push(`/checkout?items=${ids.join(",")}`);
+  }
 
   if (!session) {
     return (
@@ -68,6 +109,32 @@ function CartPageInner() {
         <Link href={isClerkEnabled() ? "/sign-in" : "/account"} className="btn-primary mt-4">
           เข้าสู่ระบบ
         </Link>
+      </div>
+    );
+  }
+
+  function ProductCell({ line }: { line: CartPayload["items"][number] }) {
+    return (
+      <div className="flex items-center gap-3">
+        <Link
+          href={`/shop/${line.product.slug}`}
+          className="relative h-12 w-12 shrink-0 overflow-hidden rounded bg-ink/5 ring-1 ring-ink/10 transition hover:ring-gold/40 md:h-12 md:w-12"
+        >
+          {line.product.imageUrl && (
+            <Image src={line.product.imageUrl} alt="" fill className="object-cover" />
+          )}
+        </Link>
+        <div className="min-w-0">
+          <Link
+            href={`/shop/${line.product.slug}`}
+            className="font-medium hover:text-gold hover:underline"
+          >
+            {line.product.name}
+          </Link>
+          {line.product.subtitle && (
+            <p className="text-xs text-ink/50">{line.product.subtitle}</p>
+          )}
+        </div>
       </div>
     );
   }
@@ -94,13 +161,27 @@ function CartPageInner() {
             {(data?.items ?? []).map((line) => (
               <div key={line.id} className="card p-4">
                 <div className="flex gap-3">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 shrink-0 accent-gold"
+                    checked={selectedIds.has(line.id)}
+                    onChange={() => toggleItem(line.id)}
+                    aria-label={`เลือก ${line.product.name}`}
+                  />
                   <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-ink/5">
-                    {line.product.imageUrl && (
-                      <Image src={line.product.imageUrl} alt="" fill className="object-cover" />
-                    )}
+                    <Link href={`/shop/${line.product.slug}`}>
+                      {line.product.imageUrl && (
+                        <Image src={line.product.imageUrl} alt="" fill className="object-cover" />
+                      )}
+                    </Link>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{line.product.name}</p>
+                    <Link
+                      href={`/shop/${line.product.slug}`}
+                      className="font-medium hover:text-gold hover:underline"
+                    >
+                      {line.product.name}
+                    </Link>
                     <p className="text-xs text-ink/50">{line.product.subtitle}</p>
                     <p className="mt-1 price text-sm">{formatBaht(line.product.price)}</p>
                   </div>
@@ -108,7 +189,7 @@ function CartPageInner() {
                     <Trash2 size={16} />
                   </button>
                 </div>
-                <div className="mt-3 flex items-center justify-between">
+                <div className="mt-3 flex items-center justify-between pl-7">
                   <div className="flex items-center rounded-md border border-ink/15">
                     <button className="px-2 py-1" onClick={() => setQty.mutate({ id: line.id, quantity: line.quantity - 1 })}>
                       <Minus size={12} />
@@ -134,6 +215,15 @@ function CartPageInner() {
           <table className="w-full text-sm">
             <thead className="border-b border-ink/10 text-left text-xs font-semibold tracking-wider text-ink/50">
               <tr>
+                <th className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-gold"
+                    checked={allSelected}
+                    onChange={toggleAll}
+                    aria-label="เลือกทั้งหมด"
+                  />
+                </th>
                 <th className="px-4 py-3">PRODUCT</th>
                 <th className="px-4 py-3">PRICE</th>
                 <th className="px-4 py-3">QTY</th>
@@ -145,17 +235,16 @@ function CartPageInner() {
               {(data?.items ?? []).map((line) => (
                 <tr key={line.id} className="border-b border-ink/5">
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-12 w-12 overflow-hidden rounded bg-ink/5">
-                        {line.product.imageUrl && (
-                          <Image src={line.product.imageUrl} alt="" fill className="object-cover" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium">{line.product.name}</p>
-                        <p className="text-xs text-ink/50">{line.product.subtitle}</p>
-                      </div>
-                    </div>
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-gold"
+                      checked={selectedIds.has(line.id)}
+                      onChange={() => toggleItem(line.id)}
+                      aria-label={`เลือก ${line.product.name}`}
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <ProductCell line={line} />
                   </td>
                   <td className="px-4 py-3 price">{formatBaht(line.product.price)}</td>
                   <td className="px-4 py-3">
@@ -179,7 +268,7 @@ function CartPageInner() {
               ))}
               {!isLoading && (data?.items.length ?? 0) === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-ink/40">
+                  <td colSpan={6} className="px-4 py-10 text-center text-ink/40">
                     ตะกร้าว่างเปล่า
                   </td>
                 </tr>
@@ -195,34 +284,31 @@ function CartPageInner() {
         </div>
 
         <div className="card h-fit p-5">
-          <div className="flex justify-between text-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink/40">
+            เลือกแล้ว {selectedItems.length} รายการ
+          </p>
+          <div className="mt-3 flex justify-between text-sm">
             <span className="text-ink/60">{t("cart.subtotal")}</span>
-            <span className="price">{formatBaht(data?.subtotal ?? 0)}</span>
+            <span className="price">{formatBaht(selectedSubtotal)}</span>
           </div>
           <div className="mt-2 flex justify-between text-sm">
             <span className="text-ink/60">{t("cart.shipping")}</span>
-            <span className="price">{formatBaht(data?.shipping ?? 0)}</span>
+            <span className="price">{formatBaht(0)}</span>
           </div>
           <div className="mt-3 flex justify-between border-t border-ink/10 pt-3 font-semibold">
             <span>{t("cart.total")}</span>
-            <span className="price">{formatBaht(data?.total ?? 0)}</span>
+            <span className="price">{formatBaht(selectedSubtotal)}</span>
           </div>
           <button
             className="btn-primary mt-4 w-full"
-            disabled={(data?.items.length ?? 0) === 0}
-            onClick={() => setCheckoutOpen(true)}
+            disabled={selectedItems.length === 0}
+            onClick={goCheckout}
           >
             <ShieldCheck size={16} /> {t("cart.checkout")}
           </button>
           <p className="mt-2 text-center text-xs text-ink/40">🔒 ปลอดภัยด้วย SSL</p>
         </div>
       </div>
-
-      <CheckoutModal
-        open={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        cart={data}
-      />
     </div>
   );
 }

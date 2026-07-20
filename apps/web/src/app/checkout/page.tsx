@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, MapPin, CreditCard, Package } from "lucide-react";
 import type { ProductDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { formatBaht } from "@/lib/format";
+import { digitsOnly, isValidPhone, isValidPostalCode } from "@/lib/numeric-input";
 import { DevLogin } from "@/components/dev-login";
 
 interface CartPayload {
@@ -44,8 +46,17 @@ const SHIPPING_OPTIONS = [
 ] as const;
 
 export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <CheckoutPageInner />
+    </Suspense>
+  );
+}
+
+function CheckoutPageInner() {
   const { session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
   const [step, setStep] = useState<Step>("shipping");
   const [shippingMethod, setShippingMethod] = useState("standard");
@@ -64,6 +75,12 @@ export default function CheckoutPage() {
   const checkoutLocked = useRef(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [addressError, setAddressError] = useState("");
+
+  const selectedItemIds = useMemo(() => {
+    const raw = searchParams.get("items");
+    return raw ? raw.split(",").filter(Boolean) : null;
+  }, [searchParams]);
 
   const { data: cart } = useQuery({
     queryKey: ["cart", session?.userId],
@@ -84,12 +101,34 @@ export default function CheckoutPage() {
   });
 
   const saveAddress = useMutation({
-    mutationFn: () => api.post<Address>("/users/me/addresses", newAddress),
+    mutationFn: () =>
+      api.post<Address>("/users/me/addresses", {
+        ...newAddress,
+        phone: digitsOnly(newAddress.phone),
+        postalCode: digitsOnly(newAddress.postalCode),
+      }),
     onSuccess: (addr) => {
       setSelectedAddressId(addr.id);
       qc.invalidateQueries({ queryKey: ["addresses"] });
     },
   });
+
+  const checkoutItems = useMemo(() => {
+    const items = cart?.items ?? [];
+    if (!selectedItemIds?.length) return items;
+    return items.filter((line) => selectedItemIds.includes(line.id));
+  }, [cart?.items, selectedItemIds]);
+
+  const shippingFee =
+    SHIPPING_OPTIONS.find((o) => o.id === shippingMethod)?.price ?? 0;
+  const subtotal = checkoutItems.reduce((sum, line) => sum + line.lineTotal, 0);
+  const discount = appliedCoupon === "WELCOME10" ? Math.round(subtotal * 0.1) : 0;
+  const total = Math.max(0, subtotal - discount) + shippingFee;
+  const creditBalance = wallet?.balance ?? 0;
+  const canPay = creditBalance >= total;
+
+  const activeAddressId =
+    selectedAddressId ?? addresses?.find((a) => a.isDefault)?.id ?? addresses?.[0]?.id;
 
   const checkout = useMutation({
     mutationFn: (addressId: string) =>
@@ -100,6 +139,7 @@ export default function CheckoutPage() {
           couponCode: appliedCoupon ?? undefined,
           shipping: shippingFee,
           payWithCredit: true,
+          cartItemIds: checkoutItems.map((i) => i.id),
         },
       ),
     onMutate: () => {
@@ -131,20 +171,25 @@ export default function CheckoutPage() {
 
   if (!session) return <DevLogin />;
 
-  const shippingFee =
-    SHIPPING_OPTIONS.find((o) => o.id === shippingMethod)?.price ?? 0;
-  const subtotal = cart?.subtotal ?? 0;
-  const discount = appliedCoupon === "WELCOME10" ? Math.round(subtotal * 0.1) : 0;
-  const total = Math.max(0, subtotal - discount) + shippingFee;
-  const creditBalance = wallet?.balance ?? 0;
-  const canPay = creditBalance >= total;
-
-  const activeAddressId =
-    selectedAddressId ?? addresses?.find((a) => a.isDefault)?.id ?? addresses?.[0]?.id;
+  function validateNewAddress(): string | null {
+    if (!newAddress.fullName.trim()) return "กรุณากรอกชื่อผู้รับ";
+    if (!isValidPhone(newAddress.phone)) return "เบอร์โทรต้องเป็นตัวเลข 9–10 หลัก";
+    if (!newAddress.line1.trim()) return "กรุณากรอกที่อยู่";
+    if (!newAddress.district.trim()) return "กรุณากรอกเขต/อำเภอ";
+    if (!newAddress.province.trim()) return "กรุณากรอกจังหวัด";
+    if (!isValidPostalCode(newAddress.postalCode)) return "รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก";
+    return null;
+  }
 
   function proceedToPayment() {
-    if (!activeAddressId && !newAddress.fullName) return;
+    if (checkoutItems.length === 0) return;
     if (!activeAddressId) {
+      const err = validateNewAddress();
+      if (err) {
+        setAddressError(err);
+        return;
+      }
+      setAddressError("");
       saveAddress.mutate(undefined, {
         onSuccess: (addr) => {
           setStep("payment");
@@ -153,7 +198,20 @@ export default function CheckoutPage() {
       });
       return;
     }
+    setAddressError("");
     setStep("payment");
+  }
+
+  function updateAddressField(key: keyof typeof newAddress, value: string) {
+    if (key === "phone") {
+      setNewAddress((a) => ({ ...a, phone: digitsOnly(value, 10) }));
+      return;
+    }
+    if (key === "postalCode") {
+      setNewAddress((a) => ({ ...a, postalCode: digitsOnly(value, 5) }));
+      return;
+    }
+    setNewAddress((a) => ({ ...a, [key]: value }));
   }
 
   return (
@@ -243,13 +301,18 @@ export default function CheckoutPage() {
                     <input
                       className="input mt-1"
                       value={newAddress[key]}
-                      onChange={(e) =>
-                        setNewAddress((a) => ({ ...a, [key]: e.target.value }))
-                      }
+                      onChange={(e) => updateAddressField(key, e.target.value)}
+                      inputMode={key === "phone" || key === "postalCode" ? "numeric" : undefined}
+                      pattern={key === "phone" || key === "postalCode" ? "[0-9]*" : undefined}
+                      maxLength={key === "phone" ? 10 : key === "postalCode" ? 5 : undefined}
                     />
                   </div>
                 ))}
               </div>
+
+              {addressError && (
+                <p className="mt-3 rounded-md bg-red-50 px-4 py-2 text-sm text-red-600">{addressError}</p>
+              )}
 
               <div className="mt-5">
                 <p className="text-xs font-semibold uppercase tracking-wider text-ink/50">
@@ -287,7 +350,7 @@ export default function CheckoutPage() {
 
               <button
                 className="btn-primary mt-6 w-full"
-                disabled={(cart?.items.length ?? 0) === 0}
+                disabled={checkoutItems.length === 0}
                 onClick={proceedToPayment}
               >
                 ดำเนินการต่อ
@@ -363,11 +426,24 @@ export default function CheckoutPage() {
             สรุปคำสั่งซื้อ
           </p>
           <div className="mt-3 space-y-2">
-            {(cart?.items ?? []).map((line) => (
-              <div key={line.id} className="flex justify-between text-sm">
-                <span className="text-ink/70">
-                  {line.product.name} × {line.quantity}
-                </span>
+            {checkoutItems.map((line) => (
+              <div key={line.id} className="flex gap-3 text-sm">
+                {line.product.imageUrl && (
+                  <Link
+                    href={`/shop/${line.product.slug}`}
+                    className="relative h-10 w-10 shrink-0 overflow-hidden rounded bg-ink/5"
+                  >
+                    <Image src={line.product.imageUrl} alt="" fill className="object-cover" />
+                  </Link>
+                )}
+                <div className="min-w-0 flex-1">
+                  <Link
+                    href={`/shop/${line.product.slug}`}
+                    className="text-ink/70 hover:text-gold hover:underline"
+                  >
+                    {line.product.name} × {line.quantity}
+                  </Link>
+                </div>
                 <span className="font-medium">{formatBaht(line.lineTotal)}</span>
               </div>
             ))}

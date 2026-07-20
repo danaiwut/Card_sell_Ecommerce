@@ -141,6 +141,9 @@ importers:
       recharts:
         specifier: ^2.15.0
         version: 2.15.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
       socket.io-client:
         specifier: ^4.8.1
         version: 4.8.3

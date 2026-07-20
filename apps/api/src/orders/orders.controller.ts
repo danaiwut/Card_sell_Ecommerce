@@ -15,6 +15,7 @@ export class OrdersController {
       couponCode?: string;
       shipping?: number;
       payWithCredit?: boolean;
+      cartItemIds?: string[];
     },
   ) {
     return this.orders.checkout(userId, body);

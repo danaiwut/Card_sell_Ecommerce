@@ -25,6 +25,7 @@ export class OrdersService {
       couponCode?: string;
       shipping?: number;
       payWithCredit?: boolean;
+      cartItemIds?: string[];
     },
   ) {
     const { order, total, user } = await this.prisma.$transaction(async (tx) => {
@@ -39,8 +40,16 @@ export class OrdersService {
         throw new BadRequestException("ตะกร้าว่างเปล่า");
       }
 
+      const checkoutItems =
+        params.cartItemIds?.length
+          ? cart.items.filter((i) => params.cartItemIds!.includes(i.id))
+          : cart.items;
+      if (checkoutItems.length === 0) {
+        throw new BadRequestException("กรุณาเลือกสินค้าที่ต้องการชำระเงิน");
+      }
+
       let subtotal = 0;
-      for (const item of cart.items) {
+      for (const item of checkoutItems) {
         if (item.product.stock < item.quantity) {
           throw new BadRequestException(`สินค้า ${item.product.name} ไม่พอ`);
         }
@@ -63,8 +72,10 @@ export class OrdersService {
       const shipping = Math.round(Number(params.shipping ?? 0) * 100) || 0;
       const total = Math.max(0, subtotal - discount) + shipping;
 
-      // Clear cart immediately so duplicate submits see an empty cart.
-      await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+      // Remove only checked-out lines so remaining cart items stay in the cart.
+      await tx.cartItem.deleteMany({
+        where: { cartId: cart.id, id: { in: checkoutItems.map((i) => i.id) } },
+      });
 
       const buyer = await tx.user.findUnique({ where: { id: userId } });
 
@@ -80,7 +91,7 @@ export class OrdersService {
           couponId,
           addressId: params.addressId,
           items: {
-            create: cart.items.map((i) => ({
+            create: checkoutItems.map((i) => ({
               productId: i.productId,
               name: i.product.name,
               unitPrice: i.product.price,

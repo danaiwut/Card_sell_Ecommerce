@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { digitsOnly, isValidPhone, isValidPostalCode } from "@/lib/numeric-input";
 import { X } from "lucide-react";
 
 interface Address {
@@ -92,8 +93,21 @@ export function AddressModal({ open, onClose, initial, onSaved }: Props) {
     onError: (err: any) => setError(err?.message ?? "เกิดข้อผิดพลาด"),
   });
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((p) => ({ ...p, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.type === "checkbox") {
+      setForm((p) => ({ ...p, [k]: e.target.checked }));
+      return;
+    }
+    if (k === "phone") {
+      setForm((p) => ({ ...p, phone: digitsOnly(e.target.value, 10) }));
+      return;
+    }
+    if (k === "postalCode") {
+      setForm((p) => ({ ...p, postalCode: digitsOnly(e.target.value, 5) }));
+      return;
+    }
+    setForm((p) => ({ ...p, [k]: e.target.value }));
+  };
 
   if (!open) return null;
 
@@ -129,7 +143,15 @@ export function AddressModal({ open, onClose, initial, onSaved }: Props) {
             </div>
             <div>
               <label className="label-xs">เบอร์โทรศัพท์ *</label>
-              <input className="input mt-1" value={form.phone} onChange={set("phone")} placeholder="08x-xxx-xxxx" />
+              <input
+                className="input mt-1"
+                value={form.phone}
+                onChange={set("phone")}
+                placeholder="08xxxxxxxx"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={10}
+              />
             </div>
           </div>
 
@@ -154,7 +176,15 @@ export function AddressModal({ open, onClose, initial, onSaved }: Props) {
             </div>
             <div>
               <label className="label-xs">รหัสไปรษณีย์ *</label>
-              <input className="input mt-1" value={form.postalCode} onChange={set("postalCode")} placeholder="10110" maxLength={5} />
+              <input
+                className="input mt-1"
+                value={form.postalCode}
+                onChange={set("postalCode")}
+                placeholder="10110"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={5}
+              />
             </div>
           </div>
 
