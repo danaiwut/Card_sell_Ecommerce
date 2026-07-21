@@ -65,10 +65,10 @@ export function PremiumProductCard({
   const isPremium = variant === "premium";
 
   return (
-    <Link href={`/shop/${product.slug}`} className="group block">
+    <Link href={`/shop/${product.slug}`} className="group flex h-full">
       <div
         ref={wrapRef}
-        className="relative"
+        className="relative flex h-full w-full"
         style={{ perspective: 900, transformStyle: "preserve-3d" }}
       >
         <div
@@ -81,12 +81,12 @@ export function PremiumProductCard({
           style={{ opacity: 0.4 }}
         />
         <div
-          className={`relative overflow-hidden rounded-xl border-2 bg-white shadow-lg transition group-hover:shadow-xl ${
+          className={`relative flex h-full w-full flex-col overflow-hidden rounded-xl border-2 bg-white shadow-lg transition group-hover:shadow-xl ${
             isPremium ? "border-gold/50" : "border-orange-400/40"
           }`}
         >
-          <div className="relative aspect-[3/4] overflow-hidden bg-ink/5">
-            {product.imageUrl && (
+          <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-ink/5">
+            {product.imageUrl ? (
               <Image
                 src={product.imageUrl}
                 alt={product.name}
@@ -94,10 +94,16 @@ export function PremiumProductCard({
                 sizes="(max-width: 768px) 50vw, 25vw"
                 className="object-cover transition duration-500 group-hover:scale-105"
               />
+            ) : (
+              <div className="flex h-full items-center justify-center text-ink/20">
+                <Crown size={32} />
+              </div>
             )}
             <div
               className={`absolute left-2 top-2 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow ${
-                isPremium ? "bg-gradient-to-r from-gold to-amber-500" : "bg-gradient-to-r from-orange-500 to-red-500"
+                isPremium
+                  ? "bg-gradient-to-r from-gold to-amber-500"
+                  : "bg-gradient-to-r from-orange-500 to-red-500"
               }`}
             >
               {isPremium ? <Crown size={10} /> : <Flame size={10} />}
@@ -105,17 +111,21 @@ export function PremiumProductCard({
             </div>
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/30 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
           </div>
-          <div className="p-3">
-            <h3 className="text-sm font-semibold text-ink">{product.name}</h3>
-            {product.subtitle && (
-              <p className="text-xs text-ink/50">{product.subtitle}</p>
-            )}
-            <p className="mt-1.5 text-base font-bold text-gold">{formatBaht(product.price)}</p>
-            {product.soldCount != null && product.soldCount > 0 && (
-              <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-ink/40">
-                ขายแล้ว {product.soldCount} ชิ้น
-              </p>
-            )}
+          <div className="flex flex-1 flex-col p-3">
+            <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-ink">
+              {product.name}
+            </h3>
+            <p className="mt-0.5 line-clamp-1 min-h-[1rem] text-xs text-ink/50">
+              {product.subtitle || "\u00A0"}
+            </p>
+            <p className="mt-auto pt-2 text-base font-bold text-gold">
+              {formatBaht(product.price)}
+            </p>
+            <p className="mt-0.5 min-h-[0.875rem] text-[10px] font-medium uppercase tracking-wider text-ink/40">
+              {product.soldCount != null && product.soldCount > 0
+                ? `ขายแล้ว ${product.soldCount} ชิ้น`
+                : "\u00A0"}
+            </p>
           </div>
         </div>
       </div>

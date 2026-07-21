@@ -199,7 +199,7 @@ export default function HomePage() {
               สินค้าพรีเมียม &amp; ขายดีสุด
             </h2>
           </div>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <div className="grid grid-cols-2 items-stretch gap-4 md:grid-cols-4 md:gap-6">
             {(data?.topExpensive ?? []).map((p) => (
               <PremiumProductCard key={`exp-${p.id}`} product={p} variant="premium" />
             ))}

@@ -230,15 +230,21 @@ function AuthControls() {
       <SignedIn>
         <Link
           href="/account"
-          className="hidden text-xs font-semibold tracking-wider text-ink/60 hover:text-ink sm:block"
+          className="flex h-9 items-center gap-1.5 rounded-full border border-ink/10 bg-white pl-1 pr-2.5 text-ink/70 shadow-sm transition hover:border-gold/40 hover:text-ink active:bg-ink/5"
+          aria-label="บัญชีของฉัน"
         >
-          บัญชี
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-white">
+            <User size={14} />
+          </span>
+          <span className="text-xs font-semibold tracking-wider">บัญชี</span>
         </Link>
-        <UserButton
-          afterSignOutUrl="/"
-          userProfileUrl="/account"
-          appearance={{ elements: { avatarBox: "h-8 w-8" } }}
-        />
+        <div className="hidden md:block">
+          <UserButton
+            afterSignOutUrl="/"
+            userProfileUrl="/account"
+            appearance={{ elements: { avatarBox: "h-8 w-8" } }}
+          />
+        </div>
       </SignedIn>
     </>
   );
