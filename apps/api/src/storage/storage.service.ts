@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { randomUUID } from "crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -13,16 +14,14 @@ const MAX_FILE_SIZE = 8 * 1024 * 1024;
 
 @Injectable()
 export class StorageService {
-  private readonly client: SupabaseClient | null;
-  private readonly bucket = process.env.SUPABASE_STORAGE_BUCKET ?? "cardverse";
-  private readonly supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
+  private readonly uploadDir: string;
+  private readonly apiUrl: string;
+  private readonly uploadSecret: string;
 
   constructor() {
-    const url = process.env.SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    this.client =
-      url && serviceKey ? createClient(url, serviceKey, { auth: { persistSession: false } }) : null;
+    this.uploadDir = path.resolve(process.env.LOCAL_UPLOAD_DIR ?? "./data/uploads");
+    this.apiUrl = (process.env.API_URL ?? "http://localhost:4000").replace(/\/$/, "");
+    this.uploadSecret = process.env.INTERNAL_API_SECRET ?? "dev-internal-secret";
   }
 
   async presignImageUpload(input: {
@@ -31,12 +30,6 @@ export class StorageService {
     size: number;
     folder?: "products" | "catalog" | "news" | "avatars" | "listings";
   }) {
-    if (!this.client || !this.supabaseUrl) {
-      throw new BadRequestException(
-        "Supabase storage is not configured. Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_STORAGE_BUCKET.",
-      );
-    }
-
     if (!ALLOWED_IMAGE_TYPES.has(input.contentType)) {
       throw new BadRequestException("รองรับเฉพาะไฟล์รูปภาพ jpeg, png, webp หรือ gif");
     }
@@ -48,21 +41,63 @@ export class StorageService {
     const extension = this.extensionFrom(input.fileName, input.contentType);
     const folder = input.folder ?? "products";
     const key = `${folder}/${new Date().toISOString().slice(0, 10)}/${randomUUID()}${extension}`;
-
-    const { data, error } = await this.client.storage
-      .from(this.bucket)
-      .createSignedUploadUrl(key);
-
-    if (error || !data) {
-      throw new BadRequestException(error?.message ?? "Failed to create upload URL");
-    }
+    const token = this.signUpload(key, input.contentType, input.size);
+    const uploadUrl = `${this.apiUrl}/storage/upload/${encodeURIComponent(key)}?token=${encodeURIComponent(token)}`;
 
     return {
       key,
-      uploadUrl: data.signedUrl,
-      publicUrl: `${this.supabaseUrl}/storage/v1/object/public/${this.bucket}/${key}`,
+      uploadUrl,
+      publicUrl: `${this.apiUrl}/uploads/${key}`,
       expiresIn: 7200,
     };
+  }
+
+  async saveUpload(
+    key: string,
+    token: string,
+    contentType: string,
+    body: Buffer,
+  ): Promise<{ key: string; publicUrl: string }> {
+    this.verifyUploadToken(key, token, contentType, body.length);
+    if (!ALLOWED_IMAGE_TYPES.has(contentType)) {
+      throw new BadRequestException("รองรับเฉพาะไฟล์รูปภาพ jpeg, png, webp หรือ gif");
+    }
+    if (body.length > MAX_FILE_SIZE) {
+      throw new BadRequestException("ไฟล์รูปต้องมีขนาดไม่เกิน 8MB");
+    }
+    if (key.includes("..") || key.startsWith("/")) {
+      throw new BadRequestException("Invalid upload key");
+    }
+
+    const filePath = path.join(this.uploadDir, key);
+    await mkdir(path.dirname(filePath), { recursive: true });
+    await writeFile(filePath, body);
+
+    return {
+      key,
+      publicUrl: `${this.apiUrl}/uploads/${key}`,
+    };
+  }
+
+  getUploadPath(key: string): string {
+    if (key.includes("..") || key.startsWith("/")) {
+      throw new BadRequestException("Invalid upload key");
+    }
+    return path.join(this.uploadDir, key);
+  }
+
+  private signUpload(key: string, contentType: string, size: number): string {
+    const payload = `${key}|${contentType}|${size}`;
+    return createHmac("sha256", this.uploadSecret).update(payload).digest("hex");
+  }
+
+  private verifyUploadToken(key: string, token: string, contentType: string, size: number) {
+    const expected = this.signUpload(key, contentType, size);
+    const a = Buffer.from(token);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      throw new BadRequestException("Invalid or expired upload token");
+    }
   }
 
   private extensionFrom(fileName: string, contentType: string) {

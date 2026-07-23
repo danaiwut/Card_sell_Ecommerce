@@ -12,7 +12,6 @@
     "lint": "echo \"no lint\""
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.8",
     "@cardverse/db": "workspace:*",
     "@cardverse/shared": "workspace:*",
     "@clerk/backend": "^1.21.4",

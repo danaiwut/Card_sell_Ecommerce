@@ -1,7 +1,7 @@
 # Analysis & Design — CardVerse
 ### ขอบเขต: Home / News / Notifications / Wishlist (Collection)
 
-เอกสารนี้อ้างอิงจากโค้ดจริงในโปรเจกต์ (Prisma schema: `packages/db/prisma/schema.prisma`, NestJS controllers: `apps/api/src/**`) เพื่ออธิบายการวิเคราะห์ความต้องการและออกแบบ Use Case ของระบบในส่วนที่รับผิดชอบ
+เอกสารนี้อ้างอิงจากโค้ดจริงในโปรเจกต์ (domain models ใน `packages/db`, JSON data ใน `data/`, NestJS controllers: `apps/api/src/**`) เพื่ออธิบายการวิเคราะห์ความต้องการและออกแบบ Use Case ของระบบในส่วนที่รับผิดชอบ
 
 สำหรับแผนภาพสถาปัตยกรรมระบบ (System Architecture, Sequence Diagram, ER Diagram) ดูเพิ่มเติมได้ที่ [`architecture.md`](./architecture.md)
 

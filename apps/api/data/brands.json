@@ -1,0 +1,130 @@
+[
+  {
+    "id": "brand_59a3871ae4a5ec0a",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "slug": "bandai",
+    "name": "Bandai",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_e70101c25965cb8f",
+    "categoryId": "cat_47b7662cd42feb01",
+    "slug": "bandai-one-piece",
+    "name": "Bandai (One Piece)",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_432110429098d649",
+    "categoryId": "cat_47b7662cd42feb01",
+    "slug": "bushiroad",
+    "name": "Bushiroad",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_e25d692614b55998",
+    "categoryId": null,
+    "slug": "dragon-shield",
+    "name": "Dragon Shield",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_b547d90ddaeaedd1",
+    "categoryId": "cat_5b06c31a4020825c",
+    "slug": "hybe",
+    "name": "HYBE Labels",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_df58710713fa9946",
+    "categoryId": "cat_5b06c31a4020825c",
+    "slug": "jyp",
+    "name": "JYP Entertainment",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_4e3b4d894f77233b",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "slug": "konami",
+    "name": "Konami",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_3520b1e7bcf793a6",
+    "categoryId": "cat_ec8baf704590bb62",
+    "slug": "mihoyo",
+    "name": "miHoYo",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_f1b4124a41ede5ed",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "panini",
+    "name": "Panini",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_f25cb2fffa5ef202",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "slug": "pokemon-company",
+    "name": "The Pokémon Company",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_0bb9321c1d24a2ac",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "topps",
+    "name": "Topps",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_53ea5267d901ac0e",
+    "categoryId": null,
+    "slug": "ultimate-guard",
+    "name": "Ultimate Guard",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_48122640c320ca3d",
+    "categoryId": null,
+    "slug": "ultra-pro",
+    "name": "Ultra Pro",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_75ccf1eb61808252",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "upper-deck",
+    "name": "Upper Deck",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_3fbf0fb4b2904d42",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "slug": "wizards-of-the-coast",
+    "name": "Wizards of the Coast",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "brand_0ff2257fdd46d148",
+    "categoryId": "cat_5b06c31a4020825c",
+    "slug": "yg",
+    "name": "YG Entertainment",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  }
+]

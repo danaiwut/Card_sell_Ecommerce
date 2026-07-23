@@ -1,17 +1,19 @@
-import { PrismaClient } from "@prisma/client";
+import { JsonClient, PrismaClient } from "./json-client";
+import { bootstrapJsonData } from "./bootstrap";
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+export { JsonClient, PrismaClient, bootstrapJsonData };
+export * from "./models";
+export * from "./types";
+export { getDataDir, dataFilePath } from "./paths";
+
+const globalForDb = globalThis as unknown as {
+  prisma: JsonClient | undefined;
 };
 
 export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
-  });
+  globalForDb.prisma ??
+  new JsonClient();
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  globalForDb.prisma = prisma;
 }
-
-export * from "@prisma/client";

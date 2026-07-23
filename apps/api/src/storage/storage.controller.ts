@@ -1,6 +1,7 @@
-import { Body, Controller, ForbiddenException, Post } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Post, Put, Query, Req } from "@nestjs/common";
+import type { Request } from "express";
 import { z } from "zod";
-import { CurrentUser, Roles } from "../auth/decorators";
+import { CurrentUser, Public } from "../auth/decorators";
 import { StorageService } from "./storage.service";
 
 const presignSchema = z.object({
@@ -33,5 +34,18 @@ export class StorageController {
     }
 
     return this.storage.presignImageUpload({ ...input, folder });
+  }
+
+  @Public()
+  @Put("*")
+  async upload(@Req() req: Request, @Query("token") token?: string) {
+    const prefix = "/storage/upload/";
+    const path = req.path.startsWith(prefix) ? req.path.slice(prefix.length) : "";
+    const key = decodeURIComponent(path);
+    const contentType = req.headers["content-type"] ?? "application/octet-stream";
+    const body = Buffer.isBuffer(req.body)
+      ? req.body
+      : Buffer.from(typeof req.body === "string" ? req.body : "");
+    return this.storage.saveUpload(key, token ?? "", String(contentType), body);
   }
 }

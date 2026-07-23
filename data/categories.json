@@ -1,0 +1,222 @@
+[
+  {
+    "id": "cat_6f410576f1eaf252",
+    "slug": "sports-cards",
+    "name": "Sports Cards",
+    "nameTh": "การ์ดกีฬา",
+    "emoji": "🏀",
+    "note": null,
+    "sortOrder": 0,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_47b7662cd42feb01",
+    "slug": "anime-manga",
+    "name": "Anime / Manga Cards",
+    "nameTh": "การ์ดอนิเมะ / มังงะ",
+    "emoji": "🎌",
+    "note": null,
+    "sortOrder": 1,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_ebe33f96c4f9fc5f",
+    "slug": "tcg",
+    "name": "Trading Card Games (TCG)",
+    "nameTh": "เกมการ์ดที่เล่นได้จริง",
+    "emoji": "🎲",
+    "note": "Playable trading card games",
+    "sortOrder": 2,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_3a1e32bebf8c3872",
+    "slug": "pop-culture-movie",
+    "name": "Pop Culture / Movie",
+    "nameTh": "ป๊อปคัลเจอร์ / ภาพยนตร์",
+    "emoji": "🎬",
+    "note": null,
+    "sortOrder": 3,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_936f3a7eb4da0414",
+    "slug": "celebrity",
+    "name": "Celebrity Cards",
+    "nameTh": "การ์ดคนดัง",
+    "emoji": "⭐",
+    "note": null,
+    "sortOrder": 4,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_5b06c31a4020825c",
+    "slug": "kpop-photocards",
+    "name": "K-Pop Photocards",
+    "nameTh": "โฟโต้การ์ด K-Pop",
+    "emoji": "🎤",
+    "note": "Very large market: Lucky Draw, Album, Broadcast, Fansign, Event cards",
+    "sortOrder": 5,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_2d7c6119286d7412",
+    "slug": "vtuber",
+    "name": "VTuber Cards",
+    "nameTh": "การ์ด VTuber",
+    "emoji": "🎮",
+    "note": null,
+    "sortOrder": 6,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_ec8baf704590bb62",
+    "slug": "game-character",
+    "name": "Game Character Cards",
+    "nameTh": "การ์ดตัวละครเกม",
+    "emoji": "🎮",
+    "note": "Mostly collectible cards",
+    "sortOrder": 7,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_97161982fc546241",
+    "slug": "art-cards",
+    "name": "Art Cards",
+    "nameTh": "การ์ดอาร์ต",
+    "emoji": "🎨",
+    "note": "Artist-drawn: Limited, Signed, Numbered",
+    "sortOrder": 8,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_31ad5b14d82b87f7",
+    "slug": "artist-series",
+    "name": "Artist Series",
+    "nameTh": "ซีรีส์ศิลปิน",
+    "emoji": "🖌️",
+    "note": "Cards from famous artists",
+    "sortOrder": 9,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_9556683532e39f33",
+    "slug": "luxury",
+    "name": "Luxury Cards",
+    "nameTh": "การ์ดวัสดุพิเศษ",
+    "emoji": "💎",
+    "note": "Special materials",
+    "sortOrder": 10,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_49b81d3b21e4bc42",
+    "slug": "nft-hybrid",
+    "name": "NFT + Physical Hybrid",
+    "nameTh": "NFT + การ์ดจริง",
+    "emoji": "🔗",
+    "note": "Buy NFT, receive physical card. Blockchain features are placeholder for now.",
+    "sortOrder": 11,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_a8ada2d7f462e584",
+    "slug": "brand-collaboration",
+    "name": "Brand Collaboration",
+    "nameTh": "การ์ดแบรนด์ร่วมกับศิลปิน",
+    "emoji": "🤝",
+    "note": null,
+    "sortOrder": 12,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_3a01be17246d588c",
+    "slug": "music",
+    "name": "Music Cards",
+    "nameTh": "การ์ดเพลง",
+    "emoji": "🎵",
+    "note": "Beyond K-pop",
+    "sortOrder": 13,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_fc7a786f5557431a",
+    "slug": "historical",
+    "name": "Historical Cards",
+    "nameTh": "การ์ดประวัติศาสตร์",
+    "emoji": "📜",
+    "note": null,
+    "sortOrder": 14,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_3199ea056253916c",
+    "slug": "animal",
+    "name": "Animal Cards",
+    "nameTh": "การ์ดสัตว์",
+    "emoji": "🐱",
+    "note": null,
+    "sortOrder": 15,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_9e32521dd2f8b27b",
+    "slug": "car",
+    "name": "Car Cards",
+    "nameTh": "การ์ดรถยนต์",
+    "emoji": "🚗",
+    "note": null,
+    "sortOrder": 16,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_ce2425b114a58451",
+    "slug": "food-beverage",
+    "name": "Food & Beverage Cards",
+    "nameTh": "การ์ดอาหาร & เครื่องดื่ม",
+    "emoji": "🍔",
+    "note": null,
+    "sortOrder": 17,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_49d21672693b84f9",
+    "slug": "original-character",
+    "name": "Original Character (OC)",
+    "nameTh": "ตัวละครออริจินัล (OC)",
+    "emoji": "✨",
+    "note": "Artist-created characters, no franchise license, with lore and rarity tiers",
+    "sortOrder": 18,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "cat_44c63d29dd874f77",
+    "slug": "mystery-blind-box",
+    "name": "Mystery Blind Box Cards",
+    "nameTh": "การ์ดกล่องสุ่ม",
+    "emoji": "🎁",
+    "note": "Randomized collectible packs",
+    "sortOrder": 19,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  }
+]

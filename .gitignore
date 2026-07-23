@@ -18,17 +18,7 @@ pnpm-debug.log*
 # os
 .DS_Store
 
-# prisma
-packages/db/prisma/*.db
-packages/db/generated
-packages/db/prisma/_*
-packages/db/prisma/_chunks/
-packages/db/prisma/_batches-chunk-*/
-packages/db/prisma/seed*.sql
-packages/db/prisma/seed.ts
-packages/db/prisma/generate-seed-sql.ts
-packages/db/prisma/apply-seed-*.mjs
-packages/db/prisma/*-batch*.js
-packages/db/prisma/execute-all-batches-*.js
+# json data (track seed files; ignore runtime uploads)
+data/uploads/
 .vercel
 .env*

@@ -9,14 +9,16 @@ FROM base AS build
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/api ./apps/api
+COPY data ./data
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @cardverse/shared build \
-  && pnpm --filter @cardverse/db generate \
   && pnpm --filter @cardverse/db build \
   && pnpm --filter @cardverse/api build
 
 FROM base AS runtime
 ENV NODE_ENV=production
+ENV CARDVERSE_DATA_DIR=/app/data
+ENV LOCAL_UPLOAD_DIR=/app/data/uploads
 COPY --from=build /app ./
 WORKDIR /app/apps/api
 EXPOSE 4000

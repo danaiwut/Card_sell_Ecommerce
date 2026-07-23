@@ -1,0 +1,41 @@
+[
+  {
+    "id": "coupon_0482b5f212e129c2",
+    "code": "WELCOME10",
+    "description": "ส่วนลด 10% สำหรับลูกค้าใหม่ (สูงสุดตามยอดสินค้า)",
+    "percentOff": 10,
+    "amountOff": null,
+    "maxRedemptions": null,
+    "timesRedeemed": 0,
+    "active": true,
+    "expiresAt": "2027-01-19T12:17:07.033Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "coupon_9cc761430707c83e",
+    "code": "CARD500",
+    "description": "ลด ฿500 เมื่อซื้อครบ ฿3,000",
+    "percentOff": null,
+    "amountOff": 50000,
+    "maxRedemptions": 200,
+    "timesRedeemed": 0,
+    "active": true,
+    "expiresAt": "2027-01-19T12:17:07.033Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "coupon_4eb5a545e8fcb77a",
+    "code": "FREESHIP",
+    "description": "ส่งฟรี (ลดค่าจัดส่ง ฿80)",
+    "percentOff": null,
+    "amountOff": 8000,
+    "maxRedemptions": 500,
+    "timesRedeemed": 0,
+    "active": true,
+    "expiresAt": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  }
+]

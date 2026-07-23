@@ -1,0 +1,402 @@
+[
+  {
+    "id": "catalog_633c377cba18d4a4",
+    "slug": "charizard-ex-sv-prismatic",
+    "name": "Charizard ex (SV Prismatic Evolutions)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_0fd7c9b42affefce",
+    "brandId": "brand_f25cb2fffa5ef202",
+    "setId": "set_cf19a129f397bd6b",
+    "rarity": "SR",
+    "cardNumber": "006/131",
+    "releaseDate": "2025-01-17T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-charizard-ex-sv-prismatic/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-charizard-ex-sv-prismatic-a/800/800",
+      "https://picsum.photos/seed/cardverse-charizard-ex-sv-prismatic-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_7261b269cfdd908f",
+    "slug": "pikachu-vmax-151",
+    "name": "Pikachu VMAX (SV 151)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_0fd7c9b42affefce",
+    "brandId": "brand_f25cb2fffa5ef202",
+    "setId": "set_1417be44179cdcee",
+    "rarity": "UR",
+    "cardNumber": "183/165",
+    "releaseDate": "2023-09-22T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-pikachu-vmax-151/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-pikachu-vmax-151-a/800/800",
+      "https://picsum.photos/seed/cardverse-pikachu-vmax-151-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_ac4797d3f05761ab",
+    "slug": "mew-ex-151",
+    "name": "Mew ex (SV 151)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_0fd7c9b42affefce",
+    "brandId": "brand_f25cb2fffa5ef202",
+    "setId": "set_1417be44179cdcee",
+    "rarity": "SR",
+    "cardNumber": null,
+    "releaseDate": "2023-09-22T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-mew-ex-151/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-mew-ex-151-a/800/800",
+      "https://picsum.photos/seed/cardverse-mew-ex-151-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_3c20ecb3a4b705e9",
+    "slug": "luffy-gear5-leader",
+    "name": "Monkey D. Luffy (Gear 5 Leader)",
+    "categoryId": "cat_47b7662cd42feb01",
+    "subcategoryId": "sub_1b5056bb7ff9d8a2",
+    "brandId": "brand_e70101c25965cb8f",
+    "setId": "set_c1b7bafc735015b3",
+    "rarity": "SEC",
+    "cardNumber": "OP09-001",
+    "releaseDate": "2024-08-31T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-luffy-gear5-leader/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-luffy-gear5-leader-a/800/800",
+      "https://picsum.photos/seed/cardverse-luffy-gear5-leader-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_c7507f2a40895601",
+    "slug": "shanks-leader-op09",
+    "name": "Shanks (Leader OP-09)",
+    "categoryId": "cat_47b7662cd42feb01",
+    "subcategoryId": "sub_1b5056bb7ff9d8a2",
+    "brandId": "brand_e70101c25965cb8f",
+    "setId": "set_c1b7bafc735015b3",
+    "rarity": "SEC",
+    "cardNumber": null,
+    "releaseDate": "2024-08-31T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-shanks-leader-op09/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-shanks-leader-op09-a/800/800",
+      "https://picsum.photos/seed/cardverse-shanks-leader-op09-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_e2288cb91218d377",
+    "slug": "lightning-bolt-mh3",
+    "name": "Lightning Bolt (Modern Horizons 3)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_714b758edf50b27d",
+    "brandId": "brand_3fbf0fb4b2904d42",
+    "setId": "set_5bd89b065656a9e7",
+    "rarity": "R",
+    "cardNumber": null,
+    "releaseDate": "2024-06-14T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-lightning-bolt-mh3/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-lightning-bolt-mh3-a/800/800",
+      "https://picsum.photos/seed/cardverse-lightning-bolt-mh3-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_fab087cd50a6df06",
+    "slug": "force-of-negation-mh3",
+    "name": "Force of Negation (MH3)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_714b758edf50b27d",
+    "brandId": "brand_3fbf0fb4b2904d42",
+    "setId": "set_5bd89b065656a9e7",
+    "rarity": "SR",
+    "cardNumber": null,
+    "releaseDate": "2024-06-14T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-force-of-negation-mh3/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-force-of-negation-mh3-a/800/800",
+      "https://picsum.photos/seed/cardverse-force-of-negation-mh3-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_4f5dd1f34eb3f491",
+    "slug": "blue-eyes-white-dragon",
+    "name": "Blue-Eyes White Dragon (Quarter Century)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_c8bd98484f420dfb",
+    "brandId": "brand_4e3b4d894f77233b",
+    "setId": "set_721da683bbf2d7a7",
+    "rarity": "UR",
+    "cardNumber": null,
+    "releaseDate": "2024-10-11T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-blue-eyes-white-dragon/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-blue-eyes-white-dragon-a/800/800",
+      "https://picsum.photos/seed/cardverse-blue-eyes-white-dragon-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_9650caf30d7223ca",
+    "slug": "dark-magician-qcac",
+    "name": "Dark Magician (Quarter Century Secret)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_c8bd98484f420dfb",
+    "brandId": "brand_4e3b4d894f77233b",
+    "setId": "set_721da683bbf2d7a7",
+    "rarity": "SEC",
+    "cardNumber": null,
+    "releaseDate": "2024-10-11T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-dark-magician-qcac/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-dark-magician-qcac-a/800/800",
+      "https://picsum.photos/seed/cardverse-dark-magician-qcac-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_ad92c84e86ae9508",
+    "slug": "mickey-mouse-brave-little",
+    "name": "Mickey Mouse — Brave Little Tailor (Lorcana)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_7d3b12d84eca2ef4",
+    "brandId": "brand_3fbf0fb4b2904d42",
+    "setId": "set_44528de725e96611",
+    "rarity": "LEGENDARY",
+    "cardNumber": null,
+    "releaseDate": "2024-11-15T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-mickey-mouse-brave-little/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-mickey-mouse-brave-little-a/800/800",
+      "https://picsum.photos/seed/cardverse-mickey-mouse-brave-little-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_f21d1901555d3872",
+    "slug": "elsa-spirit-lorcana",
+    "name": "Elsa — Spirit of Winter (Lorcana)",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "subcategoryId": "sub_7d3b12d84eca2ef4",
+    "brandId": null,
+    "setId": "set_33b82918c21b11bb",
+    "rarity": "ENCHANTED",
+    "cardNumber": null,
+    "releaseDate": "2024-08-09T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-elsa-spirit-lorcana/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-elsa-spirit-lorcana-a/800/800",
+      "https://picsum.photos/seed/cardverse-elsa-spirit-lorcana-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_a6430f9f7c4ca3d9",
+    "slug": "goku-ss4-leader",
+    "name": "Son Goku (SS4 Leader)",
+    "categoryId": "cat_47b7662cd42feb01",
+    "subcategoryId": "sub_6072b38df305ce44",
+    "brandId": "brand_59a3871ae4a5ec0a",
+    "setId": "set_78176344faa5c102",
+    "rarity": "SR",
+    "cardNumber": null,
+    "releaseDate": "2024-05-17T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-goku-ss4-leader/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-goku-ss4-leader-a/800/800",
+      "https://picsum.photos/seed/cardverse-goku-ss4-leader-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_3aabd78bd7d51278",
+    "slug": "lebron-james-prizm",
+    "name": "LeBron James Prizm Base",
+    "categoryId": "cat_6f410576f1eaf252",
+    "subcategoryId": "sub_53e1a962d9cfc3d4",
+    "brandId": "brand_f1b4124a41ede5ed",
+    "setId": "set_f27ce10a0d15bfae",
+    "rarity": "R",
+    "cardNumber": null,
+    "releaseDate": "2024-02-01T00:00:00.000Z",
+    "imageUrl": "https://picsum.photos/seed/cardverse-lebron-james-prizm/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-lebron-james-prizm-a/800/800",
+      "https://picsum.photos/seed/cardverse-lebron-james-prizm-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_cb76e19f7e42bd3c",
+    "slug": "shohei-ohtani-topps",
+    "name": "Shohei Ohtani Topps Chrome",
+    "categoryId": "cat_6f410576f1eaf252",
+    "subcategoryId": "sub_793063131188f06e",
+    "brandId": "brand_0bb9321c1d24a2ac",
+    "setId": null,
+    "rarity": "SR",
+    "cardNumber": null,
+    "releaseDate": null,
+    "imageUrl": "https://picsum.photos/seed/cardverse-shohei-ohtani-topps/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-shohei-ohtani-topps-a/800/800",
+      "https://picsum.photos/seed/cardverse-shohei-ohtani-topps-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_c9629e461949b044",
+    "slug": "bts-jimin-face",
+    "name": "BTS Jimin — Face Album PC",
+    "categoryId": "cat_5b06c31a4020825c",
+    "subcategoryId": "sub_2b3f04d8f4f6113b",
+    "brandId": "brand_b547d90ddaeaedd1",
+    "setId": null,
+    "rarity": "PROMO",
+    "cardNumber": null,
+    "releaseDate": null,
+    "imageUrl": "https://picsum.photos/seed/cardverse-bts-jimin-face/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-bts-jimin-face-a/800/800",
+      "https://picsum.photos/seed/cardverse-bts-jimin-face-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_29ff73f2855a977a",
+    "slug": "blackpink-lisa-broadcast",
+    "name": "BLACKPINK Lisa Broadcast PC",
+    "categoryId": "cat_5b06c31a4020825c",
+    "subcategoryId": "sub_a42993614182c46d",
+    "brandId": "brand_0ff2257fdd46d148",
+    "setId": null,
+    "rarity": "PROMO",
+    "cardNumber": null,
+    "releaseDate": null,
+    "imageUrl": "https://picsum.photos/seed/cardverse-blackpink-lisa-broadcast/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-blackpink-lisa-broadcast-a/800/800",
+      "https://picsum.photos/seed/cardverse-blackpink-lisa-broadcast-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_34989182bfdd199a",
+    "slug": "newjeans-hanni-season",
+    "name": "NewJeans Hanni Season Greetings PC",
+    "categoryId": "cat_5b06c31a4020825c",
+    "subcategoryId": "sub_82dea6d15f970e02",
+    "brandId": null,
+    "setId": null,
+    "rarity": "PROMO",
+    "cardNumber": null,
+    "releaseDate": null,
+    "imageUrl": "https://picsum.photos/seed/cardverse-newjeans-hanni-season/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-newjeans-hanni-season-a/800/800",
+      "https://picsum.photos/seed/cardverse-newjeans-hanni-season-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_3201d1c6ee73cf44",
+    "slug": "raiden-shogun-genshin",
+    "name": "Raiden Shogun Character Card",
+    "categoryId": "cat_ec8baf704590bb62",
+    "subcategoryId": "sub_43a43f93f0c3b209",
+    "brandId": "brand_3520b1e7bcf793a6",
+    "setId": null,
+    "rarity": "SR",
+    "cardNumber": null,
+    "releaseDate": null,
+    "imageUrl": "https://picsum.photos/seed/cardverse-raiden-shogun-genshin/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-raiden-shogun-genshin-a/800/800",
+      "https://picsum.photos/seed/cardverse-raiden-shogun-genshin-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_1657a8f3ce2a279c",
+    "slug": "spider-man-marvel-chrome",
+    "name": "Spider-Man Marvel Chrome",
+    "categoryId": "cat_3a1e32bebf8c3872",
+    "subcategoryId": "sub_4e764b444da4b0ef",
+    "brandId": "brand_75ccf1eb61808252",
+    "setId": null,
+    "rarity": "R",
+    "cardNumber": null,
+    "releaseDate": null,
+    "imageUrl": "https://picsum.photos/seed/cardverse-spider-man-marvel-chrome/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-spider-man-marvel-chrome-a/800/800",
+      "https://picsum.photos/seed/cardverse-spider-man-marvel-chrome-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "catalog_d100600267ecc123",
+    "slug": "harry-potter-hogwarts",
+    "name": "Harry Potter Hogwarts Heroes",
+    "categoryId": "cat_3a1e32bebf8c3872",
+    "subcategoryId": "sub_ae8177321af02fcf",
+    "brandId": null,
+    "setId": null,
+    "rarity": "UC",
+    "cardNumber": null,
+    "releaseDate": null,
+    "imageUrl": "https://picsum.photos/seed/cardverse-harry-potter-hogwarts/800/800",
+    "images": [
+      "https://picsum.photos/seed/cardverse-harry-potter-hogwarts-a/800/800",
+      "https://picsum.photos/seed/cardverse-harry-potter-hogwarts-b/800/800"
+    ],
+    "attributes": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  }
+]

@@ -1,6 +1,7 @@
 import { NestFactory, Reflector } from "@nestjs/core";
 import { Logger } from "@nestjs/common";
-import { json, raw } from "express";
+import express, { json, raw } from "express";
+import path from "node:path";
 import { AppModule } from "./app.module";
 import { PublicCacheInterceptor } from "./common/public-cache.interceptor";
 
@@ -9,7 +10,11 @@ async function bootstrap() {
 
   // Stripe webhooks need the raw body for signature verification.
   app.use("/payments/webhook", raw({ type: "*/*" }));
+  app.use("/storage/upload", raw({ type: "*/*", limit: "8mb" }));
   app.use(json({ limit: "2mb" }));
+
+  const uploadDir = path.resolve(process.env.LOCAL_UPLOAD_DIR ?? "./data/uploads");
+  app.use("/uploads", express.static(uploadDir));
 
   app.enableCors({
     origin: (process.env.CORS_ORIGIN ?? "http://localhost:3000").split(","),

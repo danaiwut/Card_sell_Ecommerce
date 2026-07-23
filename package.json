@@ -11,23 +11,19 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "db:generate": "pnpm --filter @cardverse/db generate",
-    "db:push": "pnpm --filter @cardverse/db push",
-    "db:migrate": "pnpm --filter @cardverse/db migrate",
-    "db:studio": "pnpm --filter @cardverse/db studio",
-    "db:consolidate-users": "pnpm --filter @cardverse/db consolidate-users"
+    "db:bootstrap": "pnpm --filter @cardverse/db build && node packages/db/dist/bootstrap-cli.js",
+    "db:seed": "pnpm --filter @cardverse/db build && node packages/db/dist/seed-cli.js",
+    "db:import": "node scripts/import-from-postgres.mjs"
   },
   "devDependencies": {
     "clerk": "^2.0.0",
+    "pg": "^8.16.0",
     "prettier": "^3.3.3",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "prisma",
       "esbuild",
       "@nestjs/core",
       "@clerk/shared",

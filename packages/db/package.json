@@ -12,23 +12,18 @@
   },
   "files": ["dist"],
   "scripts": {
-    "generate": "prisma generate",
-    "push": "node prisma/run-prisma.mjs db push",
-    "migrate": "node prisma/run-prisma.mjs migrate dev",
-    "deploy": "node prisma/run-prisma.mjs migrate deploy",
-    "studio": "prisma studio",
-    "consolidate-users": "node --env-file=../../.env prisma/consolidate-users.mjs",
-    "build": "prisma generate && tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
+    "bootstrap": "node dist/bootstrap-cli.js",
+    "seed": "node dist/seed-cli.js",
     "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "echo \"no lint\""
   },
   "dependencies": {
-    "@prisma/client": "^6.2.1"
+    "@cardverse/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
-    "prisma": "^6.2.1",
     "typescript": "^5.7.2"
   }
 }

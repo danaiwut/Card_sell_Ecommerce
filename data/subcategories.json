@@ -1,0 +1,730 @@
+[
+  {
+    "id": "sub_53e1a962d9cfc3d4",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "nba",
+    "name": "NBA",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_e7302e723c448d7f",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "nfl",
+    "name": "NFL",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_793063131188f06e",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "mlb",
+    "name": "MLB",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_e5c19213733a6356",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "football",
+    "name": "Football / Soccer",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_26c7455813bf896a",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "formula-1",
+    "name": "Formula 1",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_ceca5133065b8e10",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "ufc",
+    "name": "UFC",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_35ba4ded29be6f8a",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "wwe",
+    "name": "WWE",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_3e9a5795c78f6af5",
+    "categoryId": "cat_6f410576f1eaf252",
+    "slug": "esports",
+    "name": "Esports",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_1b5056bb7ff9d8a2",
+    "categoryId": "cat_47b7662cd42feb01",
+    "slug": "one-piece",
+    "name": "One Piece Card Game",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_6072b38df305ce44",
+    "categoryId": "cat_47b7662cd42feb01",
+    "slug": "dragon-ball-super",
+    "name": "Dragon Ball Super Card Game",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_3007027fe8f5a6fd",
+    "categoryId": "cat_47b7662cd42feb01",
+    "slug": "weiss-schwarz",
+    "name": "Weiß Schwarz",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_c4a71ce8e3ac807c",
+    "categoryId": "cat_47b7662cd42feb01",
+    "slug": "union-arena",
+    "name": "Union Arena",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_2f7b4de674e9cbbe",
+    "categoryId": "cat_47b7662cd42feb01",
+    "slug": "lycee-overture",
+    "name": "Lycee Overture",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_714b758edf50b27d",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "slug": "magic-the-gathering",
+    "name": "Magic: The Gathering",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_0fd7c9b42affefce",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "slug": "pokemon-tcg",
+    "name": "Pokémon Trading Card Game",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_c8bd98484f420dfb",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "slug": "yu-gi-oh",
+    "name": "Yu-Gi-Oh! Trading Card Game",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_7d3b12d84eca2ef4",
+    "categoryId": "cat_ebe33f96c4f9fc5f",
+    "slug": "disney-lorcana",
+    "name": "Disney Lorcana",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_4e764b444da4b0ef",
+    "categoryId": "cat_3a1e32bebf8c3872",
+    "slug": "marvel",
+    "name": "Marvel",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_96e98e09e125c82a",
+    "categoryId": "cat_3a1e32bebf8c3872",
+    "slug": "dc",
+    "name": "DC",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_d69229213e131a86",
+    "categoryId": "cat_3a1e32bebf8c3872",
+    "slug": "star-wars",
+    "name": "Star Wars",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_ae8177321af02fcf",
+    "categoryId": "cat_3a1e32bebf8c3872",
+    "slug": "harry-potter",
+    "name": "Harry Potter",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_3c2c581ae2a7602e",
+    "categoryId": "cat_3a1e32bebf8c3872",
+    "slug": "disney",
+    "name": "Disney",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_b3818cae8ea32fa1",
+    "categoryId": "cat_3a1e32bebf8c3872",
+    "slug": "pixar",
+    "name": "Pixar",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_9f06e6330ecd41ab",
+    "categoryId": "cat_936f3a7eb4da0414",
+    "slug": "singer",
+    "name": "Singer",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_8808b041c8a01c1c",
+    "categoryId": "cat_936f3a7eb4da0414",
+    "slug": "actor",
+    "name": "Actor",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_8ad35f480b7b38b4",
+    "categoryId": "cat_936f3a7eb4da0414",
+    "slug": "idol",
+    "name": "Idol",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_31c2465e0bf5d304",
+    "categoryId": "cat_936f3a7eb4da0414",
+    "slug": "youtuber",
+    "name": "YouTuber",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_c0b17161df461a58",
+    "categoryId": "cat_936f3a7eb4da0414",
+    "slug": "streamer",
+    "name": "Streamer",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_2b3f04d8f4f6113b",
+    "categoryId": "cat_5b06c31a4020825c",
+    "slug": "bts",
+    "name": "BTS",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_a42993614182c46d",
+    "categoryId": "cat_5b06c31a4020825c",
+    "slug": "blackpink",
+    "name": "BLACKPINK",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_8f47fe99ea310dc3",
+    "categoryId": "cat_5b06c31a4020825c",
+    "slug": "twice",
+    "name": "TWICE",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_82dea6d15f970e02",
+    "categoryId": "cat_5b06c31a4020825c",
+    "slug": "newjeans",
+    "name": "NewJeans",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_95c977bf8c8fee5c",
+    "categoryId": "cat_5b06c31a4020825c",
+    "slug": "aespa",
+    "name": "aespa",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_3b19341531dcad55",
+    "categoryId": "cat_2d7c6119286d7412",
+    "slug": "hololive",
+    "name": "hololive production",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_10f72537972ddead",
+    "categoryId": "cat_2d7c6119286d7412",
+    "slug": "nijisanji",
+    "name": "NIJISANJI",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_43a43f93f0c3b209",
+    "categoryId": "cat_ec8baf704590bb62",
+    "slug": "genshin",
+    "name": "Genshin Impact",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_b1daa00345d1d3a0",
+    "categoryId": "cat_ec8baf704590bb62",
+    "slug": "honkai",
+    "name": "Honkai",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_90f4fe95ef7d74c6",
+    "categoryId": "cat_ec8baf704590bb62",
+    "slug": "league-of-legends",
+    "name": "League of Legends",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_e8ee7ff29e3a3db9",
+    "categoryId": "cat_ec8baf704590bb62",
+    "slug": "valorant",
+    "name": "Valorant",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_25929d3501c7f3d5",
+    "categoryId": "cat_ec8baf704590bb62",
+    "slug": "minecraft",
+    "name": "Minecraft",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_f32815f81ec617a3",
+    "categoryId": "cat_97161982fc546241",
+    "slug": "limited",
+    "name": "Limited",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_26d8747a10dd40f3",
+    "categoryId": "cat_97161982fc546241",
+    "slug": "signed",
+    "name": "Signed",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_6fe623f6ac06ff28",
+    "categoryId": "cat_97161982fc546241",
+    "slug": "numbered",
+    "name": "Numbered",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_66712444c1a97f38",
+    "categoryId": "cat_97161982fc546241",
+    "slug": "illustration",
+    "name": "Illustration Card",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_ab7001ce5573a14e",
+    "categoryId": "cat_31ad5b14d82b87f7",
+    "slug": "original-artwork",
+    "name": "Original Artwork",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_048211c79fe7d2f5",
+    "categoryId": "cat_31ad5b14d82b87f7",
+    "slug": "sketch-card",
+    "name": "Sketch Card",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_55aa748ee8300c4b",
+    "categoryId": "cat_31ad5b14d82b87f7",
+    "slug": "commission-card",
+    "name": "Commission Card",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_0c226f0cb04cf7f6",
+    "categoryId": "cat_9556683532e39f33",
+    "slug": "gold-foil",
+    "name": "Gold Foil",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_1c8819eee85acf5c",
+    "categoryId": "cat_9556683532e39f33",
+    "slug": "silver-foil",
+    "name": "Silver Foil",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_7d538a209ac39f16",
+    "categoryId": "cat_9556683532e39f33",
+    "slug": "metal",
+    "name": "Metal Card",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_2ba6e3f72de3fb50",
+    "categoryId": "cat_9556683532e39f33",
+    "slug": "titanium",
+    "name": "Titanium",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_5ac0d462d9f63f15",
+    "categoryId": "cat_9556683532e39f33",
+    "slug": "acrylic",
+    "name": "Acrylic",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_e61741de1e8947a2",
+    "categoryId": "cat_9556683532e39f33",
+    "slug": "wood",
+    "name": "Wood",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_37aae90db174f5c3",
+    "categoryId": "cat_9556683532e39f33",
+    "slug": "carbon-fiber",
+    "name": "Carbon Fiber",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_57e6c97d73570609",
+    "categoryId": "cat_49b81d3b21e4bc42",
+    "slug": "redemption-card",
+    "name": "Redemption Card",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_ada5494a20f6e172",
+    "categoryId": "cat_49b81d3b21e4bc42",
+    "slug": "blockchain-auth",
+    "name": "Blockchain Authentication",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_1b5d90b320594200",
+    "categoryId": "cat_a8ada2d7f462e584",
+    "slug": "coca-cola",
+    "name": "Coca-Cola",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_d5b3fb3615d71c11",
+    "categoryId": "cat_a8ada2d7f462e584",
+    "slug": "mcdonalds",
+    "name": "McDonald's",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_559b90d8ae7342b7",
+    "categoryId": "cat_a8ada2d7f462e584",
+    "slug": "adidas",
+    "name": "Adidas",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_4528fc9a0014baae",
+    "categoryId": "cat_a8ada2d7f462e584",
+    "slug": "nike",
+    "name": "Nike",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_863b364024302a07",
+    "categoryId": "cat_3a01be17246d588c",
+    "slug": "rock",
+    "name": "Rock",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_53d71b6c97cc2935",
+    "categoryId": "cat_3a01be17246d588c",
+    "slug": "hip-hop",
+    "name": "Hip-hop",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_24a8d44b04f83ab2",
+    "categoryId": "cat_3a01be17246d588c",
+    "slug": "jazz",
+    "name": "Jazz",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_7ff1a04ccf45e48d",
+    "categoryId": "cat_3a01be17246d588c",
+    "slug": "orchestra",
+    "name": "Orchestra",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_4c19a4200eedc937",
+    "categoryId": "cat_fc7a786f5557431a",
+    "slug": "important-figures",
+    "name": "Important Figures",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_7c0d3aadb3bbee44",
+    "categoryId": "cat_fc7a786f5557431a",
+    "slug": "wars",
+    "name": "Wars",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_06b4af6c236f6fd3",
+    "categoryId": "cat_fc7a786f5557431a",
+    "slug": "trains",
+    "name": "Trains",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_2d3cf8c4a3356300",
+    "categoryId": "cat_fc7a786f5557431a",
+    "slug": "aircraft",
+    "name": "Aircraft",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_7a605ea4b9a938e7",
+    "categoryId": "cat_fc7a786f5557431a",
+    "slug": "historical-events",
+    "name": "Historical Events",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_132d6cffb762b074",
+    "categoryId": "cat_3199ea056253916c",
+    "slug": "cats",
+    "name": "Cats",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_6980574aaa50ce51",
+    "categoryId": "cat_3199ea056253916c",
+    "slug": "dogs",
+    "name": "Dogs",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_4f942159a4d15903",
+    "categoryId": "cat_3199ea056253916c",
+    "slug": "horses",
+    "name": "Horses",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_378646c1bb0755f0",
+    "categoryId": "cat_3199ea056253916c",
+    "slug": "dinosaurs",
+    "name": "Dinosaurs",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_f62e82425bb11614",
+    "categoryId": "cat_3199ea056253916c",
+    "slug": "rare-animals",
+    "name": "Rare Animals",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_a880f3256266911e",
+    "categoryId": "cat_9e32521dd2f8b27b",
+    "slug": "ferrari",
+    "name": "Ferrari",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_68223ce8720e5e39",
+    "categoryId": "cat_9e32521dd2f8b27b",
+    "slug": "lamborghini",
+    "name": "Lamborghini",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_2249832c9051b02a",
+    "categoryId": "cat_9e32521dd2f8b27b",
+    "slug": "porsche",
+    "name": "Porsche",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_e4a202f2efeeab52",
+    "categoryId": "cat_9e32521dd2f8b27b",
+    "slug": "jdm",
+    "name": "JDM",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_bcae6f0b85fc6e7b",
+    "categoryId": "cat_9e32521dd2f8b27b",
+    "slug": "formula-1",
+    "name": "Formula 1",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_c1bd1fc9bbb90201",
+    "categoryId": "cat_ce2425b114a58451",
+    "slug": "starbucks",
+    "name": "Starbucks",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_2bdbd2d1be53c550",
+    "categoryId": "cat_ce2425b114a58451",
+    "slug": "coca-cola",
+    "name": "Coca-Cola",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_a29f9b6bc227d4ca",
+    "categoryId": "cat_ce2425b114a58451",
+    "slug": "snacks",
+    "name": "Snacks",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_5ad257e4f9a4b406",
+    "categoryId": "cat_ce2425b114a58451",
+    "slug": "milk-tea",
+    "name": "Milk Tea",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_d1ed9eb1e7750338",
+    "categoryId": "cat_49d21672693b84f9",
+    "slug": "with-lore",
+    "name": "With Lore",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_e0c9ffd83bd7b429",
+    "categoryId": "cat_49d21672693b84f9",
+    "slug": "rarity-tiers",
+    "name": "Rarity Tiers",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_cd0b2ddb4e53cb41",
+    "categoryId": "cat_49d21672693b84f9",
+    "slug": "limited-edition",
+    "name": "Limited Edition",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_328cc377d8e300d3",
+    "categoryId": "cat_44c63d29dd874f77",
+    "slug": "secret",
+    "name": "Secret",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_5bf13ed0a587675a",
+    "categoryId": "cat_44c63d29dd874f77",
+    "slug": "chase",
+    "name": "Chase",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_627a47ce17074ea0",
+    "categoryId": "cat_44c63d29dd874f77",
+    "slug": "ultra-rare",
+    "name": "Ultra Rare",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_dfd940b1d74f3c30",
+    "categoryId": "cat_44c63d29dd874f77",
+    "slug": "signed",
+    "name": "Signed",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "sub_31eeececf23fbae0",
+    "categoryId": "cat_44c63d29dd874f77",
+    "slug": "serial-numbered",
+    "name": "Serial Numbered",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  }
+]

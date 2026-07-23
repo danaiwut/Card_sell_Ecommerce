@@ -58,36 +58,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  migrate:
-    name: Database migrations
-    if: vars.ENABLE_DB_MIGRATE == 'true'
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Generate Prisma client
-        run: pnpm db:generate
-
-      - name: Apply migrations
-        run: pnpm --filter @cardverse/db deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-
   vercel:
     name: Deploy web (Vercel)
     if: vars.ENABLE_VERCEL_DEPLOY == 'true'

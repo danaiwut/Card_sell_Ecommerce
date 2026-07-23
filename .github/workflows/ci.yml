@@ -10,9 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # CI-only placeholders — real secrets belong in GitHub Environments / repository secrets.
-  DATABASE_URL: postgresql://ci:ci@localhost:5432/cardverse
-  DIRECT_URL: postgresql://ci:ci@localhost:5432/cardverse
+  CARDVERSE_DATA_DIR: ./data
+  LOCAL_UPLOAD_DIR: ./data/uploads
   REDIS_URL: redis://localhost:6379
   API_URL: http://localhost:4000
   WEB_URL: http://localhost:3000
@@ -42,8 +41,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
-        run: pnpm db:generate
+      - name: Bootstrap JSON data
+        run: pnpm db:bootstrap
 
       - name: Build
         run: pnpm build

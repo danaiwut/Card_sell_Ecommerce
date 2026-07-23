@@ -67,7 +67,7 @@
 | Account | Wallet/เครดิต, Order history, Sell, Withdraw, Notification |
 | Admin | Products, Listings, Wallet approval, Platform settings, News CMS, User role management |
 | Background job | Escrow auto-release, Price aggregation รายวัน, Shipment tracking sync |
-| Integration | Clerk (auth), Stripe/Connect (payment), Supabase Storage (รูปสินค้า), Redis/BullMQ (queue) |
+| Integration | Clerk (auth), Stripe/Connect (payment), Local filesystem (รูปสินค้า), Redis/BullMQ (queue, optional) |
 
 ---
 
@@ -124,18 +124,18 @@
 | **Backend API** | NestJS 11, Express 5 | REST API, business logic, webhook handlers |
 | **Realtime Server** | Socket.IO (NestJS Gateway) | broadcast ยอดขายล่าสุดแบบ real-time |
 | **Background Jobs** | BullMQ + Worker app | escrow release, price aggregation, notifications |
-| **Database** | PostgreSQL 16 | เก็บข้อมูลหลักทั้งหมด (users, orders, listings, trades) |
-| **ORM** | Prisma | schema, migrations, type-safe queries |
-| **Cache / Queue** | Redis 7 | BullMQ queue backend + caching |
+| **Data store** | JSON files (`data/*.json`) | เก็บข้อมูลหลักทั้งหมด (users, orders, listings, trades) |
+| **Data client** | `@cardverse/db` (JsonClient) | Prisma-compatible API อ่าน/เขียน JSON พร้อม file lock |
+| **Cache / Queue** | Redis 7 (optional) | BullMQ queue backend สำหรับ worker |
 | **Auth** | Clerk | sign-in/sign-up, JWT, role-based access |
 | **Payments** | Stripe + Stripe Connect | shop checkout, marketplace escrow, seller payout |
-| **Storage** | Supabase Storage | อัปโหลดรูปสินค้า (signed upload URL) |
+| **Storage** | Local filesystem (`data/uploads/`) | อัปโหลดรูปสินค้า (presigned upload ผ่าน API) |
 | **Shipping** | Flash Express API (optional) | auto-tracking webhook จากขนส่ง |
 | **i18n** | Custom i18n (TH/EN) | สลับภาษาไทย–อังกฤษ |
 | **Monorepo** | pnpm + Turborepo | จัดการ packages และ build pipeline |
 | **Validation** | Zod | validate request/response ร่วมกันใน `packages/shared` |
 | **CI** | GitHub Actions | build + typecheck ทุก push |
-| **Container** | Docker Compose | PostgreSQL + Redis สำหรับ dev local |
+| **Container** | Docker Compose | Redis สำหรับ dev local (optional) |
 | **Automation** | n8n (optional) | ingest ข่าวจาก external source |
 
 ### แผนภาพสถาปัตยกรรม
@@ -152,27 +152,27 @@ flowchart TB
     end
 
     subgraph Data["Data Layer"]
-        PG[("PostgreSQL")]
-        REDIS[("Redis")]
+        JSON[("JSON files<br/>data/*.json")]
+        UPLOADS[("Local uploads<br/>data/uploads/")]
+        REDIS[("Redis<br/>optional")]
     end
 
     subgraph External["External Services"]
         CLERK["Clerk<br/>Auth"]
         STRIPE["Stripe + Connect<br/>Payments / Escrow"]
-        SB["Supabase Storage<br/>Images"]
         FLASH["Flash Express<br/>Tracking"]
         N8N["n8n<br/>News Ingest"]
     end
 
     WEB -->|"/backend/* REST"| API
     WEB -->|"Socket.IO"| API
-    API --> PG
+    API --> JSON
+    API --> UPLOADS
     API --> REDIS
-    WORKER --> PG
+    WORKER --> JSON
     WORKER --> REDIS
     API --> CLERK
     API --> STRIPE
-    API --> SB
     API --> FLASH
     N8N -->|internal API| API
     STRIPE -->|webhook| API
@@ -186,12 +186,12 @@ flowchart TB
 | **Next.js 15** | `apps/web` | App Router, SSR/CSR, proxy `/backend/`* → NestJS, middleware auth |
 | **NestJS** | `apps/api` | modules: cart, orders, marketplace, payments, shipping, admin, news |
 | **BullMQ Worker** | `apps/worker` | `escrow-release`, `price-aggregation`, `notification` processors |
-| **Prisma** | `packages/db` | schema 40+ models, Prisma Studio |
+| **JsonClient** | `packages/db` | Prisma-compatible client อ่าน/เขียน JSON, bootstrap seed |
 | **@cardverse/shared** | `packages/shared` | enums, DTO, Zod schemas, taxonomy 20 categories |
 | **Clerk** | web + api | `@clerk/nextjs` ฝั่ง frontend, `@clerk/backend` verify JWT ฝั่ง API |
 | **Stripe** | api | Checkout Session (shop), PaymentIntent + Connect Transfer (marketplace escrow) |
 | **Socket.IO** | web + api | `realtime` module — push recent sales ไปยัง marketplace page |
-| **Supabase Storage** | api (`storage`) | `POST /storage/presign` → client upload ตรงไป Supabase bucket |
+| **Local Storage** | api (`storage`) | `POST /storage/presign` → client PUT ไปที่ API → เก็บใน `data/uploads/` |
 | **TanStack Query** | web | `useQuery` / `useMutation` สำหรับ cart, orders, listings |
 | **Recharts** | web | กราฟราคา `PricePoint` + `Trade` บนหน้า catalog item |
 | **Turborepo** | root | `pnpm dev` รัน web + api + worker พร้อมกัน |
@@ -282,7 +282,7 @@ flowchart TB
 | UC-02 | ซื้อสินค้า Shop | Customer | cart → checkout → ชำระเครดิต + คูปอง |
 | UC-03 | ซื้อ Marketplace | Customer | หักเครดิต → Escrow `PAID_HELD` → ยืนยันรับของ |
 | UC-04 | ลงขายการ์ด | Customer | เลือก CatalogItem, กำหนดราคา/สภาพ ที่ `/account/sell` |
-| UC-05 | จัดการสินค้า | Manager, Admin | CRUD products, อัปโหลดรูปผ่าน Supabase Storage |
+| UC-05 | จัดการสินค้า | Manager, Admin | CRUD products, อัปโหลดรูปผ่าน local storage |
 | UC-06 | อนุมัติถอนเครดิต | Manager, Admin | ผู้ขายขอถอน → เมเนเจอร์อนุมัติที่ `/admin?tab=wallet` |
 | UC-07 | เปลี่ยน Role | Admin | promote/demote customer ↔ manager ↔ admin |
 | UC-08 | ปล่อย Escrow อัตโนมัติ | System | Worker ปล่อยเครดิตให้ seller หลัง `ESCROW_AUTO_RELEASE_DAYS` |
@@ -291,7 +291,7 @@ flowchart TB
 
 ## Class Diagram
 
-> แผนภาพ Class หลักจาก Prisma schema — แสดง **attributes**, **methods/relations** และ **enum** สำคัญ (รูปแบบ 3 ส่วน: ชื่อ class · fields · relationships)
+> แผนภาพ Class หลักจาก domain models — แสดง **attributes**, **methods/relations** และ **enum** สำคัญ (รูปแบบ 3 ส่วน: ชื่อ class · fields · relationships)
 
 ```mermaid
 classDiagram
@@ -522,10 +522,10 @@ flowchart LR
 | --- | --- |
 | 1. Planning | กำหนด Persona 3 กลุ่ม (Customer, Manager, Admin), ขอบเขตงาน 4 สัปดาห์ |
 | 2. Analysis | เขียน Use Case Diagram แยกตาม Actor (Customer / Manager-Admin / System), นิยาม use case หลัก 8 รายการ (UC-01 ถึง UC-08) |
-| 3. Design | ออกแบบ Class Diagram จาก Prisma schema (40+ models), ออกแบบ Sequence Diagram สำหรับ flow สำคัญ เช่น การซื้อขายผ่าน Escrow, ออกแบบ wireframe ด้วย Figma |
-| 4. Development | Frontend ด้วย Next.js 15 / React 19 (`apps/web`), Backend ด้วย NestJS 11 (`apps/api`), Background job ด้วย BullMQ (`apps/worker`), ใช้ Prisma ORM เชื่อม PostgreSQL 16, Redis 7 สำหรับ cache/queue, Clerk สำหรับ auth, Stripe + Connect สำหรับ payment/escrow |
+| 3. Design | ออกแบบ Class Diagram จาก domain models (40+ entities), ออกแบบ Sequence Diagram สำหรับ flow สำคัญ เช่น การซื้อขายผ่าน Escrow, ออกแบบ wireframe ด้วย Figma |
+| 4. Development | Frontend ด้วย Next.js 15 / React 19 (`apps/web`), Backend ด้วย NestJS 11 (`apps/api`), Background job ด้วย BullMQ (`apps/worker`), ใช้ JsonClient เก็บข้อมูลใน JSON files, Redis 7 สำหรับ queue (optional), Clerk สำหรับ auth, Stripe + Connect สำหรับ payment/escrow |
 | 5. Testing | Unit test ด้วย Vitest ฝั่ง API, ทำ UAT รวม 28 test case ครอบคลุมทั้ง 3 persona ผ่าน 100% (28/28) |
-| 6. Deployment | Deploy web บน Vercel, API/Worker บน Railway/Render/Fly, Database บน Supabase, Redis บน Upstash, CI/CD ผ่าน GitHub Actions (build+typecheck ทุก push, deploy เมื่อ merge เข้า main) |
+| 6. Deployment | Deploy web บน Vercel, API/Worker บน Railway/Render/Fly, ข้อมูล JSON + uploads บน persistent volume, Redis บน Upstash (optional), CI/CD ผ่าน GitHub Actions (build+typecheck ทุก push, deploy เมื่อ merge เข้า main) |
 | 7. Maintenance | ติดตามตาม SLA (Availability ≥99.9%, จัดระดับ Incident L1–L4), รายงานผลรายเดือน, ทบทวนรายไตรมาส |
 
 ### Sequence Diagram — การซื้อขายผ่าน Marketplace (Escrow Flow)
@@ -537,7 +537,7 @@ sequenceDiagram
     actor Buyer as ผู้ซื้อ (Customer)
     participant Web as Web (Next.js)
     participant API as API (NestJS)
-    participant DB as PostgreSQL
+    participant DB as JSON data store
     actor Seller as ผู้ขาย (Customer)
     participant Worker as Worker (BullMQ)
 
@@ -580,10 +580,10 @@ sequenceDiagram
 
 | ตัวชี้วัด | เป้าหมาย | หมายเหตุ |
 | --- | --- | --- |
-| **Availability** | ≥ **99.9%** ต่อเดือน | Web (Vercel) + API (Railway/Render) + Supabase PostgreSQL |
+| **Availability** | ≥ **99.9%** ต่อเดือน | Web (Vercel) + API (Railway/Render) |
 | **Response Time** | ≤ **3 วินาที** | REST read endpoints ทั่วไป (catalog, shop, marketplace) |
 | **Resolution Time (Critical)** | ≤ **4 ชั่วโมง** | ปัญหาระดับ 1 — ระบบล่ม / ชำระเงินไม่ได้ |
-| **Backup** | **รายวัน** | Supabase automated backup, RTO ≤ **24 ชม.** |
+| **Backup** | **รายวัน** | สำรองโฟลเดอร์ `data/` + `data/uploads/`, RTO ≤ **24 ชม.** |
 | **Data Security** | อ้างอิง **ISO/IEC 27001** | Clerk auth, HTTPS, service role key ฝั่ง server เท่านั้น |
 | **Support Hours** | **จ–ศ 08:30 – 17:30** (UTC+7) | นอกเวลา — รับแจ้ง P1/P2 ผ่าน email/on-call |
 
@@ -625,7 +625,7 @@ flowchart LR
 | **Account** | Wallet/เครดิต, Orders, Sell, Withdraw, Notifications |
 | **Admin** | Products, Listings, Users, Wallet, Settings, News CMS |
 | **Background** | Escrow release, Price aggregation, Tracking sync (Flash) |
-| **Integration** | Clerk, Stripe/Connect, Supabase Storage, Redis/BullMQ |
+| **Integration** | Clerk, Stripe/Connect, Local storage, Redis/BullMQ (optional) |
 
 ### ช่องทางติดต่อ & รายงานผล
 
@@ -734,7 +734,7 @@ flowchart LR
 | --- | --- | --- |
 | **Node.js** | ≥ 20 | รัน Next.js, NestJS, Worker |
 | **pnpm** | 10.x | จัดการ monorepo |
-| **Docker Desktop** | ล่าสุด | รัน PostgreSQL + Redis |
+| **Docker Desktop** | ล่าสุด (optional) | รัน Redis สำหรับ worker queue |
 
 ```bash
 node -v          # v20+
@@ -752,15 +752,14 @@ cd Card_sell_Ecommerce
 # 2) ติดตั้ง dependencies
 pnpm install
 
-# 3) เปิด PostgreSQL + Redis
+# 3) เปิด Redis (optional — สำหรับ worker queue)
 docker compose up -d
 
 # 4) ตั้งค่า environment
 cp .env.example .env
 
-# 5) เตรียมฐานข้อมูล
-pnpm db:generate
-pnpm db:push
+# 5) เตรียมไฟล์ JSON
+pnpm db:bootstrap
 
 # 6) สตาร์ท dev server (เปิดทิ้งไว้)
 pnpm dev
@@ -774,8 +773,7 @@ pnpm dev
 | --- | --- | --- |
 | **Web (Next.js)** | 3000 | [http://localhost:3000](http://localhost:3000) |
 | **API (NestJS)** | 4000 | [http://localhost:4000](http://localhost:4000) (internal) |
-| **PostgreSQL** | 5432 | `localhost:5432` |
-| **Redis** | 6379 | `localhost:6379` |
+| **Redis** | 6379 | `localhost:6379` (optional) |
 | **Worker (BullMQ)** | — | background process |
 
 เบราว์เซอร์เรียกแค่ port **3000** — Next.js proxy REST ไป `/backend/`* และ Socket.IO ไป NestJS ที่ port 4000
@@ -813,15 +811,15 @@ STRIPE_SECRET_KEY="sk_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_..."
 
-# Supabase Storage (optional — อัปโหลดรูป)
-SUPABASE_SERVICE_ROLE_KEY="..."
-SUPABASE_STORAGE_BUCKET="cardverse"
+# JSON data (production — mount persistent volume)
+CARDVERSE_DATA_DIR="./data"
+LOCAL_UPLOAD_DIR="./data/uploads"
 ```
 
 ### รันครั้งถัดไป
 
 ```bash
-docker compose up -d    # ถ้า container ยังไม่ up
+docker compose up -d    # optional — Redis สำหรับ worker
 pnpm dev
 ```
 
@@ -835,7 +833,7 @@ docker compose down
 ### คำสั่งที่มีประโยชน์
 
 ```bash
-pnpm db:studio      # Prisma Studio — ดู/แก้ข้อมูลใน DB
+pnpm db:bootstrap   # สร้าง/อัปเดตไฟล์ JSON ใน data/
 pnpm typecheck      # ตรวจ TypeScript ทั้ง monorepo
 pnpm build          # build production
 pnpm lint           # lint ทุก package
@@ -846,8 +844,7 @@ pnpm lint           # lint ทุก package
 | ปัญหา | สาเหตุ | วิธีแก้ |
 | --- | --- | --- |
 | `ERR_CONNECTION_REFUSED` | ยังไม่รัน `pnpm dev` | รัน `pnpm dev` แล้วรอ web + api + worker ขึ้นครบ |
-| `DATABASE_URL not found` | ไม่มี `.env` | `cp .env.example .env` |
-| `P1001 Can't reach database` | Postgres ยังไม่ up | `docker compose up -d` |
+| `data/*.json not found` | ยังไม่ bootstrap | `pnpm db:bootstrap` |
 | Port 3000 ถูกใช้ | process อื่นครอบ | `lsof -i :3000` แล้วปิด process |
 
 > คู่มือรันแบบละเอียด (ภาษาไทย): ดู `[app.md](./app.md)`
@@ -863,7 +860,9 @@ Card_sell_Ecommerce/
 │   ├── api/          # NestJS — REST API + Socket.IO gateway
 │   └── worker/       # BullMQ — escrow release, price aggregation, notifications
 ├── packages/
-│   ├── db/           # Prisma schema + client
+│   ├── db/           # JsonClient + JSON data bootstrap
+├── data/             # JSON data store (users, orders, listings, …)
+│   └── uploads/      # รูปสินค้า (local filesystem)
 │   ├── shared/       # types, Zod schemas, 20-category taxonomy
 │   └── ui/           # shared React components
 ├── docs/             # design docs, n8n workflows
@@ -881,18 +880,18 @@ Card_sell_Ecommerce/
 | `apps/web` | **Vercel** (Next.js) | — |
 | `apps/api` | Railway / Render / Fly | `apps/api/Dockerfile` |
 | `apps/worker` | Railway / Render / Fly | `apps/worker/Dockerfile` |
-| PostgreSQL | **Supabase** / Neon | — |
-| Redis | **Upstash** | — |
-| Images | **Supabase Storage** | — |
+| JSON data + uploads | **Persistent volume** บน host ที่รัน API | — |
+| Redis | **Upstash** (optional) | — |
 
 ### Checklist ก่อน Deploy
 
-- [ ] ตั้ง `DATABASE_URL`, `REDIS_URL` เดียวกันทุก service
+- [ ] Mount `CARDVERSE_DATA_DIR` และ `LOCAL_UPLOAD_DIR` เป็น persistent volume
+- [ ] ตั้ง `REDIS_URL` เดียวกันบน api + worker (ถ้าใช้ worker)
 - [ ] ตั้ง `INTERNAL_API_SECRET` เดียวกันบน api + worker
 - [ ] ตั้ง Stripe webhook → `POST {API_URL}/payments/webhook`
 - [ ] ตั้ง Clerk webhook (ถ้าใช้) → `POST {API_URL}/auth/webhook`
 - [ ] ตั้ง `CORS_ORIGIN` เป็น production domain
-- [ ] รัน `pnpm db:migrate` บน production database
+- [ ] รัน `pnpm db:bootstrap` บน volume ก่อนเปิด service ครั้งแรก
 
 CI build + typecheck ทุก push/PR ผ่าน `[.github/workflows/ci.yml](./.github/workflows/ci.yml)`
 
@@ -901,7 +900,6 @@ CD เมื่อ merge เข้า `main` ผ่าน `[.github/workflows/de
 | Job | ทำงานเมื่อ | ต้องตั้งค่า |
 | --- | --- | --- |
 | **Docker → GHCR** | push `main` ทุกครั้ง | ไม่ต้อง (ใช้ `GITHUB_TOKEN` อัตโนมัติ) |
-| **DB migrate** | `ENABLE_DB_MIGRATE=true` | GitHub Environment `production` + secrets `DATABASE_URL`, `DIRECT_URL` |
 | **Vercel web** | `ENABLE_VERCEL_DEPLOY=true` | secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` |
 
 Images: `ghcr.io/<owner>/Card_sell_Ecommerce/cardverse-api:latest` และ `cardverse-worker:latest`

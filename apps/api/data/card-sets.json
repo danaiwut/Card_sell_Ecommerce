@@ -1,0 +1,90 @@
+[
+  {
+    "id": "set_cf19a129f397bd6b",
+    "slug": "sv-prismatic-evolutions",
+    "name": "Pokémon SV: Prismatic Evolutions",
+    "releaseDate": "2025-01-17T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_1417be44179cdcee",
+    "slug": "sv-151",
+    "name": "Pokémon SV: 151",
+    "releaseDate": "2023-09-22T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_c1b7bafc735015b3",
+    "slug": "op-09",
+    "name": "One Piece OP-09 Emperors in the New World",
+    "releaseDate": "2024-08-31T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_1f435bfe77581b23",
+    "slug": "op-10",
+    "name": "One Piece OP-10 Royal Blood",
+    "releaseDate": "2025-03-14T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_5bd89b065656a9e7",
+    "slug": "mh3",
+    "name": "Magic: Modern Horizons 3",
+    "releaseDate": "2024-06-14T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_1b4a1fd0f88e3a91",
+    "slug": "dsk",
+    "name": "Magic: Duskmourn — House of Horror",
+    "releaseDate": "2024-09-27T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_721da683bbf2d7a7",
+    "slug": "qcac",
+    "name": "Yu-Gi-Oh! Quarter Century Bonanza",
+    "releaseDate": "2024-10-11T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_44528de725e96611",
+    "slug": "lorcana-azurite-sea",
+    "name": "Disney Lorcana: Azurite Sea",
+    "releaseDate": "2024-11-15T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_33b82918c21b11bb",
+    "slug": "lorcana-shimmering",
+    "name": "Disney Lorcana: Shimmering Skies",
+    "releaseDate": "2024-08-09T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_78176344faa5c102",
+    "slug": "dbs-fusion-world-fw",
+    "name": "Dragon Ball Fusion World — Awakened Pulse",
+    "releaseDate": "2024-05-17T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "id": "set_f27ce10a0d15bfae",
+    "slug": "panini-prizm-nba-24",
+    "name": "Panini Prizm NBA 2023-24",
+    "releaseDate": "2024-02-01T00:00:00.000Z",
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  }
+]

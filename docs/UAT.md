@@ -3,7 +3,7 @@
 เอกสารทดสอบยอมรับระบบ แยกตาม **Persona** ครอบคลุมทั้งเว็บ (Storefront + Account + Admin Panel)
 
 **เวอร์ชัน:** 2026-07-14  
-**สภาพแวดล้อม:** Local dev (`pnpm dev` + Docker Postgres/Redis)  
+**สภาพแวดล้อม:** Local dev (`pnpm dev` + JSON data ใน `data/`, Redis optional)  
 **Responsive breakpoints ที่ทดสอบ:** Mobile 375px · Tablet 768px · Desktop 1280px
 
 ---
