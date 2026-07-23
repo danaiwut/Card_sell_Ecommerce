@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { isClerkEnabled } from "@/lib/clerk-config";
 
 const COLUMNS = [
   {
@@ -17,8 +16,8 @@ const COLUMNS = [
   {
     title: "Account",
     links: [
-      { label: "Login", href: isClerkEnabled() ? "/sign-in" : "/account" },
-      { label: "Register", href: isClerkEnabled() ? "/sign-up" : "/account" },
+      { label: "Login", href: "/sign-in" },
+      { label: "Register", href: "/sign-up" },
       { label: "Settings", href: "/account/settings" },
     ],
   },

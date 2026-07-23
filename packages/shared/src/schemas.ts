@@ -159,3 +159,14 @@ export type AdminUsersQuery = z.infer<typeof adminUsersQuerySchema>;
 
 export const priceRangeWindow = z.enum(["TODAY", "7D", "30D", "90D", "1Y"]);
 export type PriceRangeWindow = z.infer<typeof priceRangeWindow>;
+
+export const loginSchema = z.object({
+  email: z.string().trim().email("อีเมลไม่ถูกต้อง"),
+  password: z.string().min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัว"),
+});
+export type LoginInput = z.infer<typeof loginSchema>;
+
+export const registerSchema = loginSchema.extend({
+  displayName: z.string().trim().min(2, "ชื่อต้องมีอย่างน้อย 2 ตัว").max(80),
+});
+export type RegisterInput = z.infer<typeof registerSchema>;

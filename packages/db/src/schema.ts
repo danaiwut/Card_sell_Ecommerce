@@ -106,6 +106,7 @@ export const MODEL_DEFAULTS: Partial<Record<ModelName, Record<string, unknown>>>
     sellerRating: 0,
     sellerRatingCount: 0,
     stripeConnectOnboarded: false,
+    passwordHash: null,
   },
   wallet: { balance: 0, heldBalance: 0 },
   product: {

@@ -6,11 +6,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
-import { Bell, Menu, ShoppingCart, User, X } from "lucide-react";
+import { Bell, Menu, ShoppingCart, User, X, LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
-import { isClerkEnabled } from "@/lib/clerk-config";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/format";
 
@@ -23,7 +21,7 @@ const NAV = [
 
 export function Header() {
   const { t, locale, setLocale } = useI18n();
-  const { session } = useSession();
+  const { session, logout } = useSession();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -196,56 +194,43 @@ export function Header() {
               </span>
             )}
           </Link>
-          {isClerkEnabled() ? (
-            <AuthControls />
+          {session ? (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/account"
+                className="flex h-9 items-center gap-1.5 rounded-full border border-ink/10 bg-white pl-1 pr-2.5 text-ink/70 shadow-sm transition hover:border-gold/40 hover:text-ink"
+                aria-label="บัญชีของฉัน"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-white">
+                  <User size={14} />
+                </span>
+                <span className="hidden max-w-[5rem] truncate text-xs font-semibold sm:inline">
+                  {session.displayName}
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={logout}
+                className="hidden rounded-md p-2 text-ink/50 hover:bg-ink/5 hover:text-ink sm:inline"
+                aria-label="ออกจากระบบ"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
           ) : (
-            <Link
-              href="/account"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/5 text-ink/70 hover:bg-ink/10"
-            >
-              <User size={16} />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/sign-in" className="hidden text-xs font-semibold text-ink/60 hover:text-ink sm:inline">
+                เข้าสู่ระบบ
+              </Link>
+              <Link href="/sign-up" className="btn-primary h-8 px-3 text-xs">
+                สมัคร
+              </Link>
+            </div>
           )}
         </div>
       </div>
 
       {mobileMenu}
     </header>
-  );
-}
-
-function AuthControls() {
-  return (
-    <>
-      <SignedOut>
-        <SignInButton mode="modal">
-          <button className="hidden text-xs font-semibold tracking-wider text-ink/60 hover:text-ink sm:inline">
-            Sign in
-          </button>
-        </SignInButton>
-        <SignUpButton mode="modal">
-          <button className="btn-primary h-8 px-3 text-xs">Sign up</button>
-        </SignUpButton>
-      </SignedOut>
-      <SignedIn>
-        <Link
-          href="/account"
-          className="flex h-9 items-center gap-1.5 rounded-full border border-ink/10 bg-white pl-1 pr-2.5 text-ink/70 shadow-sm transition hover:border-gold/40 hover:text-ink active:bg-ink/5"
-          aria-label="บัญชีของฉัน"
-        >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-white">
-            <User size={14} />
-          </span>
-          <span className="text-xs font-semibold tracking-wider">บัญชี</span>
-        </Link>
-        <div className="hidden md:block">
-          <UserButton
-            afterSignOutUrl="/"
-            userProfileUrl="/account"
-            appearance={{ elements: { avatarBox: "h-8 w-8" } }}
-          />
-        </div>
-      </SignedIn>
-    </>
   );
 }

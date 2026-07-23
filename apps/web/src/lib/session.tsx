@@ -5,155 +5,94 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { getDevSession, setDevSession, setAuthTokenProvider, type DevSession, api } from "./api";
+import { api, getAuthToken, setAuthToken, setAuthTokenProvider } from "./api";
 
-export type SessionRole = DevSession["role"];
+export type SessionRole = "customer" | "manager" | "admin";
 
 export interface AppSession {
   userId: string;
   role: SessionRole;
   displayName: string;
+  email: string;
 }
 
 interface SessionContextValue {
   session: AppSession | null;
   isLoaded: boolean;
-  loginAs: (userId: string, role: SessionRole) => void;
   logout: () => void;
+  refresh: () => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue>({
   session: null,
   isLoaded: false,
-  loginAs: () => {},
   logout: () => {},
+  refresh: async () => {},
 });
 
-function DevSessionProvider({ children }: { children: React.ReactNode }) {
+export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<AppSession | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    const dev = getDevSession();
-    if (dev) {
-      setSession({
-        userId: dev.userId,
-        role: dev.role,
-        displayName: dev.userId,
-      });
+  const refresh = useCallback(async () => {
+    const token = getAuthToken();
+    if (!token) {
+      setAuthTokenProvider(null);
+      setSession(null);
+      return;
     }
-    setIsLoaded(true);
+
+    setAuthTokenProvider(() => Promise.resolve(token));
+    try {
+      const me = await api.get<{
+        id: string;
+        role: SessionRole;
+        displayName: string;
+        email: string;
+      }>("/users/me", true);
+      setSession({
+        userId: me.id,
+        role: me.role,
+        displayName: me.displayName,
+        email: me.email,
+      });
+    } catch {
+      setAuthToken(null);
+      setAuthTokenProvider(null);
+      setSession(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await refresh();
+      if (!cancelled) setIsLoaded(true);
+    })();
+
     const sync = () => {
-      const next = getDevSession();
-      setSession(
-        next
-          ? { userId: next.userId, role: next.role, displayName: next.userId }
-          : null,
-      );
+      void refresh();
     };
     window.addEventListener("cv-session-change", sync);
-    return () => window.removeEventListener("cv-session-change", sync);
-  }, []);
-
-  const loginAs = useCallback((userId: string, role: SessionRole) => {
-    setDevSession({ userId, role });
-  }, []);
-
-  const logout = useCallback(() => setDevSession(null), []);
-
-  return (
-    <SessionContext.Provider value={{ session, isLoaded, loginAs, logout }}>
-      {children}
-    </SessionContext.Provider>
-  );
-}
-
-function ClerkSessionBridge({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn, userId, signOut, getToken } = useAuth();
-  const { user } = useUser();
-  const [profile, setProfile] = useState<{
-    id: string;
-    role: SessionRole;
-    displayName: string;
-  } | null>(null);
-
-  useEffect(() => {
-    if (!isSignedIn) {
-      setAuthTokenProvider(null);
-      return;
-    }
-    setAuthTokenProvider(() => getToken());
-    return () => setAuthTokenProvider(null);
-  }, [getToken, isSignedIn]);
-
-  useEffect(() => {
-    if (!isSignedIn || !userId) {
-      setProfile(null);
-      return;
-    }
-
-    let cancelled = false;
-    api
-      .get<{ id: string; role: SessionRole; displayName: string }>("/users/me", true)
-      .then((me) => {
-        if (!cancelled) setProfile(me);
-      })
-      .catch(() => {
-        if (!cancelled) setProfile(null);
-      });
-
     return () => {
       cancelled = true;
+      window.removeEventListener("cv-session-change", sync);
     };
-  }, [isSignedIn, userId]);
-
-  const session = useMemo<AppSession | null>(() => {
-    if (!isSignedIn || !userId) return null;
-    return {
-      userId: profile?.id ?? userId,
-      role: profile?.role ?? "customer",
-      displayName:
-        profile?.displayName ??
-        user?.fullName ??
-        user?.primaryEmailAddress?.emailAddress ??
-        userId,
-    };
-  }, [isSignedIn, userId, profile, user]);
+  }, [refresh]);
 
   const logout = useCallback(() => {
-    void signOut({ redirectUrl: "/" });
-  }, [signOut]);
+    setAuthToken(null);
+    setAuthTokenProvider(null);
+    setSession(null);
+  }, []);
 
   return (
-    <SessionContext.Provider
-      value={{
-        session,
-        isLoaded,
-        loginAs: () => {},
-        logout,
-      }}
-    >
+    <SessionContext.Provider value={{ session, isLoaded, logout, refresh }}>
       {children}
     </SessionContext.Provider>
   );
-}
-
-export function SessionProvider({
-  children,
-  clerkEnabled = false,
-}: {
-  children: React.ReactNode;
-  clerkEnabled?: boolean;
-}) {
-  if (!clerkEnabled) {
-    return <DevSessionProvider>{children}</DevSessionProvider>;
-  }
-
-  return <ClerkSessionBridge>{children}</ClerkSessionBridge>;
 }
 
 export const useSession = () => useContext(SessionContext);

@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "role": "customer",
+    "level": 1,
+    "sellerRating": 0,
+    "sellerRatingCount": 0,
+    "stripeConnectOnboarded": false,
+    "passwordHash": "$2b$10$DQB45aFj6cyzVgAQSTZQO.5ksmPrStbOUFzhtKHy12.twcDi.aYHK",
+    "clerkId": "local_user_eb4d7bdfbde625f1",
+    "email": "test@cardverse.local",
+    "displayName": "Test User",
+    "id": "30156eaaed84486089bc4739",
+    "createdAt": "2026-07-23T13:00:01.088Z",
+    "updatedAt": "2026-07-23T13:00:01.088Z"
+  }
+]

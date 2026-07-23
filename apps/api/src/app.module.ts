@@ -26,8 +26,8 @@ import { HealthController } from "./health.controller";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      // Load web Clerk keys first; root .env fills in DB/Redis without overriding.
-      envFilePath: ["../../apps/web/.env.local", "../../.env", ".env"],
+      // Root .env first; apps/web/.env.local may override for local web keys.
+      envFilePath: ["../../.env", "../../apps/web/.env.local", ".env"],
     }),
     PrismaModule,
     RealtimeModule,

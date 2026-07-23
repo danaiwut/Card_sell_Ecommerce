@@ -4,34 +4,23 @@ import {
   Injectable,
   UnauthorizedException,
   ForbiddenException,
-  Logger,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import type { Request } from "express";
 import type { Role } from "@cardverse/shared";
-import { PrismaService } from "../prisma/prisma.service";
-import { ClerkService } from "./clerk.service";
 import {
   IS_PUBLIC_KEY,
   OPTIONAL_AUTH_KEY,
   ROLES_KEY,
 } from "./decorators";
 import type { AuthUser } from "./auth.types";
+import { LocalAuthService } from "./local-auth.service";
 
-/**
- * Global guard:
- *  - resolves the authenticated user (Clerk, with a dev-header fallback),
- *  - syncs them into the local User table,
- *  - enforces @Public / @OptionalAuth / @Roles.
- */
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private readonly logger = new Logger(AuthGuard.name);
-
   constructor(
     private readonly reflector: Reflector,
-    private readonly prisma: PrismaService,
-    private readonly clerk: ClerkService,
+    private readonly auth: LocalAuthService,
   ) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -49,7 +38,7 @@ export class AuthGuard implements CanActivate {
       ctx.getClass(),
     ]);
 
-    const user = await this.resolveUser(req);
+    const user = await this.auth.resolveUserFromRequest(req);
     if (user) req.user = user;
 
     if (isPublic) return true;
@@ -64,70 +53,5 @@ export class AuthGuard implements CanActivate {
     }
 
     return true;
-  }
-
-  private async resolveUser(req: Request): Promise<AuthUser | null> {
-    const identity = await this.resolveIdentity(req);
-    if (!identity) return null;
-
-    const dbUser = await this.prisma.user.upsert({
-      where: { clerkId: identity.clerkId },
-      update: {
-        ...(identity.displayName ? { displayName: identity.displayName } : {}),
-      },
-      create: {
-        clerkId: identity.clerkId,
-        email: identity.email,
-        displayName: identity.displayName,
-        role: identity.role ?? "customer",
-      },
-    });
-
-    if (dbUser.email !== identity.email) {
-      try {
-        await this.prisma.user.update({
-          where: { id: dbUser.id },
-          data: { email: identity.email },
-        });
-      } catch (err) {
-        this.logger.warn(`Could not sync email for user ${dbUser.id}: ${String(err)}`);
-      }
-    }
-
-    return {
-      id: dbUser.id,
-      clerkId: dbUser.clerkId,
-      email: dbUser.email,
-      displayName: dbUser.displayName,
-      role: dbUser.role,
-    };
-  }
-
-  private async resolveIdentity(req: Request) {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith("Bearer ")
-      ? authHeader.slice(7)
-      : undefined;
-
-    if (token && this.clerk.enabled) {
-      const identity = await this.clerk.verify(token);
-      if (identity) return { ...identity, role: undefined as Role | undefined };
-    }
-
-    // Dev fallback: impersonate via headers only when Clerk is not configured.
-    if (!this.clerk.enabled && process.env.NODE_ENV !== "production") {
-      const devId = req.headers["x-dev-user-id"] as string | undefined;
-      if (devId) {
-        const role = (req.headers["x-dev-role"] as Role) ?? "customer";
-        return {
-          clerkId: `dev_${devId}`,
-          email: `${devId}@dev.cardverse`,
-          displayName: devId,
-          role,
-        };
-      }
-    }
-
-    return null;
   }
 }

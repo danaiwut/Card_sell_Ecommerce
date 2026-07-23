@@ -13,6 +13,7 @@ export interface User {
   stripeCustomerId: string | null;
   sellerRating: number;
   sellerRatingCount: number;
+  passwordHash: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

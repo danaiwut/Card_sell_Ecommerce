@@ -1,23 +1,16 @@
-import { isClerkEnabled } from "@/lib/clerk-config";
 import { getApiBaseUrl } from "./env";
 
-export interface DevSession {
-  userId: string;
-  role: "customer" | "manager" | "admin";
-}
+const AUTH_TOKEN_KEY = "cv_auth_token";
 
-const DEV_KEY = "cv_dev_session";
-
-export function getDevSession(): DevSession | null {
+export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(DEV_KEY);
-  return raw ? (JSON.parse(raw) as DevSession) : null;
+  return window.localStorage.getItem(AUTH_TOKEN_KEY);
 }
 
-export function setDevSession(session: DevSession | null) {
+export function setAuthToken(token: string | null) {
   if (typeof window === "undefined") return;
-  if (session) window.localStorage.setItem(DEV_KEY, JSON.stringify(session));
-  else window.localStorage.removeItem(DEV_KEY);
+  if (token) window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+  else window.localStorage.removeItem(AUTH_TOKEN_KEY);
   window.dispatchEvent(new Event("cv-session-change"));
 }
 
@@ -31,34 +24,22 @@ export function setAuthTokenProvider(provider: TokenProvider | null) {
 
 async function authHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
-  if (typeof window !== "undefined") {
-    if (authTokenProvider) {
-      try {
-        const token = await authTokenProvider();
-        if (token) headers.Authorization = `Bearer ${token}`;
-      } catch {
-        /* ignore */
-      }
-    }
-    if (!headers.Authorization) {
-      const clerk = (window as any).Clerk;
-      if (clerk?.session) {
-        try {
-          const token = await clerk.session.getToken();
-          if (token) headers.Authorization = `Bearer ${token}`;
-        } catch {
-          /* ignore */
-        }
-      }
-    }
-    if (!headers.Authorization && !isClerkEnabled()) {
-      const dev = getDevSession();
-      if (dev) {
-        headers["x-dev-user-id"] = dev.userId;
-        headers["x-dev-role"] = dev.role;
-      }
+  if (typeof window === "undefined") return headers;
+
+  if (authTokenProvider) {
+    try {
+      const token = await authTokenProvider();
+      if (token) headers.Authorization = `Bearer ${token}`;
+    } catch {
+      /* ignore */
     }
   }
+
+  if (!headers.Authorization) {
+    const token = getAuthToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
   return headers;
 }
 

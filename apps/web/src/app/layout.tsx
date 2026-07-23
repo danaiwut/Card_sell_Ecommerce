@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
-import { ClerkProviderShell } from "@/components/clerk-provider-shell";
+import { Providers } from "@/components/providers";
 import { SiteShell } from "@/components/site-shell";
 
 const display = Playfair_Display({
@@ -20,9 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="th" className={`${display.variable} ${sans.variable}`}>
       <body className="font-sans antialiased">
-        <ClerkProviderShell>
+        <Providers>
           <SiteShell>{children}</SiteShell>
-        </ClerkProviderShell>
+        </Providers>
       </body>
     </html>
   );

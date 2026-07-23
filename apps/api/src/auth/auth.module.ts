@@ -1,13 +1,13 @@
 import { Global, Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
-import { ClerkService } from "./clerk.service";
 import { AuthGuard } from "./auth.guard";
 import { AuthController } from "./auth.controller";
+import { LocalAuthService } from "./local-auth.service";
 
 @Global()
 @Module({
   controllers: [AuthController],
-  providers: [ClerkService, { provide: APP_GUARD, useClass: AuthGuard }],
-  exports: [ClerkService],
+  providers: [LocalAuthService, { provide: APP_GUARD, useClass: AuthGuard }],
+  exports: [LocalAuthService],
 })
 export class AuthModule {}

@@ -11,7 +11,6 @@ import type { ProductDto } from "@cardverse/shared";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/session";
-import { isClerkEnabled } from "@/lib/clerk-config";
 import { formatBaht } from "@/lib/format";
 
 interface CartPayload {
@@ -106,7 +105,7 @@ function CartPageInner() {
     return (
       <div className="container-page py-16 text-center">
         <p className="text-ink/60">กรุณาเข้าสู่ระบบเพื่อดูตะกร้า</p>
-        <Link href={isClerkEnabled() ? "/sign-in" : "/account"} className="btn-primary mt-4">
+        <Link href="/sign-in" className="btn-primary mt-4">
           เข้าสู่ระบบ
         </Link>
       </div>

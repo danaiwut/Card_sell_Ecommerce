@@ -4,6 +4,7 @@ import { bootstrapJsonData } from "./bootstrap";
 export { JsonClient, PrismaClient, bootstrapJsonData };
 export * from "./models";
 export * from "./types";
+export { createEntityId, newId } from "./id";
 export { getDataDir, dataFilePath } from "./paths";
 
 const globalForDb = globalThis as unknown as {
