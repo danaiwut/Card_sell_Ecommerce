@@ -93,7 +93,12 @@ export function CatalogItemPicker({
   return (
     <div className="rounded-lg border border-ink/10 bg-white p-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold tracking-wider text-ink/50">CATALOG</p>
+        <div>
+          <p className="text-xs font-semibold tracking-wider text-ink/50">CATALOG</p>
+          <p className="mt-0.5 text-xs text-ink/45">
+            ค้นหาจากฐานข้อมูลการ์ดหลัก — ไม่ใช่รายการที่กำลังขายใน marketplace
+          </p>
+        </div>
         <div className="flex rounded-md bg-ink/[0.04] p-1 text-xs">
           <button
             type="button"
@@ -127,7 +132,7 @@ export function CatalogItemPicker({
         <div className="relative mt-3">
           <input
             className="input"
-            placeholder="ค้นหา catalog item..."
+            placeholder="ค้นหาชื่อการ์ดใน master catalog..."
             value={q}
             onChange={(event) => setQ(event.target.value)}
           />

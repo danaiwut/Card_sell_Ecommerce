@@ -44,9 +44,12 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, data: { displayName?: string; avatarUrl?: string }) {
+    const patch: { displayName?: string; avatarUrl?: string } = {};
+    if (data.displayName !== undefined) patch.displayName = data.displayName;
+    if (data.avatarUrl !== undefined) patch.avatarUrl = data.avatarUrl;
     const user = await this.prisma.user.update({
       where: { id: userId },
-      data: { displayName: data.displayName, avatarUrl: data.avatarUrl },
+      data: patch,
     });
     return { id: user.id, displayName: user.displayName, avatarUrl: user.avatarUrl };
   }

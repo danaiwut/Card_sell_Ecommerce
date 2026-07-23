@@ -74,7 +74,7 @@ function MarketplacePurchaseTrackingInner({
   const [showReview, setShowReview] = useState(false);
   const [showPurchased, setShowPurchased] = useState(false);
 
-  const { data } = useQuery({
+  const { data, isError, error } = useQuery({
     queryKey: ["purchase-detail", id, session?.userId],
     queryFn: () => api.get<MarketplacePurchaseDetail>(`/marketplace/purchases/${id}`, true),
     enabled: Boolean(session),
@@ -115,6 +115,18 @@ function MarketplacePurchaseTrackingInner({
   });
 
   if (!session) return <DevLogin />;
+  if (isError) {
+    return (
+      <AccountLayout>
+        <p className="text-sm text-red-600">
+          โหลดข้อมูลไม่สำเร็จ: {(error as Error)?.message ?? "เกิดข้อผิดพลาด"}
+        </p>
+        <Link href="/account/purchases" className="mt-4 inline-block text-sm text-ink/50 hover:text-ink">
+          ← กลับไป Marketplace Purchases
+        </Link>
+      </AccountLayout>
+    );
+  }
   if (!data) return <div className="container-page py-10">Loading…</div>;
 
   const canConfirm = ["SHIPPED", "DELIVERED"].includes(data.status);

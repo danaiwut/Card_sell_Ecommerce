@@ -347,6 +347,20 @@ export const NESTED_FILTER_RELATIONS: Partial<Record<ModelName, Record<string, R
   cartItem: {
     cart: { kind: "many-to-one", model: "cart", fk: "cartId" },
   },
+  product: {
+    catalogItem: { kind: "many-to-one", model: "catalogItem", fk: "catalogItemId", optional: true },
+  },
+  listing: {
+    catalogItem: { kind: "many-to-one", model: "catalogItem", fk: "catalogItemId" },
+    seller: { kind: "many-to-one", model: "user", fk: "sellerId" },
+  },
+  catalogItem: {
+    category: { kind: "many-to-one", model: "category", fk: "categoryId" },
+    subcategory: { kind: "many-to-one", model: "subcategory", fk: "subcategoryId", optional: true },
+  },
+  listingOffer: {
+    listing: { kind: "many-to-one", model: "listing", fk: "listingId" },
+  },
 };
 
 export const ALL_MODELS = Object.keys(MODEL_FILES) as ModelName[];

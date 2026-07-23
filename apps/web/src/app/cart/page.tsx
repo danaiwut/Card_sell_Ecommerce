@@ -59,9 +59,8 @@ function CartPageInner() {
   });
 
   const subtotal = data?.subtotal ?? 0;
-  const discount = Math.round(subtotal * 0.2);
-  const delivery = 0;
-  const total = subtotal - discount + delivery;
+  const shipping = data?.shipping ?? 0;
+  const total = data?.total ?? subtotal + shipping;
 
   function goCheckout() {
     if (!data?.items.length) return;
@@ -176,13 +175,9 @@ function CartPageInner() {
               <span className="text-black/50">Subtotal</span>
               <span className="font-medium">{formatBaht(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-red-500">
-              <span>Discount (-20%)</span>
-              <span className="font-medium">-{formatBaht(discount)}</span>
-            </div>
             <div className="flex justify-between">
               <span className="text-black/50">Delivery Fee</span>
-              <span className="font-medium">{formatBaht(delivery)}</span>
+              <span className="font-medium">{formatBaht(shipping)}</span>
             </div>
             <div className="flex justify-between border-t border-black/10 pt-3 text-base font-bold">
               <span>Total</span>

@@ -23,12 +23,16 @@ export class NewsService {
   }
 
   async upcomingEvents(limit = 5) {
+    const now = new Date();
     const posts = await this.prisma.newsPost.findMany({
-      where: { kind: "EVENT", published: true, eventDate: { gte: new Date() } },
-      orderBy: { eventDate: "asc" },
-      take: limit,
+      where: { kind: "EVENT", published: true },
+      orderBy: [{ eventDate: "asc" }, { createdAt: "desc" }],
+      take: limit * 3,
     });
-    return posts.map(this.serialize);
+    return posts
+      .filter((post) => !post.eventDate || post.eventDate >= now)
+      .slice(0, limit)
+      .map(this.serialize);
   }
 
   async detail(slug: string) {

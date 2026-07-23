@@ -263,7 +263,7 @@ export class AdminService {
 
   async listActiveListings() {
     const listings = await this.prisma.listing.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: { in: ["ACTIVE", "SOLD", "CANCELLED", "SUSPENDED"] } },
       include: {
         seller: true,
         catalogItem: { include: catalogItemInclude },

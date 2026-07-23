@@ -100,16 +100,16 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
     onError: (err: any) => setCancelError(err?.message ?? "เกิดข้อผิดพลาด"),
   });
 
-  if (!session) return <DevLogin />;
-  if (!data) return <div className="container-page py-10">Loading…</div>;
-
-  const canCancel = CANCELLABLE.includes(data.status);
-
   useEffect(() => {
     if (searchParams.get("review") !== "1" || !data) return;
     const pending = data.items.find((i) => i.canReview);
     if (pending) setReviewItem(pending);
   }, [searchParams, data]);
+
+  if (!session) return <DevLogin />;
+  if (!data) return <div className="container-page py-10">Loading…</div>;
+
+  const canCancel = CANCELLABLE.includes(data.status);
 
   return (
     <>

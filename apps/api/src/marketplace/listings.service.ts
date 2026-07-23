@@ -135,6 +135,18 @@ export class ListingsService {
     if (listing.sellerId !== sellerId) {
       throw new ForbiddenException("ไม่ใช่ประกาศของคุณ");
     }
+    if (listing.status === "SOLD") {
+      throw new BadRequestException("ไม่สามารถยกเลิกประกาศที่ขายแล้วได้");
+    }
+    const activeOrder = await this.prisma.marketplaceOrder.findFirst({
+      where: {
+        listingId: id,
+        status: { in: ["PENDING_PAYMENT", "PAID_HELD", "SHIPPED", "DELIVERED", "DISPUTED"] },
+      },
+    });
+    if (activeOrder) {
+      throw new BadRequestException("มีคำสั่งซื้อที่กำลังดำเนินการอยู่ ไม่สามารถยกเลิกประกาศได้");
+    }
     await this.prisma.listing.update({
       where: { id },
       data: { status: "CANCELLED" },

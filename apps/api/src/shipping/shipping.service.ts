@@ -65,6 +65,8 @@ export class ShippingService {
     if (orderStatus === "DELIVERED") {
       marketplaceOrderData.status = "DELIVERED";
       marketplaceOrderData.deliveredAt = new Date();
+    } else if (orderStatus === "CANCELLED") {
+      marketplaceOrderData.status = "CANCELLED";
     } else if (orderStatus === "SHIPPED" && order.status !== "DELIVERED") {
       marketplaceOrderData.status = "SHIPPED";
     }
@@ -80,7 +82,11 @@ export class ShippingService {
           autoTrackingEnabled,
           trackingSource: autoTrackingEnabled ? "FLASH" : null,
           events: {
-            create: { status: shipment.status, note: shipment.note ?? "ผู้ขายอัปเดตการจัดส่ง" },
+            create: {
+              status: shipment.status,
+              note: shipment.note ?? "ผู้ขายอัปเดตการจัดส่ง",
+              at: new Date(),
+            },
           },
         },
         update: {
@@ -90,7 +96,11 @@ export class ShippingService {
           autoTrackingEnabled,
           trackingSource: autoTrackingEnabled ? "FLASH" : null,
           events: {
-            create: { status: shipment.status, note: shipment.note ?? "ผู้ขายอัปเดตการจัดส่ง" },
+            create: {
+              status: shipment.status,
+              note: shipment.note ?? "ผู้ขายอัปเดตการจัดส่ง",
+              at: new Date(),
+            },
           },
         },
       }),
@@ -119,6 +129,10 @@ export class ShippingService {
       body: `${shipment.carrier} • ${shipment.trackingNumber}`,
       link: `/account/purchases/${orderId}`,
     });
+
+    if (orderStatus === "CANCELLED" && !["COMPLETED", "REFUNDED"].includes(order.status)) {
+      await this.marketplaceOrders.refund(orderId);
+    }
 
     return { ok: true, releaseDueAt };
   }
@@ -151,7 +165,7 @@ export class ShippingService {
           status: shipment.status,
           autoTrackingEnabled,
           trackingSource: autoTrackingEnabled ? "FLASH" : null,
-          events: { create: { status: shipment.status, note: shipment.note } },
+          events: { create: { status: shipment.status, note: shipment.note, at: new Date() } },
         },
         update: {
           carrier: shipment.carrier,
@@ -159,7 +173,7 @@ export class ShippingService {
           status: shipment.status,
           autoTrackingEnabled,
           trackingSource: autoTrackingEnabled ? "FLASH" : null,
-          events: { create: { status: shipment.status, note: shipment.note } },
+          events: { create: { status: shipment.status, note: shipment.note, at: new Date() } },
         },
       }),
       ...(orderStatus
@@ -329,6 +343,18 @@ export class ShippingService {
       }
     }
 
+    if (
+      input.status === "CANCELLED" &&
+      shipment.marketplaceOrderId &&
+      !["COMPLETED", "REFUNDED"].includes(shipment.marketplaceOrder?.status ?? "")
+    ) {
+      try {
+        await this.marketplaceOrders.refund(shipment.marketplaceOrderId);
+      } catch (err) {
+        this.logger.error(`Failed to refund escrow for ${shipment.marketplaceOrderId}`, err);
+      }
+    }
+
     return { accepted: true, shipmentId: shipment.id };
   }
 
@@ -338,7 +364,7 @@ export class ShippingService {
       where: { id: shipmentId },
       data: {
         status: "DELIVERED",
-        events: { create: { status: "DELIVERED", note: "จัดส่งสำเร็จ" } },
+        events: { create: { status: "DELIVERED", note: "จัดส่งสำเร็จ", at: new Date() } },
       },
     });
     if (shipment.marketplaceOrderId) {

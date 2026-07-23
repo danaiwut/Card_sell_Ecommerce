@@ -116,7 +116,13 @@ export class MarketplaceOrdersService {
         data: { status: "SOLD" },
       }),
       this.prisma.shipment.create({
-        data: { marketplaceOrderId: orderId, status: "PENDING" },
+        data: {
+          marketplaceOrderId: orderId,
+          status: "PENDING",
+          events: {
+            create: { status: "PENDING", note: "รอผู้ขายจัดส่ง", at: new Date() },
+          },
+        },
       }),
     ]);
 
@@ -286,9 +292,12 @@ export class MarketplaceOrdersService {
       where: { id: orderId },
     });
     if (!order) throw new NotFoundException("Order not found");
+    if (order.status === "REFUNDED" || order.status === "COMPLETED") {
+      return { ok: true, alreadyHandled: true };
+    }
     if (this.stripe.enabled && order.stripePaymentIntentId) {
       await this.stripe.refund(order.stripePaymentIntentId);
-    } else if (["PAID_HELD", "SHIPPED", "DELIVERED", "DISPUTED"].includes(order.status)) {
+    } else if (["PAID_HELD", "SHIPPED", "DELIVERED", "DISPUTED", "CANCELLED"].includes(order.status)) {
       await this.wallet.refundEscrow(order.buyerId, order.id, order.amount);
     }
     await this.prisma.$transaction([
@@ -302,6 +311,19 @@ export class MarketplaceOrdersService {
       }),
     ]);
     return { ok: true };
+  }
+
+  async cancelOrder(userId: string, orderId: string, role: "buyer" | "seller" | "admin") {
+    const order = await this.prisma.marketplaceOrder.findUnique({
+      where: { id: orderId },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (role === "buyer" && order.buyerId !== userId) throw new ForbiddenException();
+    if (role === "seller" && order.sellerId !== userId) throw new ForbiddenException();
+    if (["COMPLETED", "REFUNDED"].includes(order.status)) {
+      throw new BadRequestException("คำสั่งซื้อนี้ดำเนินการเสร็จแล้ว");
+    }
+    return this.refund(orderId);
   }
 
   async dispute(buyerId: string, orderId: string, reason: string) {
@@ -378,15 +400,25 @@ export class MarketplaceOrdersService {
   }
 
   private serializeMarketplaceOrder(order: any) {
+    const toIso = (value: unknown) => {
+      if (value instanceof Date) return value.toISOString();
+      if (typeof value === "string" && value) return new Date(value).toISOString();
+      return new Date().toISOString();
+    };
+
     return {
       id: order.id,
       status: order.status,
       amount: toBaht(order.amount),
       platformFee: toBaht(order.platformFee),
       sellerPayout: toBaht(order.sellerPayout),
-      createdAt: order.createdAt.toISOString(),
-      buyer: { id: order.buyer.id, displayName: order.buyer.displayName },
-      seller: { id: order.seller.id, displayName: order.seller.displayName },
+      createdAt: toIso(order.createdAt),
+      buyer: order.buyer
+        ? { id: order.buyer.id, displayName: order.buyer.displayName ?? "ผู้ซื้อ" }
+        : { id: order.buyerId, displayName: "ผู้ซื้อ" },
+      seller: order.seller
+        ? { id: order.seller.id, displayName: order.seller.displayName ?? "ผู้ขาย" }
+        : { id: order.sellerId, displayName: "ผู้ขาย" },
       listing: {
         id: order.listing.id,
         condition: order.listing.condition,
@@ -400,12 +432,14 @@ export class MarketplaceOrdersService {
             status: order.shipment.status,
             autoTrackingEnabled: order.shipment.autoTrackingEnabled,
             trackingSource: order.shipment.trackingSource,
-            lastTrackedAt: order.shipment.lastTrackedAt?.toISOString() ?? null,
-            lastCourierSyncAt: order.shipment.lastCourierSyncAt?.toISOString() ?? null,
-            events: order.shipment.events.map((e: any) => ({
+            lastTrackedAt: order.shipment.lastTrackedAt ? toIso(order.shipment.lastTrackedAt) : null,
+            lastCourierSyncAt: order.shipment.lastCourierSyncAt
+              ? toIso(order.shipment.lastCourierSyncAt)
+              : null,
+            events: (order.shipment.events ?? []).map((e: any) => ({
               status: e.status,
               note: e.note,
-              at: e.at.toISOString(),
+              at: toIso(e.at),
               courier: e.courier,
               rawStatus: e.rawStatus,
               accepted: e.accepted,
@@ -417,7 +451,7 @@ export class MarketplaceOrdersService {
         ? {
             rating: order.review.rating,
             comment: order.review.comment,
-            createdAt: order.review.createdAt.toISOString(),
+            createdAt: toIso(order.review.createdAt),
           }
         : null,
     };
