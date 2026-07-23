@@ -38,7 +38,35 @@
 
 
 ---
-
+หลักการและเหตุผล (Rationale)
+ 
+ตลาดการ์ดสะสม (trading card) ในปัจจุบันมีการซื้อขายทั้งจากร้านค้าอย่างเป็นทางการ และการซื้อขายมือสองระหว่างนักสะสมด้วยกันเอง (C2C) ซึ่งการซื้อขายแบบ C2C มักเผชิญปัญหาความไม่ไว้วางใจ เช่น ผู้ซื้อโอนเงินแล้วไม่ได้รับสินค้า หรือผู้ขายส่งสินค้าแล้วไม่ได้รับเงิน อีกทั้งยังไม่มีแหล่งอ้างอิงราคาตลาดที่เป็นปัจจุบัน ทำให้ทั้งสองฝ่ายตั้งราคาซื้อขายได้ยาก
+ 
+โครงการ **CardVerse** จึงถูกพัฒนาขึ้นเพื่อรวมทั้งร้านค้าออฟฟิเชียล (Shop) และตลาดกลาง C2C (Marketplace) ไว้ในแพลตฟอร์มเดียว โดยออกแบบกลไก **Escrow** ให้ระบบเป็นตัวกลางถือเงิน/เครดิตไว้จนกว่าผู้ซื้อจะยืนยันว่าได้รับสินค้าจริง จึงค่อยปล่อยเงินให้ผู้ขาย ช่วยลดความเสี่ยงจากการโกงทั้งสองฝ่าย นอกจากนี้ระบบยังเก็บสถิติราคาซื้อขายจริง (`Trade`, `PricePoint`) เพื่อสร้างกราฟราคาตลาดแบบเรียลไทม์ และใช้ระบบเครดิต/กระเป๋าเงิน (Wallet) แทนเงินสดโดยตรง เพื่อป้องกันการปั๊มยอดขายปลอม (self-purchase) และแยกกระแสเงินสดจริงออกจากระบบตลาดกลาง
+ 
+---
+ 
+วัตถุประสงค์และขอบเขตการทำงาน (Objectives & Scope)
+ 
+### วัตถุประสงค์
+ 
+1. พัฒนาระบบร้านค้าออนไลน์ (Shop) จำหน่ายการ์ด อุปกรณ์เสริม ครบ 20 หมวดหมู่สินค้า
+2. พัฒนาระบบ Marketplace แบบ C2C พร้อม Escrow เพื่อความปลอดภัยในการซื้อขายระหว่างผู้ใช้
+3. พัฒนาระบบเครดิต/กระเป๋าเงิน สำหรับเติม ใช้จ่าย และถอนเครดิต
+4. พัฒนาระบบติดตามราคาตลาดจากยอดขายจริงแบบ real-time พร้อม live feed
+5. พัฒนาระบบคอลเลกชันส่วนตัวและ Wishlist สำหรับผู้ใช้
+6. พัฒนาระบบหลังบ้าน (Admin/Manager) สำหรับบริหารสินค้า listing ผู้ใช้ และการตั้งค่าแพลตฟอร์ม (fee, escrow days)
+### ขอบเขตการทำงาน
+ 
+| ด้าน | ครอบคลุม |
+|---|---|
+| Storefront | Shop, Marketplace, Collection, Wishlist, News, i18n TH/EN |
+| Account | Wallet/เครดิต, Order history, Sell, Withdraw, Notification |
+| Admin | Products, Listings, Wallet approval, Platform settings, News CMS, User role management |
+| Background job | Escrow auto-release, Price aggregation รายวัน, Shipment tracking sync |
+| Integration | Clerk (auth), Stripe/Connect (payment), Supabase Storage (รูปสินค้า), Redis/BullMQ (queue) |
+ 
+---
 
 
 ## User Personas
@@ -75,9 +103,32 @@
 | **Role ในระบบ**          | `manager` (Admin ใช้ flow เดียวกัน + เปลี่ยน role ผู้ใช้ได้)                                                     |
 
 
+3. User Persona เพิ่มเติม — Admin
+ 
+| หัวข้อ | รายละเอียด |
+|---|---|
+| **อายุ / อาชีพ** | 35 ปี — เจ้าของ/ผู้ดูแลระบบแพลตฟอร์ม (System Owner) |
+| **เป้าหมาย** | ควบคุมภาพรวมทั้งระบบ กำกับดูแลการทำงานของ Manager กำหนดสิทธิ์การเข้าถึงของผู้ใช้แต่ละคน และดูแลความปลอดภัยของแพลตฟอร์มในระดับสูงสุด |
+| **Pain Points** | ต้องมั่นใจว่าไม่มีใครใช้สิทธิ์ Manager ผิดวัตถุประสงค์, ต้องจัดการ role ผู้ใช้จำนวนมากได้รวดเร็ว, ต้องตรวจสอบย้อนหลังได้ว่าใครเปลี่ยน role ใครเมื่อไหร่ |
+| **พฤติกรรมบน CardVerse** | Login → `/admin` → ใช้ฟีเจอร์ทั้งหมดของ Manager → ไปที่แท็บ Users → ค้นหาผู้ใช้ → เปลี่ยน role (`customer` ↔ `manager` ↔ `admin`) → ตรวจสอบ Dashboard KPI ภาพรวม |
+| **ฟีเจอร์ที่ใช้บ่อย** | ทุกฟีเจอร์ของ Manager (Products, Listings, Wallet, News, Settings) + Change Role dropdown, User search/filter, Regression check หลัง promote/demote |
+| **Role ในระบบ** | `admin` — สิทธิ์เทียบเท่า Manager ทุกอย่าง บวกสิทธิ์เปลี่ยน role ผู้ใช้คนอื่น (UC-07) |
+
 ---
 
-
+กระบวนการพัฒนาตาม SDLC (รายละเอียดเฉพาะโครงการ)
+ 
+| ขั้นตอน | รายละเอียดที่ทำจริงในโครงการ CardVerse |
+|---|---|
+| 1. Planning | กำหนด Persona 3 กลุ่ม (Customer, Manager, Admin), ขอบเขตงาน 4 สัปดาห์ |
+| 2. Analysis | เขียน Use Case Diagram แยกตาม Actor (Customer / Manager-Admin / System), นิยาม use case หลัก 8 รายการ (UC-01 ถึง UC-08) |
+| 3. Design | ออกแบบ Class Diagram จาก Prisma schema (40+ models), ออกแบบ Sequence Diagram สำหรับ flow สำคัญ เช่น การซื้อขายผ่าน Escrow, ออกแบบ wireframe ด้วย Figma |
+| 4. Development | Frontend ด้วย Next.js 15 / React 19 (`apps/web`), Backend ด้วย NestJS 11 (`apps/api`), Background job ด้วย BullMQ (`apps/worker`), ใช้ Prisma ORM เชื่อม PostgreSQL 16, Redis 7 สำหรับ cache/queue, Clerk สำหรับ auth, Stripe + Connect สำหรับ payment/escrow |
+| 5. Testing | Unit test ด้วย Vitest ฝั่ง API, ทำ UAT รวม 28 test case ครอบคลุมทั้ง 3 persona ผ่าน 100% (28/28) |
+| 6. Deployment | Deploy web บน Vercel, API/Worker บน Railway/Render/Fly, Database บน Supabase, Redis บน Upstash, CI/CD ผ่าน GitHub Actions (build+typecheck ทุก push, deploy เมื่อ merge เข้า main) |
+| 7. Maintenance | ติดตามตาม SLA (Availability ≥99.9%, จัดระดับ Incident L1–L4), รายงานผลรายเดือน, ทบทวนรายไตรมาส |
+ 
+---
 
 ## Tech Stack
 
