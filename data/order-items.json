@@ -1,1 +1,65 @@
-[]
+[
+  {
+    "id": "order_item_001",
+    "orderId": "order_delivered_001",
+    "productId": "product_07c2ab53b3e5d254",
+    "name": "Pokémon SV Prismatic Evolutions Booster Box",
+    "unitPrice": 429000,
+    "quantity": 1,
+    "createdAt": "2026-07-10T08:00:00.000Z"
+  },
+  {
+    "id": "order_item_004",
+    "orderId": "order_delivered_001",
+    "productId": "product_53ad42fd4adf73aa",
+    "name": "One Piece OP-10 Booster Box (Pre-order)",
+    "unitPrice": 359000,
+    "quantity": 1,
+    "createdAt": "2026-07-10T08:00:00.000Z"
+  },
+  {
+    "id": "order_item_002",
+    "orderId": "order_delivered_002",
+    "productId": "product_b7ab4114d738a306",
+    "name": "Pokémon SV 151 Elite Trainer Box",
+    "unitPrice": 289000,
+    "quantity": 1,
+    "createdAt": "2026-07-08T10:00:00.000Z"
+  },
+  {
+    "id": "order_item_003",
+    "orderId": "order_delivered_003",
+    "productId": "product_600d08350c649d37",
+    "name": "One Piece OP-09 Booster Box",
+    "unitPrice": 359000,
+    "quantity": 1,
+    "createdAt": "2026-07-05T09:00:00.000Z"
+  },
+  {
+    "id": "order_item_005",
+    "orderId": "order_delivered_004",
+    "productId": "product_07c2ab53b3e5d254",
+    "name": "Pokémon SV Prismatic Evolutions Booster Box",
+    "unitPrice": 429000,
+    "quantity": 1,
+    "createdAt": "2026-07-11T07:00:00.000Z"
+  },
+  {
+    "id": "order_item_006",
+    "orderId": "order_delivered_005",
+    "productId": "product_b7ab4114d738a306",
+    "name": "Pokémon SV 151 Elite Trainer Box",
+    "unitPrice": 289000,
+    "quantity": 1,
+    "createdAt": "2026-07-07T13:00:00.000Z"
+  },
+  {
+    "id": "order_item_test",
+    "orderId": "order_delivered_test",
+    "productId": "product_07c2ab53b3e5d254",
+    "name": "Pokémon SV Prismatic Evolutions Booster Box",
+    "unitPrice": 429000,
+    "quantity": 1,
+    "createdAt": "2026-07-18T08:00:00.000Z"
+  }
+]

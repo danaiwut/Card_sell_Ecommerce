@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AuthModule } from "./auth/auth.module";
+import { EmailModule } from "./email/email.module";
 import { RealtimeModule } from "./realtime/realtime.module";
 import { QueueModule } from "./queue/queue.module";
 import { CatalogModule } from "./catalog/catalog.module";
@@ -29,6 +30,7 @@ import { HealthController } from "./health.controller";
       // Root .env first; apps/web/.env.local may override for local web keys.
       envFilePath: ["../../.env", "../../apps/web/.env.local", ".env"],
     }),
+    EmailModule,
     PrismaModule,
     RealtimeModule,
     QueueModule,

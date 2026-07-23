@@ -1,0 +1,62 @@
+[
+  {
+    "id": "prev_order_item_001",
+    "orderId": "order_delivered_001",
+    "orderItemId": "order_item_001",
+    "productId": "product_07c2ab53b3e5d254",
+    "authorId": "user_sarah_m_001",
+    "rating": 5,
+    "comment": "CardVerse ส่งเร็ว ของแท้ แพ็คดีมาก ซื้อ booster box หลายครั้งแล้วประทับใจทุกครั้ง",
+    "createdAt": "2026-07-20T10:00:00.000Z"
+  },
+  {
+    "id": "prev_order_item_002",
+    "orderId": "order_delivered_002",
+    "orderItemId": "order_item_002",
+    "productId": "product_b7ab4114d738a306",
+    "authorId": "user_alex_k_002",
+    "rating": 5,
+    "comment": "ETB ครบชุด ได้ promo ตามที่โฆษณา แนะนำเลยครับ",
+    "createdAt": "2026-07-18T14:30:00.000Z"
+  },
+  {
+    "id": "prev_order_item_003",
+    "orderId": "order_delivered_003",
+    "orderItemId": "order_item_003",
+    "productId": "product_600d08350c649d37",
+    "authorId": "user_mike_l_003",
+    "rating": 4,
+    "comment": "ของใหม่เข้าบ่อย มีทั้ง sealed และ single ครบจบในที่เดียว",
+    "createdAt": "2026-07-15T09:15:00.000Z"
+  },
+  {
+    "id": "prev_order_item_004",
+    "orderId": "order_delivered_001",
+    "orderItemId": "order_item_004",
+    "productId": "product_53ad42fd4adf73aa",
+    "authorId": "user_sarah_m_001",
+    "rating": 5,
+    "comment": "Pre-order ได้รับตรงเวลา บริการดีมาก",
+    "createdAt": "2026-07-21T11:00:00.000Z"
+  },
+  {
+    "id": "prev_order_item_005",
+    "orderId": "order_delivered_004",
+    "orderItemId": "order_item_005",
+    "productId": "product_07c2ab53b3e5d254",
+    "authorId": "user_nina_t_004",
+    "rating": 5,
+    "comment": "Sealed box สภาพสมบูรณ์แบบ ซื้อเป็นของขวัญ ผู้รับชอบใจมาก",
+    "createdAt": "2026-07-19T16:45:00.000Z"
+  },
+  {
+    "id": "prev_order_item_006",
+    "orderId": "order_delivered_005",
+    "orderItemId": "order_item_006",
+    "productId": "product_b7ab4114d738a306",
+    "authorId": "user_james_p_005",
+    "rating": 4,
+    "comment": "Great product, fast shipping. Exactly as described. Would buy again.",
+    "createdAt": "2026-07-17T08:20:00.000Z"
+  }
+]

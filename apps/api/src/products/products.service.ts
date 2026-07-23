@@ -3,6 +3,7 @@ import type { ShopQuery } from "@cardverse/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { createResponseCache, createKeyedResponseCache } from "../common/response-cache";
 import { serializeProduct, toSatang, catalogItemInclude } from "../common/serializers";
+import { ProductReviewsService } from "./product-reviews.service";
 
 const homeCache = createResponseCache<Record<string, unknown>>(60_000);
 const shopCache = createKeyedResponseCache<Record<string, unknown>>(30_000);
@@ -10,7 +11,10 @@ const detailCache = createKeyedResponseCache<Record<string, unknown>>(60_000);
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reviewsService: ProductReviewsService,
+  ) {}
 
   async shop(query: ShopQuery) {
     const cacheKey = JSON.stringify(query);
@@ -57,7 +61,7 @@ export class ProductsService {
       ]);
 
       return {
-        items: items.map(serializeProduct),
+        items: await this.withReviewStats(items.map(serializeProduct)),
         page: query.page,
         pageSize: query.pageSize,
         total,
@@ -82,12 +86,20 @@ export class ProductsService {
       });
 
       return {
-        product: serializeProduct(product),
+        product: (await this.withReviewStats([serializeProduct(product)]))[0],
         releaseDate: product.catalogItem?.releaseDate ?? null,
         description: product.description,
-        related: related.map(serializeProduct),
+        related: await this.withReviewStats(related.map(serializeProduct)),
       };
     });
+  }
+
+  async getProductReviews(slug: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { OR: [{ slug }, { id: slug }] },
+    });
+    if (!product) throw new NotFoundException("Product not found");
+    return this.reviewsService.listForProduct(product.id);
   }
 
   async home() {
@@ -101,10 +113,23 @@ export class ProductsService {
           this.topProducts({ orderBy: { price: "desc" as const }, take: 2 }),
           this.topProducts({ orderBy: { soldCount: "desc" as const }, take: 2 }),
         ]);
-      const categories = await this.prisma.category.findMany({
-        orderBy: { sortOrder: "asc" },
-        take: 8,
-      });
+      const [categories, brandCount, productCount, deliveredOrders, brands, recentReviews] =
+        await Promise.all([
+          this.prisma.category.findMany({ orderBy: { sortOrder: "asc" }, take: 8 }),
+          this.prisma.brand.count(),
+          this.prisma.product.count(),
+          this.prisma.order.findMany({ where: { status: "DELIVERED" }, select: { userId: true } }),
+          this.prisma.brand.findMany({ orderBy: { name: "asc" }, take: 5 }),
+          this.prisma.productReview.findMany({
+            include: { author: true },
+            orderBy: { createdAt: "desc" },
+            take: 6,
+            where: { comment: { not: null } },
+          }),
+        ]);
+
+      const customerCount = new Set(deliveredOrders.map((o) => o.userId)).size;
+
       return {
         categories: categories.map((c) => ({
           id: c.id,
@@ -113,12 +138,35 @@ export class ProductsService {
           nameTh: c.nameTh,
           emoji: c.emoji,
         })),
-        trending,
-        newArrival,
-        preOrder,
-        featured,
-        topExpensive,
-        topSelling,
+        stats: {
+          brandCount,
+          productCount,
+          customerCount,
+        },
+        brands: brands.map((b) => b.name),
+        testimonials: recentReviews.map((r) => ({
+          name: r.author?.displayName ?? "Customer",
+          text: r.comment ?? "",
+          rating: r.rating,
+        })),
+        trending: await this.withReviewStats(trending),
+        newArrival: await this.withReviewStats(newArrival),
+        preOrder: await this.withReviewStats(preOrder),
+        featured: await this.withReviewStats(featured),
+        topExpensive: await this.withReviewStats(topExpensive),
+        topSelling: await this.withReviewStats(topSelling),
+      };
+    });
+  }
+
+  private async withReviewStats<T extends { id: string }>(products: T[]) {
+    const stats = await this.reviewsService.statsForProducts(products.map((p) => p.id));
+    return products.map((p) => {
+      const s = stats.get(p.id);
+      return {
+        ...p,
+        rating: s?.rating ?? null,
+        reviewCount: s?.reviewCount ?? 0,
       };
     });
   }

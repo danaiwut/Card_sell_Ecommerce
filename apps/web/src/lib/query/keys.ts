@@ -3,6 +3,7 @@ export const queryKeys = {
   categories: () => ["categories"] as const,
   shop: (queryString: string) => ["shop", queryString] as const,
   product: (slug: string) => ["product", slug] as const,
+  productReviews: (slug: string) => ["product-reviews", slug] as const,
   listings: (queryString: string) => ["listings", queryString] as const,
   catalogItem: (id: string) => ["catalog-item", id] as const,
   marketStats: (id: string) => ["market-stats", id] as const,

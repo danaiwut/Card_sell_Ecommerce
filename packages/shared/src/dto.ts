@@ -43,7 +43,18 @@ export interface ProductDto {
   isPreOrder: boolean;
   rarity: Rarity | null;
   soldCount?: number;
+  rating?: number | null;
+  reviewCount?: number;
   catalogItem: CatalogItemDto | null;
+}
+
+export interface ProductReviewDto {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  verifiedPurchase: true;
+  author: { displayName: string };
 }
 
 export interface ListingDto {

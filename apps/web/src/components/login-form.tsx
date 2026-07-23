@@ -95,7 +95,14 @@ export function LoginForm({ defaultMode = "login" }: { defaultMode?: Mode }) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold tracking-wider text-ink/50">รหัสผ่าน</label>
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-semibold tracking-wider text-ink/50">รหัสผ่าน</label>
+            {mode === "login" && (
+              <Link href="/forgot-password" className="text-xs font-semibold text-gold hover:underline">
+                ลืมรหัสผ่าน?
+              </Link>
+            )}
+          </div>
           <input
             className="input mt-1"
             type="password"

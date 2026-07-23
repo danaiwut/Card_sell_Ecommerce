@@ -8,7 +8,9 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter=@cardverse/web --filter=@cardverse/api",
+    "dev:app": "turbo run dev --filter=@cardverse/web --filter=@cardverse/api",
+    "dev:all": "turbo run dev",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "db:bootstrap": "pnpm --filter @cardverse/db build && node packages/db/dist/bootstrap-cli.js",

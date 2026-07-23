@@ -13,16 +13,25 @@ export class QueueService implements OnModuleDestroy {
   constructor() {
     const url = process.env.REDIS_URL;
     this.connection = url
-      ? new IORedis(url, { maxRetriesPerRequest: null })
+      ? new IORedis(url, {
+          maxRetriesPerRequest: null,
+          lazyConnect: true,
+          connectTimeout: 4_000,
+          retryStrategy: () => null,
+        })
       : null;
     if (!this.connection) {
       this.logger.warn("REDIS_URL not set — background jobs are disabled.");
+    } else {
+      void this.connection.connect().catch(() => {
+        this.logger.warn("Redis unavailable — background job queues are disabled.");
+      });
     }
   }
 
   private queue(name: string): Queue | null {
     const connection = this.connection;
-    if (!connection) return null;
+    if (!connection || connection.status !== "ready") return null;
     if (!this.queues.has(name)) {
       this.queues.set(name, new Queue(name, { connection }));
     }

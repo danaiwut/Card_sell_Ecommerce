@@ -22,6 +22,24 @@ export function serializeCategory(c: any): CategoryDto {
 }
 
 export function serializeCatalogItem(ci: any): CatalogItemDto {
+  const category = ci.category
+    ? serializeCategory(ci.category)
+    : ci.categoryId
+      ? {
+          id: String(ci.categoryId),
+          slug: String(ci.categoryId),
+          name: "Unknown",
+          nameTh: "Unknown",
+          emoji: "❓",
+        }
+      : {
+          id: "unknown",
+          slug: "unknown",
+          name: "Unknown",
+          nameTh: "Unknown",
+          emoji: "❓",
+        };
+
   return {
     id: ci.id,
     slug: ci.slug,
@@ -29,7 +47,7 @@ export function serializeCatalogItem(ci: any): CatalogItemDto {
     rarity: ci.rarity ?? null,
     cardNumber: ci.cardNumber ?? null,
     imageUrl: ci.imageUrl ?? null,
-    category: serializeCategory(ci.category),
+    category,
     subcategoryName: ci.subcategory?.name ?? null,
     brandName: ci.brand?.name ?? null,
     setName: ci.set?.name ?? null,

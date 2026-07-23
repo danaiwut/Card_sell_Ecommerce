@@ -21,6 +21,12 @@ export class ProductsController {
   }
 
   @Public()
+  @Get("products/:slug/reviews")
+  reviews(@Param("slug") slug: string) {
+    return this.products.getProductReviews(slug);
+  }
+
+  @Public()
   @Get("products/:slug")
   detail(@Param("slug") slug: string) {
     return this.products.detail(slug);

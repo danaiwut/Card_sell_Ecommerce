@@ -191,7 +191,10 @@ export class OrdersService {
   async get(userId: string, orderId: string) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, userId },
-      include: { items: true, shipment: { include: { events: true } } },
+      include: {
+        items: { include: { review: true } },
+        shipment: { include: { events: true } },
+      },
     });
     if (!order) throw new NotFoundException("Order not found");
     return {
@@ -204,9 +207,19 @@ export class OrdersService {
       total: toBaht(order.total),
       createdAt: order.createdAt.toISOString(),
       items: order.items.map((i) => ({
+        id: i.id,
+        productId: i.productId,
         name: i.name,
         quantity: i.quantity,
         unitPrice: toBaht(i.unitPrice),
+        review: i.review
+          ? {
+              rating: i.review.rating,
+              comment: i.review.comment,
+              createdAt: i.review.createdAt.toISOString(),
+            }
+          : null,
+        canReview: order.status === "DELIVERED" && !i.review,
       })),
       shipment: this.serializeShipment(order.shipment),
     };

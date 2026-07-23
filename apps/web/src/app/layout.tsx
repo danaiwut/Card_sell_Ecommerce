@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { SiteShell } from "@/components/site-shell";
 
-const display = Playfair_Display({
+const roboto = Roboto({
   subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["500", "600", "700"],
+  variable: "--font-sans",
+  weight: ["300", "400", "500", "700", "900"],
 });
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "CardVerse — Collect the Multiverse",
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th" className={`${display.variable} ${sans.variable}`}>
+    <html lang="th" className={roboto.variable}>
       <body className="font-sans antialiased">
         <Providers>
           <SiteShell>{children}</SiteShell>

@@ -1,10 +1,15 @@
 import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { productReviewSchema } from "@cardverse/shared";
 import { OrdersService } from "./orders.service";
+import { ProductReviewsService } from "../products/product-reviews.service";
 import { CurrentUser } from "../auth/decorators";
 
 @Controller("orders")
 export class OrdersController {
-  constructor(private readonly orders: OrdersService) {}
+  constructor(
+    private readonly orders: OrdersService,
+    private readonly productReviews: ProductReviewsService,
+  ) {}
 
   @Post("checkout")
   checkout(
@@ -39,5 +44,16 @@ export class OrdersController {
   @Delete(":id")
   cancel(@CurrentUser("id") userId: string, @Param("id") id: string) {
     return this.orders.cancel(userId, id);
+  }
+
+  @Post(":id/items/:itemId/review")
+  reviewItem(
+    @CurrentUser("id") userId: string,
+    @Param("id") id: string,
+    @Param("itemId") itemId: string,
+    @Body() body: unknown,
+  ) {
+    const data = productReviewSchema.parse(body);
+    return this.productReviews.submit(userId, id, itemId, data);
   }
 }

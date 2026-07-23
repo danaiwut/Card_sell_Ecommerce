@@ -27,6 +27,7 @@ export const USER_LINKED_FILES = [
   "shipments.json",
   "shipment-events.json",
   "reviews.json",
+  "product-reviews.json",
   "price-points.json",
 ] as const;
 

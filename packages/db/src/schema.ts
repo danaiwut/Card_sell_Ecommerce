@@ -22,6 +22,7 @@ export type ModelName =
   | "trade"
   | "pricePoint"
   | "sellerReview"
+  | "productReview"
   | "shipment"
   | "shipmentEvent"
   | "collectionItem"
@@ -53,6 +54,7 @@ export const MODEL_FILES: Record<ModelName, string> = {
   trade: "trades.json",
   pricePoint: "price-points.json",
   sellerReview: "reviews.json",
+  productReview: "product-reviews.json",
   shipment: "shipments.json",
   shipmentEvent: "shipment-events.json",
   collectionItem: "collection-items.json",
@@ -62,7 +64,7 @@ export const MODEL_FILES: Record<ModelName, string> = {
 };
 
 export const DATE_FIELDS: Partial<Record<ModelName, readonly string[]>> = {
-  user: ["createdAt", "updatedAt"],
+  user: ["createdAt", "updatedAt", "passwordResetExpiresAt"],
   wallet: ["createdAt", "updatedAt"],
   walletTransaction: ["createdAt"],
   withdrawalRequest: ["createdAt", "updatedAt", "processedAt"],
@@ -92,6 +94,7 @@ export const DATE_FIELDS: Partial<Record<ModelName, readonly string[]>> = {
   trade: ["createdAt", "soldAt"],
   pricePoint: ["day"],
   sellerReview: ["createdAt"],
+  productReview: ["createdAt"],
   shipment: ["createdAt", "updatedAt", "lastTrackedAt", "lastCourierSyncAt"],
   shipmentEvent: ["at", "receivedAt"],
   collectionItem: ["acquiredAt"],
@@ -107,6 +110,8 @@ export const MODEL_DEFAULTS: Partial<Record<ModelName, Record<string, unknown>>>
     sellerRatingCount: 0,
     stripeConnectOnboarded: false,
     passwordHash: null,
+    passwordResetTokenHash: null,
+    passwordResetExpiresAt: null,
   },
   wallet: { balance: 0, heldBalance: 0 },
   product: {
@@ -160,6 +165,7 @@ export const UNIQUE_KEYS: Record<ModelName, Record<string, readonly string[]>> =
   trade: { id: ["id"], marketplaceOrderId: ["marketplaceOrderId"] },
   pricePoint: { id: ["id"], catalogItemId_day: ["catalogItemId", "day"] },
   sellerReview: { id: ["id"], orderId: ["orderId"] },
+  productReview: { id: ["id"], orderItemId: ["orderItemId"] },
   shipment: { id: ["id"], orderId: ["orderId"], marketplaceOrderId: ["marketplaceOrderId"] },
   shipmentEvent: { id: ["id"] },
   collectionItem: { id: ["id"], userId_catalogItemId: ["userId", "catalogItemId"] },
@@ -193,6 +199,7 @@ export const RELATIONS: Record<ModelName, Record<string, RelationDef>> = {
     offersMade: { kind: "one-to-many", model: "listingOffer", fk: "buyerId" },
     reviewsWritten: { kind: "one-to-many", model: "sellerReview", fk: "authorId" },
     reviewsReceived: { kind: "one-to-many", model: "sellerReview", fk: "sellerId" },
+    productReviewsWritten: { kind: "one-to-many", model: "productReview", fk: "authorId" },
     newsPosts: { kind: "one-to-many", model: "newsPost", fk: "authorId" },
     wallet: { kind: "one-to-one", model: "wallet", fk: "userId", reverse: true },
     withdrawals: { kind: "one-to-many", model: "withdrawalRequest", fk: "userId" },
@@ -246,6 +253,7 @@ export const RELATIONS: Record<ModelName, Record<string, RelationDef>> = {
     catalogItem: { kind: "many-to-one", model: "catalogItem", fk: "catalogItemId", optional: true },
     cartItems: { kind: "one-to-many", model: "cartItem", fk: "productId" },
     orderItems: { kind: "one-to-many", model: "orderItem", fk: "productId" },
+    reviews: { kind: "one-to-many", model: "productReview", fk: "productId" },
   },
   cart: {
     user: { kind: "many-to-one", model: "user", fk: "userId" },
@@ -261,10 +269,12 @@ export const RELATIONS: Record<ModelName, Record<string, RelationDef>> = {
     shipment: { kind: "one-to-one", model: "shipment", fk: "orderId", reverse: true },
     address: { kind: "many-to-one", model: "address", fk: "addressId", optional: true },
     coupon: { kind: "many-to-one", model: "coupon", fk: "couponId", optional: true },
+    productReviews: { kind: "one-to-many", model: "productReview", fk: "orderId" },
   },
   orderItem: {
     order: { kind: "many-to-one", model: "order", fk: "orderId" },
     product: { kind: "many-to-one", model: "product", fk: "productId" },
+    review: { kind: "one-to-one", model: "productReview", fk: "orderItemId", reverse: true },
   },
   coupon: {
     orders: { kind: "one-to-many", model: "order", fk: "couponId" },
@@ -299,6 +309,12 @@ export const RELATIONS: Record<ModelName, Record<string, RelationDef>> = {
     order: { kind: "many-to-one", model: "marketplaceOrder", fk: "orderId" },
     author: { kind: "many-to-one", model: "user", fk: "authorId" },
     seller: { kind: "many-to-one", model: "user", fk: "sellerId" },
+  },
+  productReview: {
+    order: { kind: "many-to-one", model: "order", fk: "orderId" },
+    orderItem: { kind: "many-to-one", model: "orderItem", fk: "orderItemId" },
+    product: { kind: "many-to-one", model: "product", fk: "productId" },
+    author: { kind: "many-to-one", model: "user", fk: "authorId" },
   },
   shipment: {
     order: { kind: "many-to-one", model: "order", fk: "orderId", optional: true },

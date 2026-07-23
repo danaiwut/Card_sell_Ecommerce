@@ -10,6 +10,8 @@ interface ReviewModalProps {
   onClose: () => void;
   onSubmit: (rating: number, comment: string) => void;
   pending?: boolean;
+  /** Shop product review vs marketplace seller review */
+  variant?: "seller" | "product";
 }
 
 export function ReviewModal({
@@ -19,6 +21,7 @@ export function ReviewModal({
   onClose,
   onSubmit,
   pending,
+  variant = "seller",
 }: ReviewModalProps) {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -31,8 +34,17 @@ export function ReviewModal({
       <div className="card w-full max-w-md p-6">
         <h2 className="font-display text-xl font-semibold">ให้คะแนนสินค้า</h2>
         <p className="mt-2 text-sm text-ink/60">
-          คุณยืนยันรับ <span className="font-medium text-ink">{productName}</span> แล้ว
-          — ช่วยให้คะแนนผู้ขาย <span className="font-medium text-ink">{sellerName}</span>
+          {variant === "product" ? (
+            <>
+              คุณได้รับ <span className="font-medium text-ink">{productName}</span> แล้ว
+              — ช่วยให้คะแนนสินค้า (เฉพาะผู้ซื้อที่ได้รับของแล้วเท่านั้น)
+            </>
+          ) : (
+            <>
+              คุณยืนยันรับ <span className="font-medium text-ink">{productName}</span> แล้ว
+              — ช่วยให้คะแนนผู้ขาย <span className="font-medium text-ink">{sellerName}</span>
+            </>
+          )}
         </p>
 
         <div className="mt-5 flex justify-center gap-1">

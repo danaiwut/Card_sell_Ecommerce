@@ -1,0 +1,16 @@
+[
+  {
+    "role": "customer",
+    "level": 1,
+    "sellerRating": 0,
+    "sellerRatingCount": 0,
+    "stripeConnectOnboarded": false,
+    "passwordHash": "$2b$10$TJ9HXcb.cLgU8yeGKVfxKOCRIryibet7zth6tQ4Ftiam65ddutRsW",
+    "clerkId": "local_user_75b4cc1fee59b472",
+    "email": "danaiwut077@gmail.com",
+    "displayName": "Danaiwut Jantanee",
+    "id": "f6e23949d4c044e59af860b1",
+    "createdAt": "2026-07-23T13:21:12.043Z",
+    "updatedAt": "2026-07-23T13:21:12.043Z"
+  }
+]

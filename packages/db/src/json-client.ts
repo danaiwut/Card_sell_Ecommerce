@@ -32,6 +32,7 @@ import type {
   PricePoint,
   Product,
   SellerReview,
+  ProductReview,
   Shipment,
   ShipmentEvent,
   Subcategory,
@@ -53,6 +54,8 @@ export class JsonClient {
   private readonly globalLock = new AsyncLock();
   private txState: TxState | null = null;
   private bootstrapped = false;
+  /** Allows nested reads/writes within the same locked operation. */
+  private lockDepth = 0;
 
   readonly user = new ModelDelegate<User>(this, "user");
   readonly wallet = new ModelDelegate<Wallet>(this, "wallet");
@@ -77,6 +80,7 @@ export class JsonClient {
   readonly trade = new ModelDelegate<Trade>(this, "trade");
   readonly pricePoint = new ModelDelegate<PricePoint>(this, "pricePoint");
   readonly sellerReview = new ModelDelegate<SellerReview>(this, "sellerReview");
+  readonly productReview = new ModelDelegate<ProductReview>(this, "productReview");
   readonly shipment = new ModelDelegate<Shipment>(this, "shipment");
   readonly shipmentEvent = new ModelDelegate<ShipmentEvent>(this, "shipmentEvent");
   readonly collectionItem = new ModelDelegate<CollectionItem>(this, "collectionItem");
@@ -128,12 +132,28 @@ export class JsonClient {
 
   runRead<T>(task: () => Promise<T>): Promise<T> {
     if (this.txState) return task();
-    return this.globalLock.runExclusive(task);
+    if (this.lockDepth > 0) return task();
+    return this.globalLock.runExclusive(async () => {
+      this.lockDepth += 1;
+      try {
+        return await task();
+      } finally {
+        this.lockDepth -= 1;
+      }
+    });
   }
 
   runWrite<T>(task: () => Promise<T>): Promise<T> {
     if (this.txState) return task();
-    return this.globalLock.runExclusive(task);
+    if (this.lockDepth > 0) return task();
+    return this.globalLock.runExclusive(async () => {
+      this.lockDepth += 1;
+      try {
+        return await task();
+      } finally {
+        this.lockDepth -= 1;
+      }
+    });
   }
 
   async readModelRaw(model: ModelName): Promise<JsonRecord[]> {

@@ -14,6 +14,8 @@ export interface User {
   sellerRating: number;
   sellerRatingCount: number;
   passwordHash: string | null;
+  passwordResetTokenHash: string | null;
+  passwordResetExpiresAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -311,6 +313,18 @@ export interface SellerReview {
   createdAt: Date;
 }
 
+/** Verified purchase review — one per order line item after delivery. */
+export interface ProductReview {
+  id: string;
+  orderId: string;
+  orderItemId: string;
+  productId: string;
+  authorId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: Date;
+}
+
 export interface Shipment {
   id: string;
   orderId: string | null;
@@ -436,6 +450,7 @@ export type JsonModel =
   | Trade
   | PricePoint
   | SellerReview
+  | ProductReview
   | Shipment
   | ShipmentEvent
   | CollectionItem

@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "balance": 500000,
+    "heldBalance": 0,
+    "userId": "4d7e045fb6fb44e289b9382d",
+    "id": "e4be3be39a7a4b99bdad81af",
+    "createdAt": "2026-07-23T14:11:02.700Z",
+    "updatedAt": "2026-07-23T14:11:02.719Z"
+  }
+]

@@ -1,17 +1,28 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AccountLayout } from "@/components/account-layout";
 import { DevLogin } from "@/components/dev-login";
+import { ReviewModal } from "@/components/review-modal";
 import { ShipmentStatusBadge } from "@/components/shipment-status-badge";
 import { TrackingTimeline, type ShipmentEventView } from "@/components/tracking-timeline";
 import { api } from "@/lib/api";
 import { formatBaht, formatDate } from "@/lib/format";
 import { useSession } from "@/lib/session";
 import { XCircle } from "lucide-react";
+
+interface OrderItemRow {
+  id: string;
+  productId: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  review: { rating: number; comment: string | null; createdAt: string } | null;
+  canReview: boolean;
+}
 
 interface ShopOrderDetail {
   id: string;
@@ -22,7 +33,7 @@ interface ShopOrderDetail {
   shipping: number;
   discount: number;
   createdAt: string;
-  items: { name: string; quantity: number; unitPrice: number }[];
+  items: OrderItemRow[];
   shipment: {
     carrier: string | null;
     trackingNumber: string | null;
@@ -57,14 +68,25 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
   const { id } = use(params);
   const { session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cancelError, setCancelError] = useState("");
+  const [reviewItem, setReviewItem] = useState<OrderItemRow | null>(null);
 
   const { data } = useQuery({
     queryKey: ["order-detail", id, session?.userId],
     queryFn: () => api.get<ShopOrderDetail>(`/orders/${id}`, true),
     enabled: Boolean(session),
+  });
+
+  const submitReview = useMutation({
+    mutationFn: (body: { rating: number; comment?: string }) =>
+      api.post(`/orders/${id}/items/${reviewItem!.id}/review`, body, true),
+    onSuccess: () => {
+      setReviewItem(null);
+      qc.invalidateQueries({ queryKey: ["order-detail", id] });
+    },
   });
 
   const cancel = useMutation({
@@ -83,8 +105,25 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
 
   const canCancel = CANCELLABLE.includes(data.status);
 
+  useEffect(() => {
+    if (searchParams.get("review") !== "1" || !data) return;
+    const pending = data.items.find((i) => i.canReview);
+    if (pending) setReviewItem(pending);
+  }, [searchParams, data]);
+
   return (
     <>
+      <ReviewModal
+        open={Boolean(reviewItem)}
+        productName={reviewItem?.name ?? ""}
+        sellerName="CardVerse"
+        variant="product"
+        pending={submitReview.isPending}
+        onClose={() => setReviewItem(null)}
+        onSubmit={(rating, comment) =>
+          submitReview.mutate({ rating, comment: comment || undefined })
+        }
+      />
       <AccountLayout>
           <Link href="/account/orders" className="text-sm text-ink/50 hover:text-ink">
             ← กลับไป My Orders
@@ -153,9 +192,25 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
                 </tr>
               </thead>
               <tbody>
-                {data.items.map((item, index) => (
-                  <tr key={index} className="border-b border-ink/5">
-                    <td className="px-4 py-3 font-medium">{item.name}</td>
+                {data.items.map((item) => (
+                  <tr key={item.id} className="border-b border-ink/5">
+                    <td className="px-4 py-3 font-medium">
+                      {item.name}
+                      {item.review && (
+                        <p className="mt-1 text-xs text-ink/50">
+                          คุณให้คะแนน {item.review.rating}/5 แล้ว
+                        </p>
+                      )}
+                      {item.canReview && (
+                        <button
+                          type="button"
+                          className="mt-1 block text-xs font-semibold text-gold hover:underline"
+                          onClick={() => setReviewItem(item)}
+                        >
+                          ให้คะแนนสินค้า
+                        </button>
+                      )}
+                    </td>
                     <td className="px-4 py-3">{item.quantity}</td>
                     <td className="px-4 py-3 price">{formatBaht(item.unitPrice)}</td>
                   </tr>

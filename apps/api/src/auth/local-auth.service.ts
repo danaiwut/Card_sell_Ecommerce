@@ -1,14 +1,23 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
 import { createEntityId } from "@cardverse/db";
-import type { LoginInput, RegisterInput, Role } from "@cardverse/shared";
+import type {
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+  Role,
+} from "@cardverse/shared";
 import bcrypt from "bcryptjs";
+import { createHash, randomBytes } from "node:crypto";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import type { Request } from "express";
 import { PrismaService } from "../prisma/prisma.service";
+import { EmailService } from "../email/email.service";
 import type { AuthUser } from "./auth.types";
 
 export interface AuthTokenPayload {
@@ -27,13 +36,22 @@ export interface AuthSessionDto {
   };
 }
 
+const PASSWORD_RESET_MESSAGE =
+  "หากมีบัญชีที่ใช้อีเมลนี้ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้ภายในไม่กี่นาที";
+
 @Injectable()
 export class LocalAuthService {
   private readonly jwtSecret =
     process.env.AUTH_JWT_SECRET?.trim() || "dev-jwt-secret-change-in-production";
   private readonly jwtExpiresIn = process.env.AUTH_JWT_EXPIRES_IN?.trim() || "7d";
+  private readonly resetExpiresMs = parseResetExpiry(
+    process.env.PASSWORD_RESET_EXPIRES_IN?.trim() || "1h",
+  );
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly email: EmailService,
+  ) {}
 
   async register(input: RegisterInput): Promise<AuthSessionDto> {
     const email = input.email.trim().toLowerCase();
@@ -73,6 +91,56 @@ export class LocalAuthService {
     return this.issueSession(user);
   }
 
+  async requestPasswordReset(input: ForgotPasswordInput): Promise<{ message: string }> {
+    const email = input.email.trim().toLowerCase();
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (user?.passwordHash) {
+      const token = randomBytes(32).toString("hex");
+      const tokenHash = hashResetToken(token);
+      const expiresAt = new Date(Date.now() + this.resetExpiresMs);
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordResetTokenHash: tokenHash,
+          passwordResetExpiresAt: expiresAt,
+        },
+      });
+
+      const webUrl = (process.env.WEB_URL ?? "http://localhost:3000").replace(/\/$/, "");
+      const resetUrl = `${webUrl}/reset-password?token=${token}`;
+      await this.email.sendPasswordResetEmail(email, resetUrl);
+    }
+
+    return { message: PASSWORD_RESET_MESSAGE };
+  }
+
+  async resetPassword(input: ResetPasswordInput): Promise<AuthSessionDto> {
+    const tokenHash = hashResetToken(input.token.trim());
+    const user = await this.findUserByResetTokenHash(tokenHash);
+    if (!user) {
+      throw new BadRequestException("ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุแล้ว");
+    }
+
+    const expiresAt = user.passwordResetExpiresAt;
+    if (!expiresAt || expiresAt.getTime() < Date.now()) {
+      throw new BadRequestException("ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุแล้ว");
+    }
+
+    const passwordHash = await bcrypt.hash(input.password, 10);
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        passwordResetTokenHash: null,
+        passwordResetExpiresAt: null,
+      },
+    });
+
+    return this.issueSession(updated);
+  }
+
   async resolveUserFromRequest(req: Request): Promise<AuthUser | null> {
     const token = this.extractBearerToken(req);
     if (!token) return null;
@@ -94,6 +162,12 @@ export class LocalAuthService {
       displayName: user.displayName,
       role: user.role as Role,
     };
+  }
+
+  private async findUserByResetTokenHash(tokenHash: string) {
+    return this.prisma.user.findFirst({
+      where: { passwordResetTokenHash: tokenHash },
+    });
   }
 
   private extractBearerToken(req: Request): string | undefined {
@@ -127,4 +201,22 @@ export class LocalAuthService {
       },
     };
   }
+}
+
+function hashResetToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function parseResetExpiry(value: string): number {
+  const match = /^(\d+)([smhd])$/i.exec(value.trim());
+  if (!match) return 60 * 60 * 1000;
+  const amount = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  const multipliers: Record<string, number> = {
+    s: 1000,
+    m: 60 * 1000,
+    h: 60 * 60 * 1000,
+    d: 24 * 60 * 60 * 1000,
+  };
+  return amount * (multipliers[unit] ?? 60 * 60 * 1000);
 }

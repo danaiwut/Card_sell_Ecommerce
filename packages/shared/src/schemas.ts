@@ -170,3 +170,20 @@ export const registerSchema = loginSchema.extend({
   displayName: z.string().trim().min(2, "ชื่อต้องมีอย่างน้อย 2 ตัว").max(80),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email("อีเมลไม่ถูกต้อง"),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(32, "ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้อง"),
+  password: z.string().min(8, "รหัสผ่านต้องมีอย่างน้อย 8 ตัว"),
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const productReviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(1000).optional(),
+});
+export type ProductReviewInput = z.infer<typeof productReviewSchema>;
