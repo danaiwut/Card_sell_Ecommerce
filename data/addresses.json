@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "fullName": "Siwakorn",
+    "phone": "0999999999",
+    "line1": "123",
+    "line2": null,
+    "district": "123",
+    "province": "123",
+    "postalCode": "12312",
+    "isDefault": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "id": "fd0ce732dc0e4600886ccd68",
+    "createdAt": "2026-07-24T05:41:07.772Z",
+    "updatedAt": "2026-07-24T05:41:07.772Z"
+  }
+]

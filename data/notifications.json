@@ -1,1 +1,475 @@
-[]
+[
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อ #386828 กำลังเตรียมจัดส่ง",
+    "link": "/account/orders/454e89baa866494c9bda9be1",
+    "id": "b1837d9a28d840b8b11e5cf5",
+    "createdAt": "2026-07-24T05:41:12.960Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "CREDIT",
+    "title": "ได้รับเครดิต",
+    "body": "+฿10,000 — ยอดคงเหลือ ฿15,000",
+    "link": "/account/wallet",
+    "id": "9639444197b74f1b81ee2efa",
+    "createdAt": "2026-07-24T10:54:24.008Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "CREDIT",
+    "title": "ส่งคำขอเติมเครดิตแล้ว",
+    "body": "฿100,000 — รอแอดมินอนุมัติ",
+    "link": "/account/wallet",
+    "id": "4bd3ee4bf85247b1984ec77f",
+    "createdAt": "2026-07-24T10:54:43.556Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "CREDIT",
+    "title": "เติมเครดิตสำเร็จ",
+    "body": "+฿100,000 — ยอดคงเหลือ ฿104,811",
+    "link": "/account/wallet",
+    "id": "167308a0772d45ee92c497df",
+    "createdAt": "2026-07-24T10:54:56.242Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "SHIPMENT_UPDATE",
+    "title": "คำสั่งซื้อมีการอัปเดต",
+    "body": "THAILAND_POST • 123123",
+    "link": "/account/orders/454e89baa866494c9bda9be1",
+    "id": "79a04b6e4ebd41acbe19b753",
+    "createdAt": "2026-07-24T10:55:06.339Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีข้อเสนอราคาใหม่",
+    "body": "SIWAKORN เสนอราคา ฿5,000 สำหรับ Mew ex (SV 151)",
+    "link": "/account/offers",
+    "id": "596da72f7868417087719a2c",
+    "createdAt": "2026-07-24T10:55:55.042Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "MARKETPLACE_SALE",
+    "title": "ข้อเสนอราคาได้รับการยอมรับ",
+    "body": "คุณสามารถซื้อ Mew ex (SV 151) ในราคา ฿5,000 ได้แล้ว",
+    "link": "/marketplace/catalog_ac4797d3f05761ab?offer=c06cfb2350d64ee1b14d4dff",
+    "id": "ba03d9dfe26f4b97a12ff18c",
+    "createdAt": "2026-07-24T10:56:13.877Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีข้อเสนอราคาใหม่",
+    "body": "SIWAKORN เสนอราคา ฿5,000 สำหรับ Mew ex (SV 151)",
+    "link": "/account/offers",
+    "id": "f3d3d1d4d2e747fc9f62b162",
+    "createdAt": "2026-07-24T11:15:05.936Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "MARKETPLACE_SALE",
+    "title": "ข้อเสนอราคาได้รับการยอมรับ",
+    "body": "คุณสามารถซื้อ Mew ex (SV 151) ในราคา ฿5,000 ได้แล้ว",
+    "link": "/marketplace/catalog_ac4797d3f05761ab?offer=7fe1c201f61341a6a2ac1c66",
+    "id": "39a52e457d4d433489e67b02",
+    "createdAt": "2026-07-24T11:15:28.421Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "e49b6c234fd54ff4a00f3f2e",
+    "createdAt": "2026-07-24T11:16:19.665Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/76b990489978475596ebbc53",
+    "id": "db0113fe1b7f4d3690f544ab",
+    "createdAt": "2026-07-24T11:16:19.667Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "SHIPMENT_UPDATE",
+    "title": "พัสดุมีการอัปเดต",
+    "body": "THAILAND_POST • 123123",
+    "link": "/account/purchases/76b990489978475596ebbc53",
+    "id": "e564900c24f04369badc99bd",
+    "createdAt": "2026-07-24T11:16:52.252Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "SYSTEM",
+    "title": "มีการเปิดข้อพิพาท",
+    "body": "ไม่ได้รับสินค้า",
+    "id": "ddeccb9b00494caf9b9d0a7c",
+    "createdAt": "2026-07-24T11:17:11.912Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อ #566430 กำลังเตรียมจัดส่ง",
+    "link": "/account/orders/ab797889b43f4b7db29ffbd5",
+    "id": "dcf7d9646cc444b590934746",
+    "createdAt": "2026-07-24T11:40:23.210Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "SHIPMENT_UPDATE",
+    "title": "คำสั่งซื้อจัดส่งสำเร็จแล้ว",
+    "body": "THAILAND_POST • 123123",
+    "link": "/account/orders/454e89baa866494c9bda9be1",
+    "id": "a7ab54bbf1da4ac399dd5aad",
+    "createdAt": "2026-07-24T11:58:55.297Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "SHIPMENT_UPDATE",
+    "title": "คำสั่งซื้อมีการอัปเดต",
+    "body": "THAILAND_POST • 123123",
+    "link": "/account/orders/ab797889b43f4b7db29ffbd5",
+    "id": "8503644f41aa40039cd31c3d",
+    "createdAt": "2026-07-24T11:59:06.786Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "39563205c388420aa4b2af21",
+    "createdAt": "2026-07-24T12:06:38.641Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/4463c721ac544adc8c9f0cd8",
+    "id": "86546ca631ff40e280dcfe3e",
+    "createdAt": "2026-07-24T12:06:38.643Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "SYSTEM",
+    "title": "มีการเปิดข้อพิพาท",
+    "body": "ไม่ได้รับสินค้า",
+    "id": "042c38b031be44319350ee32",
+    "createdAt": "2026-07-24T12:07:36.682Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "f97ededeb0e845b7bfc1fc61",
+    "createdAt": "2026-07-24T12:46:46.083Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/beed421869a14c83868b3d4e",
+    "id": "eec70620e76e44a6b3f751b8",
+    "createdAt": "2026-07-24T12:46:46.085Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "SHIPMENT_UPDATE",
+    "title": "พัสดุมีการอัปเดต",
+    "body": "FLASH • 123123",
+    "link": "/account/purchases/beed421869a14c83868b3d4e",
+    "id": "b37be5a7715a4dbf84c98457",
+    "createdAt": "2026-07-24T12:47:18.839Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "PAYOUT",
+    "title": "ได้รับเงินจากการขาย",
+    "body": "ยอดสุทธิ ฿920",
+    "link": "/account/sell",
+    "id": "4efb5aff149e4e999808d740",
+    "createdAt": "2026-07-24T12:47:48.310Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ยืนยันรับสินค้าแล้ว",
+    "body": "กรุณาให้คะแนนผู้ขายเพื่อช่วยชุมชน",
+    "link": "/account/purchases/beed421869a14c83868b3d4e?review=1",
+    "id": "4063d861ecb2496bb4cdd3c4",
+    "createdAt": "2026-07-24T12:47:48.312Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "SYSTEM",
+    "title": "ได้รับรีวิวใหม่",
+    "body": "คะแนน 5/5 จากผู้ซื้อ",
+    "link": "/account/sell",
+    "id": "b6a23b029ac44451a313039e",
+    "createdAt": "2026-07-24T12:47:51.485Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "a272e19246f34f3a902d43f2",
+    "createdAt": "2026-07-24T13:13:16.683Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/7c99a1bf7f0348e9b06a97e1",
+    "id": "59120c51470c4f1281b64cfa",
+    "createdAt": "2026-07-24T13:13:16.686Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "SYSTEM",
+    "title": "มีการเปิดข้อพิพาท",
+    "body": "ไม่ได้รับสินค้า",
+    "id": "f4efe05ae36e4230829b57fc",
+    "createdAt": "2026-07-24T13:15:00.221Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "333fa4b8f29c4cbca3229439",
+    "createdAt": "2026-07-24T13:23:31.309Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/968bff5f7c094a269b1e5333",
+    "id": "cffe37f5151b400fb59e4afd",
+    "createdAt": "2026-07-24T13:23:31.312Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "SYSTEM",
+    "title": "มีการเปิดข้อพิพาท",
+    "body": "ไม่ได้รับสินค้า",
+    "id": "1947d5f20a894937a1d44da5",
+    "createdAt": "2026-07-24T13:24:06.738Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "4f3f857da23d4135a22b70b1",
+    "createdAt": "2026-07-24T13:24:57.830Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/c24bdda070e443dc9be56a47",
+    "id": "3fe28f499a534d1b9fabd63a",
+    "createdAt": "2026-07-24T13:24:57.832Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "SYSTEM",
+    "title": "มีการเปิดข้อพิพาท",
+    "body": "ไม่ได้รับสินค้า",
+    "id": "e5dd037d7180412eabe0eb60",
+    "createdAt": "2026-07-24T13:25:15.955Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "95aa7b1123144b1fae0602f1",
+    "createdAt": "2026-07-24T13:28:49.738Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/65087732880b45b2b6f23a00",
+    "id": "82fbd5b9224b4dbfac983b37",
+    "createdAt": "2026-07-24T13:28:49.740Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "SYSTEM",
+    "title": "มีการเปิดข้อพิพาท",
+    "body": "ไม่ได้รับสินค้า",
+    "id": "4c7d1f31f1914685a469372d",
+    "createdAt": "2026-07-24T13:29:07.208Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "0bfa05d1e7034bd6905cc80c",
+    "createdAt": "2026-07-24T13:34:08.464Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/f8781e0119314debb3d8cece",
+    "id": "26512a72f7b842909bbe06f2",
+    "createdAt": "2026-07-24T13:34:08.466Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "SYSTEM",
+    "title": "มีการเปิดข้อพิพาท",
+    "body": "ไม่ได้รับสินค้า",
+    "id": "b74f856ae1404ca491bfd0e8",
+    "createdAt": "2026-07-24T13:34:18.989Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "80b44adbb756439984760767",
+    "createdAt": "2026-07-24T13:48:02.359Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/adf685e042494145939566e9",
+    "id": "af687f77ff834404a95036fa",
+    "createdAt": "2026-07-24T13:48:02.361Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "b591874989ab4ddda2afde86",
+    "createdAt": "2026-07-24T13:52:03.905Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/2a1000d9c760450381e91e3c",
+    "id": "21f27462e7794977ad456d62",
+    "createdAt": "2026-07-24T13:52:03.907Z"
+  },
+  {
+    "read": true,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีข้อเสนอราคาใหม่",
+    "body": "SIWAKORN เสนอราคา ฿5,000 สำหรับ Mew ex (SV 151)",
+    "link": "/account/offers",
+    "id": "3525d01a20ea4f6fa02f9ca5",
+    "createdAt": "2026-07-24T13:52:40.670Z"
+  },
+  {
+    "read": true,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "MARKETPLACE_SALE",
+    "title": "ข้อเสนอราคาได้รับการยอมรับ",
+    "body": "คุณสามารถซื้อ Mew ex (SV 151) ในราคา ฿5,000 ได้แล้ว",
+    "link": "/marketplace/catalog_ac4797d3f05761ab?offer=e42f803779954aa49aa129a9",
+    "id": "477e21a1b03b4921b65f0e96",
+    "createdAt": "2026-07-24T13:52:51.377Z"
+  },
+  {
+    "read": false,
+    "userId": "f86e9c2274a74223a8451a33",
+    "type": "MARKETPLACE_SALE",
+    "title": "มีคนซื้อการ์ดของคุณ",
+    "body": "กรุณาจัดส่งและอัปเดตเลขพัสดุในระบบ",
+    "link": "/account/sell",
+    "id": "b5a576129a5245f68aa306a4",
+    "createdAt": "2026-07-24T13:53:06.287Z"
+  },
+  {
+    "read": false,
+    "userId": "46d6eaa4a3cd4d158e33a103",
+    "type": "ORDER_UPDATE",
+    "title": "ชำระเงินสำเร็จ",
+    "body": "คำสั่งซื้อของคุณอยู่ระหว่างรอผู้ขายจัดส่ง",
+    "link": "/account/purchases/be321c3e1c6448b8812a653f",
+    "id": "fdecd412a48140c78e352a56",
+    "createdAt": "2026-07-24T13:53:06.289Z"
+  }
+]

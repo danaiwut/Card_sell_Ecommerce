@@ -114,6 +114,15 @@ function MarketplacePurchaseTrackingInner({
     onSuccess: () => qc.invalidateQueries({ queryKey: ["purchase-detail", id] }),
   });
 
+  const cancel = useMutation({
+    mutationFn: () => api.post(`/marketplace/orders/${id}/cancel`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["purchase-detail", id] });
+      qc.invalidateQueries({ queryKey: ["purchases"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    },
+  });
+
   if (!session) return <DevLogin />;
   if (isError) {
     return (
@@ -213,6 +222,15 @@ function MarketplacePurchaseTrackingInner({
                 {data.status === "COMPLETED" && !data.review && (
                   <button className="btn-gold" onClick={() => setShowReview(true)}>
                     ให้คะแนนสินค้า
+                  </button>
+                )}
+                {data.status === "PAID_HELD" && (
+                  <button
+                    className="btn-outline border-red-200 text-red-600 hover:bg-red-50"
+                    disabled={cancel.isPending}
+                    onClick={() => cancel.mutate()}
+                  >
+                    {cancel.isPending ? "Cancelling..." : "Cancel and refund credits"}
                   </button>
                 )}
                 {!["COMPLETED", "REFUNDED", "DISPUTED"].includes(data.status) && (

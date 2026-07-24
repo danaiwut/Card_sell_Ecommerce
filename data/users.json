@@ -98,5 +98,40 @@
     "id": "user_james_p_005",
     "createdAt": "2026-06-05T08:00:00.000Z",
     "updatedAt": "2026-06-05T08:00:00.000Z"
+  },
+  {
+    "role": "admin",
+    "level": 1,
+    "sellerRating": 0,
+    "sellerRatingCount": 0,
+    "stripeConnectOnboarded": true,
+    "passwordHash": "$2b$10$tcP60JFK7RkNNKINDKrSMuRRiNF/k11Jj7PpeLuICstMgHIy8JzK.",
+    "passwordResetTokenHash": null,
+    "passwordResetExpiresAt": null,
+    "clerkId": "local_user_4d09a0b4012c938f",
+    "email": "siwakorn.tha@spumail.net",
+    "displayName": "SIWAKORN",
+    "id": "46d6eaa4a3cd4d158e33a103",
+    "createdAt": "2026-07-24T05:39:30.227Z",
+    "updatedAt": "2026-07-24T10:25:19.392Z",
+    "stripeConnectAccountId": "acct_mock_46d6eaa4a3cd4d158e33a103",
+    "avatarUrl": "http://localhost:4000/uploads/avatars/2026-07-24/30420b86-1202-4c4c-962a-676f47866b2a.png"
+  },
+  {
+    "role": "customer",
+    "level": 1,
+    "sellerRating": 5,
+    "sellerRatingCount": 1,
+    "stripeConnectOnboarded": true,
+    "passwordHash": "$2b$10$Q09oaOoCQICSVUBP1Ipsa.M2zPKAvZwIIUG.Q57UsdS4x.QnpThpu",
+    "passwordResetTokenHash": null,
+    "passwordResetExpiresAt": null,
+    "clerkId": "local_user_b22cf81b0ae10e26",
+    "email": "lotus.tus.zaa@gmail.com",
+    "displayName": "Lotus",
+    "id": "f86e9c2274a74223a8451a33",
+    "createdAt": "2026-07-24T10:46:59.214Z",
+    "updatedAt": "2026-07-24T12:47:51.482Z",
+    "stripeConnectAccountId": "acct_mock_f86e9c2274a74223a8451a33"
   }
 ]

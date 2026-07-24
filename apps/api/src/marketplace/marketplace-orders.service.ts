@@ -297,7 +297,7 @@ export class MarketplaceOrdersService {
     }
     if (this.stripe.enabled && order.stripePaymentIntentId) {
       await this.stripe.refund(order.stripePaymentIntentId);
-    } else if (["PAID_HELD", "SHIPPED", "DELIVERED", "DISPUTED", "CANCELLED"].includes(order.status)) {
+    } else if (["PENDING_PAYMENT", "PAID_HELD", "SHIPPED", "DELIVERED", "DISPUTED", "CANCELLED"].includes(order.status)) {
       await this.wallet.refundEscrow(order.buyerId, order.id, order.amount);
     }
     await this.prisma.$transaction([
@@ -331,15 +331,37 @@ export class MarketplaceOrdersService {
       where: { id: orderId },
     });
     if (!order || order.buyerId !== buyerId) throw new ForbiddenException();
-    await this.prisma.marketplaceOrder.update({
-      where: { id: orderId },
-      data: { status: "DISPUTED" },
-    });
+    
+    // Refund escrow when dispute is opened
+    if (this.stripe.enabled && order.stripePaymentIntentId) {
+      await this.stripe.refund(order.stripePaymentIntentId);
+    } else {
+      await this.wallet.refundEscrow(order.buyerId, order.id, order.amount);
+    }
+    
+    await this.prisma.$transaction([
+      this.prisma.marketplaceOrder.update({
+        where: { id: orderId },
+        data: { status: "REFUNDED" },
+      }),
+      this.prisma.listing.update({
+        where: { id: order.listingId },
+        data: { status: "ACTIVE" },
+      }),
+    ]);
+    
     await this.queue.enqueueNotification({
       userId: order.sellerId,
       type: "SYSTEM",
-      title: "มีการเปิดข้อพิพาท",
+      title: "มีการเปิดข้อพิพาทและคืนเงิน",
       body: reason,
+    });
+    await this.queue.enqueueNotification({
+      userId: order.buyerId,
+      type: "CREDIT",
+      title: "คืนเครดิตแล้ว",
+      body: `+฿${toBaht(order.amount).toLocaleString()} — ยกเลิกคำสั่งซื้อจากข้อพิพาท`,
+      link: "/account/wallet",
     });
     return { ok: true };
   }

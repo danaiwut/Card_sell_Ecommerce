@@ -94,12 +94,36 @@ export default function CatalogDetailPage({
   }, [catalogItemId]);
 
   const effStats = liveStats ?? stats;
+
+  const { data: acceptedOffer } = useQuery({
+    queryKey: ["offer", offerId, session?.userId],
+    queryFn: async () => {
+      const offers = await api.get<ListingOfferDto[]>("/marketplace/offers/mine", true);
+      return offers.find((o) => o.id === offerId) ?? null;
+    },
+    enabled: Boolean(session && offerId),
+  });
+
+  // If there's an accepted offer, prioritize showing its listing
   const activeListing = listingId
     ? listings?.find((l) => l.id === listingId)
-    : listings?.[0];
+    : acceptedOffer?.status === "ACCEPTED"
+      ? listings?.find((l) => l.id === acceptedOffer.listingId) ?? listings?.[0]
+      : listings?.[0];
+
   const listingUnavailable = Boolean(listingId && listings && !activeListing);
   const trend = priceTrendPct(effStats?.avg7d, effStats?.avg30d);
-  const displayPrice = activeListing?.price ?? effStats?.today ?? effStats?.lowestActiveListing;
+
+  const listingPrice =
+    acceptedOffer?.status === "ACCEPTED" && acceptedOffer.listingId === activeListing?.id
+      ? acceptedOffer.amount
+      : (activeListing?.price ?? 0);
+
+  const displayPrice =
+    acceptedOffer?.status === "ACCEPTED" && acceptedOffer.listingId === activeListing?.id
+      ? acceptedOffer.amount
+      : (activeListing?.price ?? effStats?.today ?? effStats?.lowestActiveListing);
+
   const lastSold = (recent ?? []).find((r) => r.catalogItem.id === catalogItemId);
 
   const similar = useMemo(() => {
@@ -112,20 +136,6 @@ export default function CatalogDetailPage({
       })
       .slice(0, 4);
   }, [similarListings, catalogItemId]);
-
-  const { data: acceptedOffer } = useQuery({
-    queryKey: ["offer", offerId, session?.userId],
-    queryFn: async () => {
-      const offers = await api.get<ListingOfferDto[]>("/marketplace/offers/mine", true);
-      return offers.find((o) => o.id === offerId) ?? null;
-    },
-    enabled: Boolean(session && offerId),
-  });
-
-  const listingPrice =
-    acceptedOffer?.status === "ACCEPTED" && acceptedOffer.listingId === activeListing?.id
-      ? acceptedOffer.amount
-      : (activeListing?.price ?? 0);
 
   const buy = useMutation({
     mutationFn: () =>

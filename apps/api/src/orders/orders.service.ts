@@ -91,12 +91,14 @@ export class OrdersService {
           couponId,
           addressId: params.addressId,
           items: {
-            create: checkoutItems.map((i) => ({
-              productId: i.productId,
-              name: i.product.name,
-              unitPrice: i.product.price,
-              quantity: i.quantity,
-            })),
+            createMany: {
+              data: checkoutItems.map((i) => ({
+                productId: i.productId,
+                name: i.product.name,
+                unitPrice: i.product.price,
+                quantity: i.quantity,
+              })),
+            },
           },
         },
         include: { items: true },

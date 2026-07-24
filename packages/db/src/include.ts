@@ -129,21 +129,21 @@ async function loadRelationRows(
     if (args.where) {
       rows = rows.filter((row) => matchSimpleWhere(row, args.where!));
     }
-    return rows;
+    return rows.map((row) => client.hydrateRecord(rel.model, row));
   }
 
   if (rel.kind === "many-to-one" || rel.kind === "one-to-one") {
     const fk = record[rel.fk];
     if (typeof fk !== "string") return [];
     const row = all.find((r) => r.id === fk);
-    return row ? [row] : [];
+    return row ? [client.hydrateRecord(rel.model, row)] : [];
   }
 
   let rows = all.filter((row) => row[rel.fk] === record.id);
   if (args.where) {
     rows = rows.filter((row) => matchSimpleWhere(row, args.where!));
   }
-  return rows;
+  return rows.map((row) => client.hydrateRecord(rel.model, row));
 }
 
 function matchSimpleWhere(record: Record<string, unknown>, where: Record<string, unknown>): boolean {

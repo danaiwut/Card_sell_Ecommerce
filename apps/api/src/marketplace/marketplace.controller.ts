@@ -115,6 +115,11 @@ export class MarketplaceController {
     return this.orders.confirmReceived(userId, id);
   }
 
+  @Post("orders/:id/cancel")
+  cancelOrder(@CurrentUser("id") userId: string, @Param("id") id: string) {
+    return this.orders.cancelOrder(userId, id, "buyer");
+  }
+
   @Post("orders/:id/dispute")
   dispute(
     @CurrentUser("id") userId: string,

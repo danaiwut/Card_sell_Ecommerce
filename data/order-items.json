@@ -61,5 +61,23 @@
     "unitPrice": 429000,
     "quantity": 1,
     "createdAt": "2026-07-18T08:00:00.000Z"
+  },
+  {
+    "id": "92fcd597bcbd4e5f8a6a7abc",
+    "orderId": "454e89baa866494c9bda9be1",
+    "productId": "product_c2fe47686d78c5a0",
+    "name": "Dragon Shield Matte Jet Sleeves",
+    "unitPrice": 18900,
+    "quantity": 1,
+    "createdAt": "2026-07-24T05:41:12.942Z"
+  },
+  {
+    "productId": "product_148e0aa47a6e2da6",
+    "name": "Yu-Gi-Oh! Quarter Century Bonanza Box",
+    "unitPrice": 189000,
+    "quantity": 1,
+    "orderId": "ab797889b43f4b7db29ffbd5",
+    "id": "69806b0d505b40b183daea37",
+    "createdAt": "2026-07-24T11:40:23.189Z"
   }
 ]

@@ -215,7 +215,7 @@ export class JsonClient {
       const creates = op.createMany
         ? (op.createMany as { data: Record<string, unknown>[] }).data
         : op.create
-          ? [op.create as Record<string, unknown>]
+          ? Array.isArray(op.create) ? op.create : [op.create as Record<string, unknown>]
           : [];
 
       for (const item of creates) {

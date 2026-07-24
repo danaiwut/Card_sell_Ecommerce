@@ -1,5 +1,6 @@
-export function formatBaht(value: number): string {
-  return `฿${value.toLocaleString("th-TH", { maximumFractionDigits: 0 })}`;
+export function formatBaht(value: number | null | undefined): string {
+  const amount = typeof value === "number" && Number.isFinite(value) ? value : 0;
+  return `฿${amount.toLocaleString("th-TH", { maximumFractionDigits: 0 })}`;
 }
 
 export function formatDate(iso: string, locale = "th-TH"): string {

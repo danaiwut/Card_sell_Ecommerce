@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -65,6 +65,14 @@ const STATUS_LABEL: Record<string, string> = {
 const CANCELLABLE = ["PENDING", "PAID"];
 
 export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={<div className="container-page py-10">Loading…</div>}>
+      <ShopOrderTrackingInner params={params} />
+    </Suspense>
+  );
+}
+
+function ShopOrderTrackingInner({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { session } = useSession();
   const router = useRouter();
@@ -74,7 +82,7 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
   const [cancelError, setCancelError] = useState("");
   const [reviewItem, setReviewItem] = useState<OrderItemRow | null>(null);
 
-  const { data } = useQuery({
+  const { data, isError, error } = useQuery({
     queryKey: ["order-detail", id, session?.userId],
     queryFn: () => api.get<ShopOrderDetail>(`/orders/${id}`, true),
     enabled: Boolean(session),
@@ -107,6 +115,20 @@ export default function ShopOrderTrackingPage({ params }: { params: Promise<{ id
   }, [searchParams, data]);
 
   if (!session) return <DevLogin />;
+  
+  if (isError) {
+    return (
+      <AccountLayout>
+        <p className="text-sm text-red-600">
+          โหลดข้อมูลไม่สำเร็จ: {(error as Error)?.message ?? "เกิดข้อผิดพลาด"}
+        </p>
+        <Link href="/account/orders" className="mt-4 inline-block text-sm text-ink/50 hover:text-ink">
+          ← กลับไป My Orders
+        </Link>
+      </AccountLayout>
+    );
+  }
+
   if (!data) return <div className="container-page py-10">Loading…</div>;
 
   const canCancel = CANCELLABLE.includes(data.status);

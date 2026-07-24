@@ -7,7 +7,7 @@
     "description": "Booster box จาก set ยอดฮิต Prismatic Evolutions — เหมาะสำหรับเปิดเล่นหรือเก็บสะสม",
     "type": "BOOSTER_BOX",
     "price": 429000,
-    "stock": 48,
+    "stock": null,
     "imageUrl": "https://picsum.photos/seed/cardverse-charizard-ex-sv-prismatic/800/800",
     "images": [
       "https://picsum.photos/seed/cardverse-charizard-ex-sv-prismatic-a/800/800",
@@ -18,10 +18,10 @@
     "isTrending": true,
     "isNewArrival": false,
     "rarity": "SR",
-    "soldCount": 126,
+    "soldCount": null,
     "catalogItemId": "catalog_633c377cba18d4a4",
     "createdAt": "2026-07-23T00:00:00.000Z",
-    "updatedAt": "2026-07-23T00:00:00.000Z"
+    "updatedAt": "2026-07-24T11:40:23.204Z"
   },
   {
     "id": "product_b7ab4114d738a306",

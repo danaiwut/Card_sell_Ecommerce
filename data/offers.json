@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "status": "ACCEPTED",
+    "listingId": "a0756854406441948abc8302",
+    "buyerId": "46d6eaa4a3cd4d158e33a103",
+    "amount": 500000,
+    "id": "c06cfb2350d64ee1b14d4dff",
+    "createdAt": "2026-07-24T10:55:55.040Z",
+    "updatedAt": "2026-07-24T10:56:13.874Z"
+  },
+  {
+    "status": "ACCEPTED",
+    "listingId": "e188e7b292d24590bd29d65d",
+    "buyerId": "46d6eaa4a3cd4d158e33a103",
+    "amount": 500000,
+    "id": "7fe1c201f61341a6a2ac1c66",
+    "createdAt": "2026-07-24T11:15:05.931Z",
+    "updatedAt": "2026-07-24T11:15:28.417Z"
+  },
+  {
+    "status": "ACCEPTED",
+    "listingId": "9c1a06a33c1049ff937e2c83",
+    "buyerId": "46d6eaa4a3cd4d158e33a103",
+    "amount": 500000,
+    "id": "e42f803779954aa49aa129a9",
+    "createdAt": "2026-07-24T13:52:40.666Z",
+    "updatedAt": "2026-07-24T13:52:51.374Z"
+  }
+]

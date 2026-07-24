@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "catalogItemId": "catalog_633c377cba18d4a4",
+    "marketplaceOrderId": "beed421869a14c83868b3d4e",
+    "sellerId": "f86e9c2274a74223a8451a33",
+    "price": 100000,
+    "soldAt": "2026-07-24T12:47:48.248Z",
+    "id": "4fd453c9a48947b99ac54647",
+    "createdAt": "2026-07-24T12:47:48.250Z"
+  }
+]
