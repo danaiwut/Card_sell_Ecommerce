@@ -249,5 +249,15 @@
     "referenceId": "be321c3e1c6448b8812a653f",
     "id": "e4c1963e3efd477eb53f52fb",
     "createdAt": "2026-07-24T13:53:14.286Z"
+  },
+  {
+    "walletId": "9801f88e6b7145258c86dd94",
+    "type": "TOP_UP",
+    "amount": 500000,
+    "balanceAfter": 500000,
+    "description": "เครดิตต้อนรับ Demo ฿5,000",
+    "referenceType": "welcome",
+    "id": "56d0242b959f45329950f257",
+    "createdAt": "2026-07-25T17:53:50.277Z"
   }
 ]

@@ -200,7 +200,7 @@ export default function CatalogDetailPage({
             <Tag label={item.category.name} />
             {item.brandName && <Tag label={item.brandName} />}
             {item.rarity && <Tag label={item.rarity} />}
-            {activeListing && <Tag label={activeListing.condition.replace(/_/g, " ")} />}
+            {activeListing?.condition && <Tag label={activeListing.condition.replace(/_/g, " ")} />}
           </div>
 
           {activeListing && (
@@ -210,7 +210,9 @@ export default function CatalogDetailPage({
                   {activeListing.seller.rating.toFixed(1)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-ink">{activeListing.condition.replace(/_/g, " ")}</p>
+                  {activeListing.condition && (
+                    <p className="font-semibold text-ink">{activeListing.condition.replace(/_/g, " ")}</p>
+                  )}
                   <p className="mt-0.5 text-sm text-ink/50">
                     Seller: {activeListing.seller.displayName}
                   </p>
@@ -406,8 +408,8 @@ export default function CatalogDetailPage({
                 key={l.id}
                 href={`/marketplace/${l.catalogItem.id}?listing=${l.id}`}
                 name={l.catalogItem.name}
-                imageUrl={l.catalogItem.imageUrl}
-                meta={`${l.catalogItem.setName ?? item.category.name} · ${l.condition.replace(/_/g, " ")}`}
+                imageUrl={l.catalogItem.imageUrl ?? ""}
+                meta={`${l.catalogItem.setName ?? item.category.name}${l.condition ? ` · ${l.condition.replace(/_/g, " ")}` : ''}`}
                 price={formatBaht(l.price)}
                 badge={l.catalogItem.rarity ?? undefined}
               />

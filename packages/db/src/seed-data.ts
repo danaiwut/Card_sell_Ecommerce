@@ -31,7 +31,47 @@ export const USER_LINKED_FILES = [
   "price-points.json",
 ] as const;
 
+const IMAGE_MAP: Record<string, string> = {
+  // Pokémon
+  "charizard-ex-sv-prismatic": "https://images.pokemontcg.io/sv3/223_hires.png",
+  "pikachu-vmax-151": "https://images.pokemontcg.io/swsh4/44_hires.png",
+  "mew-ex-151": "https://images.pokemontcg.io/sv3pt5/151_hires.png",
+  "pokemon-prismatic-booster-box": "https://m.media-amazon.com/images/I/81B+jPZ3nSL._AC_SL1500_.jpg",
+  "pokemon-151-etb": "https://m.media-amazon.com/images/I/71R2oI1-1hL._AC_SL1500_.jpg",
+  "charizard-ex-nm-single": "https://images.pokemontcg.io/sv3/223_hires.png",
+
+  // One Piece
+  "luffy-gear5-leader": "https://en.onepiece-cardgame.com/images/cardlist/card/OP05-119.png",
+  "shanks-leader-op09": "https://en.onepiece-cardgame.com/images/cardlist/card/OP09-001.png",
+  "one-piece-op09-box": "https://m.media-amazon.com/images/I/71nIq39G6hL._AC_SL1500_.jpg",
+  "one-piece-op10-preorder": "https://m.media-amazon.com/images/I/71nIq39G6hL._AC_SL1500_.jpg", // OP09 fallback
+  "luffy-gear5-single": "https://en.onepiece-cardgame.com/images/cardlist/card/OP05-119.png",
+
+  // Magic: The Gathering
+  "lightning-bolt-mh3": "https://api.scryfall.com/cards/named?exact=Lightning+Bolt&format=image",
+  "force-of-negation-mh3": "https://api.scryfall.com/cards/named?exact=Force+of+Negation&format=image",
+  "mtg-mh3-draft-box": "https://m.media-amazon.com/images/I/81x59hFw7xL._AC_SL1500_.jpg",
+
+  // Yu-Gi-Oh!
+  "blue-eyes-white-dragon": "https://images.ygoprodeck.com/images/cards/89631139.jpg",
+  "dark-magician-qcac": "https://images.ygoprodeck.com/images/cards/46986414.jpg",
+  "yugioh-quarter-century-box": "https://m.media-amazon.com/images/I/81xU-kX1t4L._AC_SL1500_.jpg",
+
+  // Others
+  "mickey-mouse-brave-little": "https://lorcania.com/images/cards/1/mickey_mouse-brave_little_tailor.webp",
+  "elsa-spirit-lorcana": "https://lorcania.com/images/cards/1/elsa-spirit_of_winter.webp",
+  "lorcana-azurite-sea-box": "https://m.media-amazon.com/images/I/71Lh5O9Z-2L._AC_SL1500_.jpg",
+  "ultra-pro-sleeves-100": "https://m.media-amazon.com/images/I/51Bq346oH7L._AC_SL1000_.jpg",
+  "goku-ss4-leader": "https://m.media-amazon.com/images/I/61w3iY20QDL._AC_SL1500_.jpg",
+  "lebron-james-prizm": "https://m.media-amazon.com/images/I/61tJ0k2S3rL._AC_SL1000_.jpg",
+};
+
 function img(slug: string): string {
+  if (IMAGE_MAP[slug]) return IMAGE_MAP[slug];
+  // Strip suffix like -a or -b to try matching base slug for multiple images
+  const baseSlug = slug.replace(/(-a|-b)$/, "");
+  if (IMAGE_MAP[baseSlug]) return IMAGE_MAP[baseSlug];
+  
   return `https://picsum.photos/seed/cardverse-${slug}/800/800`;
 }
 

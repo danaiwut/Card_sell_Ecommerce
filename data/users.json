@@ -133,5 +133,37 @@
     "createdAt": "2026-07-24T10:46:59.214Z",
     "updatedAt": "2026-07-24T12:47:51.482Z",
     "stripeConnectAccountId": "acct_mock_f86e9c2274a74223a8451a33"
+  },
+  {
+    "role": "customer",
+    "level": 1,
+    "sellerRating": 0,
+    "sellerRatingCount": 0,
+    "stripeConnectOnboarded": false,
+    "passwordHash": "$2b$10$mWwtaSG4iwNUt0hzrX0o0emzhoHt.YQaoyllkP6LAVpJSZDHxUbAW",
+    "passwordResetTokenHash": null,
+    "passwordResetExpiresAt": null,
+    "clerkId": "local_user_e9ed2ffc45b2f812",
+    "email": "natthananoshi@gmail.com",
+    "displayName": "Oshi ' NTN",
+    "id": "63ad199b26254abe82a8e1ac",
+    "createdAt": "2026-07-25T17:53:46.448Z",
+    "updatedAt": "2026-07-25T17:53:46.448Z"
+  },
+  {
+    "role": "customer",
+    "level": 1,
+    "sellerRating": 0,
+    "sellerRatingCount": 0,
+    "stripeConnectOnboarded": false,
+    "passwordHash": "$2b$10$W0Du4XSGC.RsiD.tVOSaeeGFCr19VXKUC.wzZF5CyP7eOfXkjuVmy",
+    "passwordResetTokenHash": null,
+    "passwordResetExpiresAt": null,
+    "clerkId": "local_user_d7450081f9bd6d83",
+    "email": "test12345@example.com",
+    "displayName": "Test 12345",
+    "id": "860366d58742474088d56a6a",
+    "createdAt": "2026-07-25T18:24:09.253Z",
+    "updatedAt": "2026-07-25T18:24:09.253Z"
   }
 ]

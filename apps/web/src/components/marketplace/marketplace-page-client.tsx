@@ -123,9 +123,11 @@ export function MarketplacePageClient({
                       {l.catalogItem.rarity}
                     </span>
                   )}
-                  <span className="absolute right-2 top-2 rounded bg-gold/90 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                    {l.condition.replace("_", " ")}
-                  </span>
+                  {l.condition && (
+                    <span className="absolute right-2 top-2 rounded bg-gold/90 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                      {l.condition.replace("_", " ")}
+                    </span>
+                  )}
                 </div>
                 <div className="p-2.5">
                   <p className="truncate text-xs font-semibold text-ink leading-tight">{l.catalogItem.name}</p>
