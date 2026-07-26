@@ -127,9 +127,10 @@
 | **Data store** | JSON files (`data/*.json`) | เก็บข้อมูลหลักทั้งหมด (users, orders, listings, trades) |
 | **Data client** | `@cardverse/db` (JsonClient) | Prisma-compatible API อ่าน/เขียน JSON พร้อม file lock |
 | **Cache / Queue** | Redis 7 (optional) | BullMQ queue backend สำหรับ worker |
-| **Auth** | Clerk | sign-in/sign-up, JWT, role-based access |
-| **Payments** | Stripe + Stripe Connect | shop checkout, marketplace escrow, seller payout |
-| **Storage** | Local filesystem (`data/uploads/`) | อัปโหลดรูปสินค้า (presigned upload ผ่าน API) |
+| **Auth** | Custom JWT Auth | ลงทะเบียน, เข้าสู่ระบบ ด้วยอีเมล/รหัสผ่าน จัดเก็บแบบ Local (bcryptjs + jsonwebtoken) |
+| **Email** | Resend API (optional) | ระบบส่งเมลรีเซ็ตรหัสผ่าน (ใน dev mode จะแสดงลิงก์ใน console log เสมอ) |
+| **Payments** | Stripe + Stripe Connect | shop checkout, marketplace escrow, seller payout (รองรับเครดิตจำลอง) |
+| **Storage** | Local filesystem (`data/uploads/`) | อัปโหลดรูปสินค้า (อัปโหลดผ่าน API ตรง) |
 | **Shipping** | Flash Express API (optional) | auto-tracking webhook จากขนส่ง |
 | **i18n** | Custom i18n (TH/EN) | สลับภาษาไทย–อังกฤษ |
 | **Monorepo** | pnpm + Turborepo | จัดการ packages และ build pipeline |
@@ -158,9 +159,9 @@ flowchart TB
     end
 
     subgraph External["External Services"]
-        CLERK["Clerk<br/>Auth"]
         STRIPE["Stripe + Connect<br/>Payments / Escrow"]
         FLASH["Flash Express<br/>Tracking"]
+        RESEND["Resend API<br/>Emails"]
         N8N["n8n<br/>News Ingest"]
     end
 
@@ -171,9 +172,9 @@ flowchart TB
     API --> REDIS
     WORKER --> JSON
     WORKER --> REDIS
-    API --> CLERK
     API --> STRIPE
     API --> FLASH
+    API --> RESEND
     N8N -->|internal API| API
     STRIPE -->|webhook| API
     FLASH -->|webhook| API
@@ -183,16 +184,17 @@ flowchart TB
 
 | เทคโนโลยี | Package / App | หน้าที่เฉพาะ |
 | --- | --- | --- |
-| **Next.js 15** | `apps/web` | App Router, SSR/CSR, proxy `/backend/`* → NestJS, middleware auth |
-| **NestJS** | `apps/api` | modules: cart, orders, marketplace, payments, shipping, admin, news |
+| **Next.js 15** | `apps/web` | App Router, SSR/CSR, proxy `/backend/`* → NestJS |
+| **NestJS** | `apps/api` | modules: auth, cart, orders, marketplace, payments, shipping, admin, news, email |
 | **BullMQ Worker** | `apps/worker` | `escrow-release`, `price-aggregation`, `notification` processors |
 | **JsonClient** | `packages/db` | Prisma-compatible client อ่าน/เขียน JSON, bootstrap seed |
 | **@cardverse/shared** | `packages/shared` | enums, DTO, Zod schemas, taxonomy 20 categories |
-| **Clerk** | web + api | `@clerk/nextjs` ฝั่ง frontend, `@clerk/backend` verify JWT ฝั่ง API |
+| **Custom JWT Auth** | api | ระบบ Auth หลัก (register, login, reset-password) เช็ค JWT token ฝั่ง API |
+| **Resend API** | api | ส่งอีเมลตั้งรหัสผ่านใหม่ (Password Reset Link) |
 | **Stripe** | api | Checkout Session (shop), PaymentIntent + Connect Transfer (marketplace escrow) |
 | **Socket.IO** | web + api | `realtime` module — push recent sales ไปยัง marketplace page |
-| **Local Storage** | api (`storage`) | `POST /storage/presign` → client PUT ไปที่ API → เก็บใน `data/uploads/` |
-| **TanStack Query** | web | `useQuery` / `useMutation` สำหรับ cart, orders, listings |
+| **Local Storage** | api (`storage`) | อัปโหลดรูปภาพผ่าน endpoint ไปยังโฟลเดอร์ `data/uploads/` ของเครื่อง |
+| **TanStack Query** | web | `useQuery` / `useMutation` สำหรับดึงและอัปเดตข้อมูลบนหน้าเว็บ |
 | **Recharts** | web | กราฟราคา `PricePoint` + `Trade` บนหน้า catalog item |
 | **Turborepo** | root | `pnpm dev` รัน web + api + worker พร้อมกัน |
 | **Vitest** | api | unit tests สำหรับ business logic |
@@ -523,7 +525,7 @@ flowchart LR
 | 1. Planning | กำหนด Persona 3 กลุ่ม (Customer, Manager, Admin), ขอบเขตงาน 4 สัปดาห์ |
 | 2. Analysis | เขียน Use Case Diagram แยกตาม Actor (Customer / Manager-Admin / System), นิยาม use case หลัก 8 รายการ (UC-01 ถึง UC-08) |
 | 3. Design | ออกแบบ Class Diagram จาก domain models (40+ entities), ออกแบบ Sequence Diagram สำหรับ flow สำคัญ เช่น การซื้อขายผ่าน Escrow, ออกแบบ wireframe ด้วย Figma |
-| 4. Development | Frontend ด้วย Next.js 15 / React 19 (`apps/web`), Backend ด้วย NestJS 11 (`apps/api`), Background job ด้วย BullMQ (`apps/worker`), ใช้ JsonClient เก็บข้อมูลใน JSON files, Redis 7 สำหรับ queue (optional), Clerk สำหรับ auth, Stripe + Connect สำหรับ payment/escrow |
+| 4. Development | Frontend ด้วย Next.js 15 / React 19 (`apps/web`), Backend ด้วย NestJS 11 (`apps/api`), Background job ด้วย BullMQ (`apps/worker`), ใช้ JsonClient เก็บข้อมูลใน JSON files, Redis 7 สำหรับ queue (optional), Custom JWT สำหรับ auth, Stripe + Connect สำหรับ payment/escrow |
 | 5. Testing | Unit test ด้วย Vitest ฝั่ง API, ทำ UAT รวม 28 test case ครอบคลุมทั้ง 3 persona ผ่าน 100% (28/28) |
 | 6. Deployment | Deploy web บน Vercel, API/Worker บน Railway/Render/Fly, ข้อมูล JSON + uploads บน persistent volume, Redis บน Upstash (optional), CI/CD ผ่าน GitHub Actions (build+typecheck ทุก push, deploy เมื่อ merge เข้า main) |
 | 7. Maintenance | ติดตามตาม SLA (Availability ≥99.9%, จัดระดับ Incident L1–L4), รายงานผลรายเดือน, ทบทวนรายไตรมาส |
@@ -780,40 +782,51 @@ pnpm dev
 
 ### Demo Mode (ไม่ต้องมี API key)
 
-เมื่อ `CLERK_*` และ `STRIPE_*` ว่างอยู่ — **ทุกอย่างเป็นของจริงยกเว้น payment gateway**:
+ระบบใช้ **Custom JWT Auth** ในการจัดการบัญชีผู้ใช้งาน โดยจัดเก็บข้อมูลผู้ใช้และ password hash ทั้งหมดในเครื่อง (`data/users.json`):
 
-1. เปิด [http://localhost:3000/account](http://localhost:3000/account)
-2. เลือก role: `customer`, `manager`, หรือ `admin`
-3. กด Sign in (dev session)
-4. ไป `/account/wallet` — ได้เครดิตต้อนรับ ฿5,000 อัตโนมัติ (หรือเติมเพิ่ม)
+1. **สมัครสมาชิกใหม่**: สามารถเข้าหน้า `/sign-up` เพื่อสมัครสมาชิกได้ทันที โดยบัญชีที่สมัครใหม่จะมีสถานะเป็น `customer`
+2. **ใช้บัญชีเดโมที่เตรียมไว้ให้ (Seeded Users)**:
+   - **Customer**: `test@cardverse.local` (สามารถลงทะเบียนเพิ่มเองได้)
+   - **Admin**: `danaiwut077@gmail.com` หรือ `siwakorn.tha@spumail.net`
+   - *หมายเหตุ: สำหรับรหัสผ่านของบัญชี seed ที่สร้างขึ้นมา สามารถตรวจสอบหรือรีเซ็ตได้ผ่านระบบ forgot-password หรือใช้งานผ่านบัญชีที่ลงทะเบียนขึ้นใหม่*
+3. **การทดสอบสลับ Role**: เมื่อล็อกอินด้วยบัญชี Admin จะสามารถเข้าเมนู `/admin` เพื่อเปลี่ยนบทบาท (Role) ของผู้ใช้อื่นๆ เป็น `customer`, `manager`, หรือ `admin` ได้โดยตรงผ่านแท็บ Users
 
 | หน้า | URL | ทำอะไรได้ |
 | --- | --- | --- |
-| กระเป๋าเครดิต | `/account/wallet` | เติมเครดิต, ดูประวัติ |
+| ลงทะเบียน / เข้าสู่ระบบ | `/sign-in` , `/sign-up` | สมัครสมาชิก / ล็อกอินเข้าระบบด้วย JWT |
+| กระเป๋าเครดิต | `/account/wallet` | เติมเครดิตจำลอง, ดูประวัติการเงิน |
 | ถอนเครดิต | `/account/withdraw` | ผู้ขายขอถอน → เมเนเจอร์อนุมัติ |
 | ร้านค้า | `/shop` → `/checkout` | ซื้อด้วยเครดิต + คูปอง WELCOME10 |
-| Marketplace | `/marketplace` | ซื้อด้วยเครดิต, escrow, กราฟราคา |
+| Marketplace | `/marketplace` | ซื้อด้วยเครดิต, escrow, กราฟราคาตลาด |
 | คอลเลกชัน | `/collection` | การ์ดของฉัน + wishlist |
 | ขายของ | `/account/sell` | ลง listing, รับเครดิตเมื่อขายสำเร็จ |
-| Admin | `/admin` | products, wallet, settings, listings |
+| Admin Panel | `/admin` | จัดการ products, listings, wallet, settings, users, news |
 
 ### Production Mode
 
 ตั้งค่าใน `.env`:
 
 ```env
-# Clerk
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_..."
-CLERK_SECRET_KEY="sk_..."
-
-# Stripe
-STRIPE_SECRET_KEY="sk_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_..."
-
 # JSON data (production — mount persistent volume)
 CARDVERSE_DATA_DIR="./data"
 LOCAL_UPLOAD_DIR="./data/uploads"
+
+# Redis
+REDIS_URL="redis://localhost:6379"
+
+# Auth (JWT)
+AUTH_JWT_SECRET="your-production-jwt-secret"
+AUTH_JWT_EXPIRES_IN="7d"
+PASSWORD_RESET_EXPIRES_IN="1h"
+
+# Email (Resend API — สำหรับ reset password)
+RESEND_API_KEY="re_..."
+EMAIL_FROM="CardVerse <noreply@yourdomain.com>"
+
+# Stripe (Escrow)
+STRIPE_SECRET_KEY="sk_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_..."
 ```
 
 ### รันครั้งถัดไป
@@ -856,15 +869,14 @@ pnpm lint           # lint ทุก package
 ```
 Card_sell_Ecommerce/
 ├── apps/
-│   ├── web/          # Next.js 15 — storefront, marketplace, dashboards
-│   ├── api/          # NestJS — REST API + Socket.IO gateway
+│   ├── web/          # Next.js 15 — หน้าเว็บหลัก, marketplace, dashboard, components
+│   ├── api/          # NestJS — REST API + Socket.IO realtime server + Auth/Email
 │   └── worker/       # BullMQ — escrow release, price aggregation, notifications
 ├── packages/
-│   ├── db/           # JsonClient + JSON data bootstrap
+│   ├── db/           # JsonClient (Prisma API wrapper) + JSON data bootstrap & seeders
+│   └── shared/       # types, Zod validation schemas, taxonomy, common constants
 ├── data/             # JSON data store (users, orders, listings, …)
-│   └── uploads/      # รูปสินค้า (local filesystem)
-│   ├── shared/       # types, Zod schemas, 20-category taxonomy
-│   └── ui/           # shared React components
+│   └── uploads/      # รูปสินค้าและ avatar (local filesystem)
 ├── docs/             # design docs, n8n workflows
 ├── docker-compose.yml
 ├── .env.example
@@ -889,8 +901,9 @@ Card_sell_Ecommerce/
 - [ ] ตั้ง `REDIS_URL` เดียวกันบน api + worker (ถ้าใช้ worker)
 - [ ] ตั้ง `INTERNAL_API_SECRET` เดียวกันบน api + worker
 - [ ] ตั้ง Stripe webhook → `POST {API_URL}/payments/webhook`
-- [ ] ตั้ง Clerk webhook (ถ้าใช้) → `POST {API_URL}/auth/webhook`
-- [ ] ตั้ง `CORS_ORIGIN` เป็น production domain
+- [ ] ตั้ง `AUTH_JWT_SECRET` เป็นความลับระดับสูง และกำหนด `WEB_URL`
+- [ ] ตั้งค่า `RESEND_API_KEY` เพื่อให้ระบบส่งอีเมลลืมรหัสผ่านใช้งานได้จริง
+- [ ] ตั้ง `CORS_ORIGIN` เป็น production domain ของหน้าเว็บ
 - [ ] รัน `pnpm db:bootstrap` บน volume ก่อนเปิด service ครั้งแรก
 
 CI build + typecheck ทุก push/PR ผ่าน `[.github/workflows/ci.yml](./.github/workflows/ci.yml)`

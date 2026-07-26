@@ -15,7 +15,7 @@ flowchart TB
         Home["/ (Home)"]
         News["/news, /news/[slug]"]
         Notif["/notifications"]
-        Wish["/collection (Wishlist)"]
+        Wish["/collection (Collection)"]
     end
 
     subgraph API["⚙️ apps/api (NestJS)"]
@@ -29,11 +29,11 @@ flowchart TB
         JobQueue["Notification / Price Jobs"]
     end
 
-    subgraph DB["🗄️ packages/db (Prisma + PostgreSQL)"]
+    subgraph DB["🗄️ packages/db (JSON DB)"]
         ProductTbl[(Product)]
         NewsTbl[(NewsPost)]
         NotifTbl[(Notification)]
-        WishTbl[(WishlistItem)]
+        CollTbl[(CollectionItem)]
     end
 
     Home -->|GET /products| ProductsCtrl
@@ -44,7 +44,7 @@ flowchart TB
     ProductsCtrl --> ProductTbl
     NewsCtrl --> NewsTbl
     NotifCtrl --> NotifTbl
-    CollectionCtrl --> WishTbl
+    CollectionCtrl --> CollTbl
 
     JobQueue -.enqueues.-> NotifTbl
 ```
@@ -60,11 +60,11 @@ flowchart TB
 | Backend | `NotificationsController` / `NotificationsService` | จัดการ read/read-all |
 | Backend | `CollectionController` / `CollectionService` | จัดการ wishlist toggle (idempotent) |
 | Backend | `NewsController` / `NewsService` | ดึงรายการข่าวและรายละเอียด |
-| Data | Prisma models: `Notification`, `WishlistItem`, `NewsPost`, `CatalogItem` | เก็บข้อมูลจริงใน PostgreSQL |
+| Data | JSON DB models: `CollectionItem`, `Notification`, `NewsPost`, `CatalogItem` | Stores data in local JSON files |
 
 ---
 
-## 2. Sequence Diagram: Toggle Wishlist
+## 2. Sequence Diagram: Toggle Collection
 
 ```mermaid
 sequenceDiagram
@@ -72,7 +72,7 @@ sequenceDiagram
     participant FE as /collection (Next.js)
     participant API as CollectionController
     participant SVC as CollectionService
-    participant DB as PostgreSQL (WishlistItem)
+    participant DB as JSON DB (CollectionItem)
 
     U->>FE: Hover การ์ด แล้วคลิกปุ่ม X
     FE->>API: POST /collection/wishlist/toggle { catalogItemId }
@@ -80,10 +80,10 @@ sequenceDiagram
     SVC->>DB: หา record ที่ (userId, catalogItemId)
     alt มีอยู่แล้ว
         DB-->>SVC: พบ record
-        SVC->>DB: DELETE WishlistItem
+        SVC->>DB: DELETE CollectionItem
     else ยังไม่มี
         DB-->>SVC: ไม่พบ
-        SVC->>DB: CREATE WishlistItem
+        SVC->>DB: CREATE CollectionItem
     end
     DB-->>SVC: สำเร็จ
     SVC-->>API: ผลลัพธ์
@@ -121,9 +121,9 @@ sequenceDiagram
 ```mermaid
 erDiagram
     USER ||--o{ NOTIFICATION : receives
-    USER ||--o{ WISHLIST_ITEM : owns
+    USER ||--o{ COLLECTION_ITEM : owns
     USER ||--o{ NEWS_POST : authors
-    CATALOG_ITEM ||--o{ WISHLIST_ITEM : "referenced by"
+    CATALOG_ITEM ||--o{ COLLECTION_ITEM : "referenced by"
     CATALOG_ITEM ||--o{ COLLECTION_ITEM : "referenced by"
 
     USER {
@@ -141,7 +141,7 @@ erDiagram
         boolean read
         datetime createdAt
     }
-    WISHLIST_ITEM {
+    COLLECTION_ITEM {
         string id PK
         string userId FK
         string catalogItemId FK
